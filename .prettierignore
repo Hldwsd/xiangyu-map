@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-ssr
+coverage
+pnpm-lock.yaml
+public/maps/china.json
+public/favicon.ico
