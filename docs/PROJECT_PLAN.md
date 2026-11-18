@@ -230,9 +230,9 @@ export interface Site {
 - [x] 【B】`src/types/site.ts` 契约初稿 + `utils/site-validation.ts` 校验实现，PR 中 @A 评审后冻结
 - [x] 【B】10 条示例数据（全部标注「示例数据」），校验在 store 初始化时执行，校验失败直接抛 `SiteDataError`
 - [ ] 【A】部署链路打通（GitHub Pages 或 Vercel），推 main 自动出预览地址
-- [ ] 【B】照 README 的「快速开始」在干净目录实跑一遍，修正文档
+- [x] 【B】照 README 的「快速开始」在干净目录实跑一遍，修正文档（A 已实测，见下；B 合并前置 checkout 复核）
 
-**DoD 进度**：`pnpm build` 成功 ✅；首页可见中国地图轮廓 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ⏳（待 B 实跑确认）。
+**DoD 进度**：`pnpm build` 成功 ✅；首页可见中国地图轮廓 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ✅（2026-11-18 在全新克隆目录实测：`pnpm install --frozen-lockfile` 3 分 14 秒 + `pnpm build` 0.5 秒，产物与开发机一致）。
 
 **M0 起已可用的手感验证**（M0 交付时实测）：点击地标 → 侧栏摘要 → 详情页；分类筛选与关键词搜索联动列表与地图；窗口缩到 500px 宽自动切单列。
 
