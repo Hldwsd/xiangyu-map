@@ -44,3 +44,9 @@
 | Vue 3 + uni-app | 一套码覆盖多端很诱人，但地图交互能力受限、桌面端弱，与"地图体验优先"冲突 |
 | MapLibre GL / Leaflet + 真实底图 | 需要底图服务与合规成本，MVP 阶段收益小于成本；保留为"真实地图"阶段的候选 |
 | Electron | 包体与内存开销大，Tauri 2 已能覆盖同样场景 |
+
+## 参考
+
+- Tauri v2 稳定版 2024-10-02 发布，同时支持桌面与 iOS/Android：[Tauri 2.0 发布说明](https://github.com/tauri-apps/tauri-docs/blob/e63e51d3b6f9391db758050f278bf62447ac6eb5/src/content/docs/blog/tauri-2.0.mdx)。
+- ECharts 地图数据需自行提供与 `registerMap` 注册：[ECharts 常见问题](https://echarts.apache.org/zh/faq.html)。
+
