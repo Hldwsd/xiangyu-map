@@ -13,14 +13,14 @@
 
 ### MVP 要做（In Scope）
 
-| 能力 | 说明 |
-| --- | --- |
-| 首页中国地图 | 省界轮廓 + 地标点，支持缩放平移、悬停/点击反馈 |
-| 地标数据层 | 结构化的项目数据（含坐标、分类、图文、来源），可增删改而无需改代码逻辑 |
-| 详情展示 | 点击地标 → 详情卡/详情页，含图文、位置、季节、交通、预约入口 |
-| 发现辅助 | 按分类/省份筛选、关键词搜索、列表与地图双向联动 |
-| 响应式 | 桌面优先，兼容平板与手机浏览（触摸缩放可用） |
-| 质量基线 | 类型检查、lint、核心工具函数单测、自动部署 |
+| 能力         | 说明                                                                   |
+| ------------ | ---------------------------------------------------------------------- |
+| 首页中国地图 | 省界轮廓 + 地标点，支持缩放平移、悬停/点击反馈                         |
+| 地标数据层   | 结构化的项目数据（含坐标、分类、图文、来源），可增删改而无需改代码逻辑 |
+| 详情展示     | 点击地标 → 详情卡/详情页，含图文、位置、季节、交通、预约入口           |
+| 发现辅助     | 按分类/省份筛选、关键词搜索、列表与地图双向联动                        |
+| 响应式       | 桌面优先，兼容平板与手机浏览（触摸缩放可用）                           |
+| 质量基线     | 类型检查、lint、核心工具函数单测、自动部署                             |
 
 ### 明确不做（Out of Scope，至少 v0.3 前不做）
 
@@ -51,19 +51,22 @@
 
 ## 技术选型与版本基线
 
-选型理由与备选方案对比见 [ADR 0001](adr/0001-tech-stack.md)。版本号取自 npm registry 的 `latest`，核对日期 **2026-11-18**；脚手架落地时以当日版本为准，并把实际版本写进 `package.json`。
+选型理由与备选方案对比见 [ADR 0001](adr/0001-tech-stack.md)。`npm latest` 取自 npm registry，核对日期 **2026-11-18**；`实际落地` 是 M0 脚手架跑通后 lockfile 里的版本，两者不一致时必须在 PR 里写明原因。
 
-| 依赖 | 版本基线 | 说明 |
-| --- | --- | --- |
-| vue | 3.5.45 | 组合式 API + `<script setup>` |
-| vue-router | 5.5.1 | 路由与深链 |
-| pinia | 4.1.0 | 筛选条件、选中地标、视图状态 |
-| echarts | 6.1.0 | geo/map + scatter，按需引入 |
-| vite | 8.3.8 | 要求 Node `^20.19.0 \|\| >=22.12.0` |
-| typescript | 7.0.2 | 若 `vue-tsc`/ESLint 生态尚未适配，回退 5.x 并在 PR 里记录原因 |
-| vitest | 5.1.1 | 单测 |
-| @tauri-apps/cli | 2.12.5 | M4 桌面/移动壳预研 |
-| @capacitor/core | 8.6.2 | M4 移动端备选方案 |
+| 依赖            | npm latest | 实际落地 | 说明                                                                                     |
+| --------------- | ---------- | -------- | ---------------------------------------------------------------------------------------- |
+| vue             | 3.5.45     | 3.5.45   | 组合式 API + `<script setup>`                                                            |
+| vue-router      | 5.5.1      | 5.5.1    | 路由与深链                                                                               |
+| pinia           | 4.1.0      | 4.1.0    | 筛选条件、选中地标、视图状态                                                             |
+| echarts         | 6.1.0      | 6.1.0    | geo + scatter，按需引入（首屏 JS 224.7 KB gzip）                                         |
+| vite            | 8.3.8      | 8.3.8    | 要求 Node `^20.19.0 \|\| >=22.12.0`                                                      |
+| typescript      | 7.0.2      | 6.0.3    | **回退分支已触发**：`vue-tsc` 3.3 尚不支持 TS 7，先用 6.0.x                              |
+| vitest          | 5.1.1      | 4.1.12   | 跟随 create-vue 官方模板的组合（模板锁 `vitest ^4.1.11` + `vite ^8.2.2`），升级单独开 PR |
+| prettier        | —          | 3.10.1   | 格式化；CI 跑 `format:check`                                                             |
+| @tauri-apps/cli | 2.12.5     | —        | M4 引入                                                                                  |
+| @capacitor/core | 8.6.2      | —        | M4 备选方案                                                                              |
+
+版本以 `pnpm-lock.yaml` 为唯一准绳，本表只用于回答「为什么是这几个」。
 
 运行环境：Node.js 24 LTS（开发机实测 v24.12.0），pnpm 用 corepack 锁定（开发机当前 11.22.0，npm latest 为 12.21.0，升级单独开 PR）。
 
@@ -73,26 +76,29 @@
 
 ```text
 xiangyu-map/
-├─ docs/                      # 规划、协作规范、ADR
+├─ docs/                          # 规划、协作规范、ADR
 ├─ public/
-│  ├─ maps/china.json         # 中国地图 GeoJSON（M0 落地，需注明来源）
-│  └─ images/sites/           # 项目图片，按 site id 建目录
+│  ├─ maps/china.json             # 中国地图 GeoJSON（35 个要素，568.9 KB / gzip 192.8 KB）
+│  ├─ maps/README.md              # 底图来源、sha256、合规提示
+│  └─ images/placeholder.svg      # 示例数据统一占位图；正式图放 images/sites/<id>/
+├─ scripts/fetch-china-map.mjs    # 重新抓取底图（pnpm data:china-map）
 ├─ src/
+│  ├─ assets/main.css             # 设计变量与全局样式
 │  ├─ components/
-│  │  ├─ map/                 # 地图容器、地标层、图例、Tooltip
-│  │  └─ site/                # 详情卡、画廊、列表项
-│  ├─ data/sites.ts           # 地标数据（M0 起为示例数据）
-│  ├─ router/index.ts         # / 与 /site/:id
-│  ├─ stores/                 # Pinia：filters、selection
-│  ├─ types/site.ts           # 数据契约（双方评审后冻结）
-│  ├─ utils/                  # 坐标、格式化、数据校验
-│  ├─ views/
-│  │  ├─ HomeView.vue
-│  │  └─ SiteDetailView.vue
+│  │  ├─ map/ChinaMap.vue         # 唯一创建/销毁 ECharts 实例的地方
+│  │  ├─ map/china-map-option.ts  # 纯函数构建 option（可直接单测）
+│  │  └─ site/CategoryFilter.vue、site/SitePanel.vue
+│  ├─ data/sites.ts               # 地标数据（当前 10 条示例）
+│  ├─ router/index.ts             # / 与 /site/:id（详情页按需加载）
+│  ├─ services/china-map-loader.ts # 底图加载与缓存，全站唯一的 fetch 出口
+│  ├─ stores/sites.ts             # 数据 + 筛选 + 选中态
+│  ├─ types/site.ts               # 数据契约（双方评审后冻结）
+│  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
+│  ├─ views/HomeView.vue、views/SiteDetailView.vue
+│  ├─ __tests__/                  # Vitest 单测（4 个文件 / 37 个用例）
 │  ├─ App.vue
 │  └─ main.ts
-├─ tests/                     # Vitest 单测
-├─ .github/                   # PR / Issue 模板（CI 在 M0 补齐）
+├─ .github/workflows/ci.yml       # PR 上跑 lint / format / typecheck / test / build
 ├─ package.json
 └─ vite.config.ts
 ```
@@ -106,15 +112,12 @@ xiangyu-map/
 示意（仅说明接入方式，落地后以 `src/` 实现为准）：
 
 ```ts
-import * as echarts from 'echarts/core'
-import { MapChart, ScatterChart } from 'echarts/charts'
-import { GeoComponent, TooltipComponent } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
+// src/services/china-map-loader.ts —— 全站唯一调用 fetch 的地方
+const geoJson = await loadChinaMap() // 同一会话只请求一次，失败清缓存可重试
 
-echarts.use([MapChart, ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
-
-const geo = await fetch('/maps/china.json').then((r) => r.json())
-echarts.registerMap('china', geo)
+// src/components/map/ChinaMap.vue —— 唯一持有实例的地方
+echarts.registerMap(CHINA_MAP_NAME, geoJson)
+chart.value?.setOption(buildChinaMapOption(sites, selectedId))
 ```
 
 ## 数据模型与约定
@@ -130,26 +133,26 @@ export interface LngLat {
 }
 
 export interface Site {
-  id: string           // 稳定 slug，如 'wuzhen'，一旦上线不可改（详情页深链依赖）
+  id: string // 稳定 slug，如 'wuzhen'，一旦上线不可改（详情页深链依赖）
   name: string
   category: SiteCategory
-  province: string     // 省级行政区全称，如 '浙江省'
+  province: string // 省级行政区全称，如 '浙江省'
   city: string
-  location: LngLat     // GCJ-02（高德坐标拾取器取点）
-  summary: string      // ≤ 60 字，地图侧栏与列表用
-  description: string  // 详情页正文，Markdown
-  cover: string        // public/images/sites/<id>/cover.webp
+  location: LngLat // GCJ-02（高德坐标拾取器取点）
+  summary: string // ≤ 60 字，地图侧栏与列表用
+  description: string // 详情页正文，纯文本；空行分段
+  cover: string // 封面：正式图 public/images/sites/<id>/cover.webp，示例数据用占位图
   gallery: string[]
   tags: string[]
   bestSeason?: string
   transport?: string
   bookingUrl?: string
-  sources: string[]    // 资料与图片来源，必填，便于版权追溯
-  updatedAt: string    // ISO 8601，如 '2026-11-18T10:00:00+08:00'
+  sources: string[] // 资料与图片来源，必填，便于版权追溯
+  updatedAt: string // 最后更新日期，YYYY-MM-DD
 }
 ```
 
-示例数据（**示意数据**：坐标为近似占位值，正式数据由 B 在 M0–M2 补齐并附来源）：
+示例数据（**示例占位**：坐标是近似值、文案为编辑示例、来源为 example.com 占位；正式数据入库前必须补可核验来源）：
 
 ```json
 {
@@ -158,47 +161,47 @@ export interface Site {
   "category": "古镇",
   "province": "浙江省",
   "city": "嘉兴市",
-  "location": { "lng": 120.49, "lat": 30.745 },
-  "summary": "枕水人家，西栅夜景与戏剧节是两次不同理由的重访。",
-  "description": "江南六大古镇之一，东栅偏生活、西栅偏度假，建议住一晚。",
-  "cover": "/images/sites/wuzhen/cover.webp",
-  "gallery": ["/images/sites/wuzhen/01.webp"],
-  "tags": ["水乡", "夜景", "戏剧节"],
-  "bestSeason": "3–5 月、9–11 月",
-  "bookingUrl": "https://example.com/booking",
-  "sources": ["https://example.com/source"],
-  "updatedAt": "2026-11-18T10:00:00+08:00"
+  "location": { "lng": 120.49, "lat": 30.74 },
+  "summary": "水网穿镇而过，东西栅气质不同：东栅偏市井，西栅的夜灯与河道更容易被记住。",
+  "description": "乌镇沿河成街，石桥、廊棚与水阁构成典型的江南水乡格局。",
+  "cover": "/images/placeholder.svg",
+  "gallery": [],
+  "tags": ["示例数据", "水乡", "夜游", "古镇"],
+  "bestSeason": "3-5 月、9-11 月",
+  "transport": "桐乡站转公交约 30 分钟，或从杭州、上海自驾直达。",
+  "sources": ["https://example.com/sites/wuzhen"],
+  "updatedAt": "2026-11-18"
 }
 ```
 
 字段规则：
 
-| 规则 | 内容 |
-| --- | --- |
-| 分类 | 只用 `SiteCategory` 六个值；新增分类需改类型 + 图例配色，单独 PR |
+| 规则 | 内容                                                                                                 |
+| ---- | ---------------------------------------------------------------------------------------------------- |
+| 分类 | 只用 `SiteCategory` 六个值；新增分类需改类型 + 图例配色，单独 PR                                     |
 | 坐标 | 统一 GCJ-02；若 geoJSON 底图与取点存在明显偏移（> 1km），统一做一次 WGS-84 → GCJ-02 转换，不逐条手改 |
-| 图片 | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放 |
-| 来源 | `sources` 必填：官方站点、开放数据或授权素材；无来源数据不入库 |
-| 校验 | 数据在构建期用脚本校验（id 唯一、枚举合法、坐标在国内范围、summary 长度），CI 里必须通过 |
+| 图片 | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放                              |
+| 来源 | `sources` 必填：官方站点、开放数据或授权素材；无来源数据不入库                                       |
+| 校验 | 数据在构建期用脚本校验（id 唯一、枚举合法、坐标在国内范围、summary 长度），CI 里必须通过             |
 
 ## 团队与分工
 
-| 成员 | 标识 | 侧重 |
-| --- | --- | --- |
-| Hldwsd（DaiBaikun） | A | 工程基建、地图渲染内核、构建部署、桌面/移动壳、发布 |
-| xc3122 | B | 数据模型与内容管线、详情页与信息架构、筛选搜索、测试与规范 |
+| 成员                | 标识 | 侧重                                                       |
+| ------------------- | ---- | ---------------------------------------------------------- |
+| Hldwsd（DaiBaikun） | A    | 工程基建、地图渲染内核、构建部署、桌面/移动壳、发布        |
+| xc3122              | B    | 数据模型与内容管线、详情页与信息架构、筛选搜索、测试与规范 |
 
 按**功能纵切**分工，避免两人改同一批文件：
 
-| 模块 | 主责 | 评审 |
-| --- | --- | --- |
-| 脚手架、构建、CI、部署、Release | A | B |
-| 地图渲染与交互（`components/map/`） | A | B |
-| 地标数据与校验脚本（`data/`、`utils/`） | B | A |
-| 详情页与信息架构（`views/SiteDetailView.vue`） | B | A |
-| 筛选 / 搜索 / 列表联动（`stores/`、`components/site/`） | B | A |
-| 桌面 / 移动壳（M4） | A | B |
-| 文档 | 各模块作者 | 对方 |
+| 模块                                                    | 主责       | 评审 |
+| ------------------------------------------------------- | ---------- | ---- |
+| 脚手架、构建、CI、部署、Release                         | A          | B    |
+| 地图渲染与交互（`components/map/`）                     | A          | B    |
+| 地标数据与校验脚本（`data/`、`utils/`）                 | B          | A    |
+| 详情页与信息架构（`views/SiteDetailView.vue`）          | B          | A    |
+| 筛选 / 搜索 / 列表联动（`stores/`、`components/site/`） | B          | A    |
+| 桌面 / 移动壳（M4）                                     | A          | B    |
+| 文档                                                    | 各模块作者 | 对方 |
 
 协作机制（细节见 [COLLABORATION.md](COLLABORATION.md)）：契约先行、短分支、PR 互评、每周复盘一次。出现分歧时，**先由提出人写 3 行 ADR 草案**（背景/方案/代价），对方 24 小时内表态，仍不一致则按"先做能跑通的最小方案，M3 复盘时再评估替换"处理，不阻塞进度。
 
@@ -206,13 +209,13 @@ export interface Site {
 
 6 周（M0–M3）做出 v0.1.0 网页可用版，再用 2 周（M4）做多端预研，合计 8 周。起始周为 2026-11-18（周三）所在周。
 
-| 里程碑 | 周期 | 日期 | 一句话目标 |
-| --- | --- | --- | --- |
-| M0 基建 | W1 | 2026-11-18 ~ 11-24 | 脚手架、CI、地图能渲染、数据契约定稿 |
-| M1 地图内核 | W2–W3 | 2026-11-25 ~ 12-08 | 地图上出现可点、可缩放、可筛选的地标 |
-| M2 内容与交互 | W4–W5 | 2026-12-09 ~ 12-22 | 详情页、搜索、列表联动、三档响应式 |
-| M3 质量与上线 | W6 | 2026-12-23 ~ 12-29 | 质量闸门 + 自动部署 + v0.1.0 发布 |
-| M4 多端预研 | W7–W8 | 2026-12-30 ~ 2027-01-12 | Tauri 桌面壳跑通，移动端方案出 ADR |
+| 里程碑        | 周期  | 日期                    | 一句话目标                           |
+| ------------- | ----- | ----------------------- | ------------------------------------ |
+| M0 基建       | W1    | 2026-11-18 ~ 11-24      | 脚手架、CI、地图能渲染、数据契约定稿 |
+| M1 地图内核   | W2–W3 | 2026-11-25 ~ 12-08      | 地图上出现可点、可缩放、可筛选的地标 |
+| M2 内容与交互 | W4–W5 | 2026-12-09 ~ 12-22      | 详情页、搜索、列表联动、三档响应式   |
+| M3 质量与上线 | W6    | 2026-12-23 ~ 12-29      | 质量闸门 + 自动部署 + v0.1.0 发布    |
+| M4 多端预研   | W7–W8 | 2026-12-30 ~ 2027-01-12 | Tauri 桌面壳跑通，移动端方案出 ADR   |
 
 > W7 含元旦假期，排期已按 3 天余额估算；春节（2027-02-06）在窗口之外，不影响。
 
@@ -220,16 +223,18 @@ export interface Site {
 
 目标：一条命令起服务，一条命令出构建，地图能画出来，数据有契约。
 
-- [ ] 【A】Vite + Vue 3 + TS 脚手架；`package.json` 写入 `engines` 与 `packageManager`，提交 `pnpm-lock.yaml`
-- [ ] 【A】ESLint（flat config）+ Prettier + `vue-tsc --noEmit` + Vitest 空跑通过
-- [ ] 【A】GitHub Actions：PR 上跑 `lint` / `typecheck` / `test` / `build`
-- [ ] 【A】`public/maps/china.json` 落地，`registerMap` 渲染出省界，页面注明来源与审图号占位
-- [ ] 【B】`src/types/site.ts` 契约初稿，PR 中 @A 评审后冻结
-- [ ] 【B】10 条示例数据 + 数据校验脚本（构建期执行，CI 必过）
+- [x] 【A】Vite + Vue 3 + TS 脚手架；`package.json` 写入 `engines` 与 `packageManager`，提交 `pnpm-lock.yaml`
+- [x] 【A】ESLint（flat config）+ Prettier + `vue-tsc --build` + Vitest 通过（4 个文件 / 37 个用例）
+- [x] 【A】GitHub Actions：PR 上跑 `lint` / `format:check` / `type-check` / `test:unit` / `build`
+- [x] 【A】`public/maps/china.json` 落地（35 要素，gzip 192.8 KB），`registerMap` 渲染出国界与省界，页脚与 `public/maps/README.md` 注明来源、审图号待办
+- [x] 【B】`src/types/site.ts` 契约初稿 + `utils/site-validation.ts` 校验实现，PR 中 @A 评审后冻结
+- [x] 【B】10 条示例数据（全部标注「示例数据」），校验在 store 初始化时执行，校验失败直接抛 `SiteDataError`
 - [ ] 【A】部署链路打通（GitHub Pages 或 Vercel），推 main 自动出预览地址
 - [ ] 【B】照 README 的「快速开始」在干净目录实跑一遍，修正文档
 
-**DoD**：`pnpm build` 成功；首页可见中国地图轮廓；CI 在 PR 上必跑；新同学按 README 能在 10 分钟内跑起来。
+**DoD 进度**：`pnpm build` 成功 ✅；首页可见中国地图轮廓 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ⏳（待 B 实跑确认）。
+
+**M0 起已可用的手感验证**（M0 交付时实测）：点击地标 → 侧栏摘要 → 详情页；分类筛选与关键词搜索联动列表与地图；窗口缩到 500px 宽自动切单列。
 
 ### M1 地图内核（W2–W3）
 
@@ -281,28 +286,29 @@ export interface Site {
 
 ## 工程与质量标准
 
-| 项 | 标准 |
-| --- | --- |
-| 类型 | `strict: true`，禁止 `any`（确需时写 `unknown` + 收窄，并注释原因） |
-| Lint | ESLint + Prettier，提交前 `pnpm lint` 零 warning |
-| 测试 | Vitest；核心数据/工具/筛选逻辑覆盖率 ≥ 70%；E2E 在 M3 按需补 Playwright |
-| 提交 | Conventional Commits，正文写「为什么」；一个 commit 只做一件事 |
-| 评审 | 每个 PR 至少 1 个 approve；作者不能自己合自己的 PR |
-| 依赖 | 新增运行时依赖需在 PR 说明体积与替代方案；单次新增 ≥ 100 KB（gzip）需双方同意 |
-| 性能预算 | 首屏 JS ≤ 300 KB（gzip）；GeoJSON ≤ 250 KB（gzip）；LCP ≤ 2.5s；交互 ≥ 50fps |
-| 兼容 | 最近两个大版本的 Chrome / Edge / Safari / Firefox；iOS Safari 15+；忽略 IE |
+| 项       | 标准                                                                          |
+| -------- | ----------------------------------------------------------------------------- |
+| 类型     | `strict: true`，禁止 `any`（确需时写 `unknown` + 收窄，并注释原因）           |
+| Lint     | ESLint + Prettier，提交前 `pnpm lint` 零 warning                              |
+| 测试     | Vitest；核心数据/工具/筛选逻辑覆盖率 ≥ 70%；E2E 在 M3 按需补 Playwright       |
+| 提交     | Conventional Commits，正文写「为什么」；一个 commit 只做一件事                |
+| 评审     | 每个 PR 至少 1 个 approve；作者不能自己合自己的 PR                            |
+| 依赖     | 新增运行时依赖需在 PR 说明体积与替代方案；单次新增 ≥ 100 KB（gzip）需双方同意 |
+| 性能预算 | 首屏 JS ≤ 300 KB（gzip）；GeoJSON ≤ 250 KB（gzip）；LCP ≤ 2.5s；交互 ≥ 50fps  |
+| 兼容     | 最近两个大版本的 Chrome / Edge / Safari / Firefox；iOS Safari 15+；忽略 IE    |
 
 ## 风险与对策
 
-| 风险 | 概率 | 影响 | 对策 |
-| --- | --- | --- | --- |
-| **地图合规**：公开登载中国地图需地图审核、标注审图号；互联网地图服务还涉及测绘资质 | 中 | 高（可能被迫下线） | M0 就定底图来源（优先使用官方标准地图服务或已授权底图），页面显著位置标注审图号与来源；上线前向自然资源主管部门/法务确认；先内测不公开访问。依据：《地图管理条例》与自然资源部、工信部 2024 年《关于规范移动互联网应用程序中登载使用地图行为的通知》要求履行地图审核并标示审图号 |
-| GeoJSON 体积过大导致首屏慢 | 高 | 中 | 简化边界精度（保留国界与省界）、gzip/brotli、按需加载（先渲染轮廓再补细节）、必要时按大区分片 |
-| 移动端地图手势与页面滚动冲突 | 高 | 中 | 用 `touch-action` 与 roam 手势边界控制；进入地图区域时才接管手势；真机测试纳入 M1 DoD |
-| 两人并行改同一文件冲突 | 中 | 中 | 功能纵切 + 契约先行；`types/`、`router/`、`main.ts` 改动在 PR 里 @对方；分支存活 ≤ 3 天 |
-| 文旅数据真实性与图片版权 | 高 | 中 | `sources` 必填、图片只用授权/自有素材、示例数据显式标注；上线前做一次全量抽查 |
-| 后续多端迁移成本 | 中 | 中 | 核心逻辑与平台壳分离；不在组件里直接调浏览器 API（统一走 utils）；M4 用小壳验证而非大改 |
-| TS 7 / Vue 生态适配滞后 | 中 | 低 | 脚手架阶段若 `vue-tsc` 或 ESLint 解析器不支持，回退 TypeScript 5.x 并在 PR 记录 |
+| 风险                                                                               | 概率 | 影响               | 对策                                                                                                                                                                                                                                                                             |
+| ---------------------------------------------------------------------------------- | ---- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **地图合规**：公开登载中国地图需地图审核、标注审图号；互联网地图服务还涉及测绘资质 | 中   | 高（可能被迫下线） | M0 就定底图来源（优先使用官方标准地图服务或已授权底图），页面显著位置标注审图号与来源；上线前向自然资源主管部门/法务确认；先内测不公开访问。依据：《地图管理条例》与自然资源部、工信部 2024 年《关于规范移动互联网应用程序中登载使用地图行为的通知》要求履行地图审核并标示审图号 |
+| GeoJSON 体积过大导致首屏慢                                                         | 高   | 中                 | 简化边界精度（保留国界与省界）、gzip/brotli、按需加载（先渲染轮廓再补细节）、必要时按大区分片                                                                                                                                                                                    |
+| 移动端地图手势与页面滚动冲突                                                       | 高   | 中                 | 用 `touch-action` 与 roam 手势边界控制；进入地图区域时才接管手势；真机测试纳入 M1 DoD                                                                                                                                                                                            |
+| 两人并行改同一文件冲突                                                             | 中   | 中                 | 功能纵切 + 契约先行；`types/`、`router/`、`main.ts` 改动在 PR 里 @对方；分支存活 ≤ 3 天                                                                                                                                                                                          |
+| 文旅数据真实性与图片版权                                                           | 高   | 中                 | `sources` 必填、图片只用授权/自有素材、示例数据显式标注；上线前做一次全量抽查                                                                                                                                                                                                    |
+| 后续多端迁移成本                                                                   | 中   | 中                 | 核心逻辑与平台壳分离；不在组件里直接调浏览器 API（统一走 utils）；M4 用小壳验证而非大改                                                                                                                                                                                          |
+| TS 7 / Vue 生态适配滞后                                                            | 中   | 低                 | **已触发**：`vue-tsc` 3.3 尚不支持 TS 7，M0 落地为 TypeScript 6.0.3（见本 PR 说明）；待生态跟进后单独开 PR 升级                                                                                                                                                                  |
+| 依赖下载失败（镜像抖动/超时）                                                      | 中   | 低                 | CI 用 `--frozen-lockfile`；本地首次安装失败时用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3`，不要删 lockfile 重装                                                                                                                           |
 
 ## 度量与复盘
 
@@ -323,4 +329,3 @@ export interface Site {
 - 国家测绘局《关于加强互联网地图管理工作的通知》（国测图发〔2009〕6 号）：未经依法审核批准的互联网地图不得公开登载，[原文](https://f.mnr.gov.cn/202105/t20210510_2631406.html)。
 - Apache ECharts 常见问题（地图数据不随包提供，需自行注册 GeoJSON）：https://echarts.apache.org/zh/faq.html。
 - Tauri 2.0 稳定版发布说明（桌面 + iOS/Android）：[发布博客](https://github.com/tauri-apps/tauri-docs/blob/e63e51d3b6f9391db758050f278bf62447ac6eb5/src/content/docs/blog/tauri-2.0.mdx)。
-

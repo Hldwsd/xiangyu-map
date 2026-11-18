@@ -14,31 +14,58 @@
 
 ## 当前状态
 
-仓库刚刚初始化，代码尚未开始：正在执行 **M0 基建**（脚手架、地图资源、数据契约）。进度以 [规划文档的里程碑表](docs/PROJECT_PLAN.md#里程碑与排期) 为准，本文件不再重复排期，避免两处漂移。
+**M0 基建已落地**（脚手架、地图渲染、数据契约、CI）。现在跑起来能看到：中国地图轮廓与省界、10 个可点击的分类地标、点击后侧栏摘要、`/site/:id` 详情页、分类筛选与关键词搜索、窄屏自动切单列。
+
+- 地标数据是 **10 条示例占位数据**（坐标近似、文案为编辑示例、`sources` 指向 example.com），图上与详情页都有「示例数据」标注，正式内容在 M1–M2 替换；
+- 底图用 DataV.GeoAtlas 的公开中国 GeoJSON 做开发期示意，来源、sha256 与合规待办记在 [public/maps/README.md](public/maps/README.md)，**上线前必须确认审图号**；
+- 部署链路（M0 最后一项）尚未接，线上地址暂无。
+
+进度以 [规划文档的里程碑表](docs/PROJECT_PLAN.md#里程碑与排期) 为准，本文件不重复排期，避免两处漂移。
 
 ## 技术栈
 
 选型理由见 [ADR 0001](docs/adr/0001-tech-stack.md)。
 
-| 层 | 选型 |
-| --- | --- |
-| 框架 | Vue 3 + TypeScript + Vite |
-| 地图可视化 | Apache ECharts（geo/map + scatter） |
-| 路由 / 状态 | Vue Router / Pinia |
-| 包管理 | pnpm（用 corepack 锁版本） |
-| 质量 | ESLint + Prettier + Vitest |
+| 层           | 选型                                        |
+| ------------ | ------------------------------------------- |
+| 框架         | Vue 3 + TypeScript + Vite                   |
+| 地图可视化   | Apache ECharts 6（geo + scatter，按需引入） |
+| 路由 / 状态  | Vue Router / Pinia                          |
+| 包管理       | pnpm（`packageManager` 字段锁 11.22.0）     |
+| 质量         | ESLint + Prettier + Vitest                  |
 | 多端（后续） | Tauri 2（桌面 + 移动壳），M4 对比 Capacitor |
 
 ## 快速开始
 
-> 脚手架在 M0 提交后可用；当前仓库只有文档。
+环境要求：Node.js `^22.18.0 || >=24.12.0`（开发机实测 v24.12.0）、pnpm 11。
 
 ```bash
 git clone https://github.com/Hldwsd/xiangyu-map.git
 cd xiangyu-map
 pnpm install
-pnpm dev
+pnpm dev          # http://localhost:5173
 ```
+
+常用命令：
+
+| 命令                  | 作用                                       |
+| --------------------- | ------------------------------------------ |
+| `pnpm dev`            | 本地开发（HMR）                            |
+| `pnpm build`          | 类型检查 + 生产构建（CI 与本地都跑这一条） |
+| `pnpm preview`        | 预览 `dist/`                               |
+| `pnpm test:unit`      | 单元测试（`--run` 跑一次）                 |
+| `pnpm lint`           | ESLint（`lint:fix` 自动修）                |
+| `pnpm format`         | Prettier 格式化（`format:check` 只校验）   |
+| `pnpm data:china-map` | 重新抓取底图到 `public/maps/china.json`    |
+
+首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
+
+## 数据与底图
+
+- **地标数据**：`src/data/sites.ts`，字段契约在 `src/types/site.ts`（改字段需双方在 PR 确认）。新增一个项目 = 加一条数据 + 放图，不动组件代码。
+- **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、坐标在国内范围、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
+- **底图**：`public/maps/china.json`，由 `pnpm data:china-map` 从 DataV.GeoAtlas 抓取并校验，详见 [public/maps/README.md](public/maps/README.md)。
+- **图片来源**：正式图片放 `public/images/sites/<id>/`（WebP，单张 ≤ 300 KB），示例数据统一用 `public/images/placeholder.svg`。
 
 ## 目录结构
 
