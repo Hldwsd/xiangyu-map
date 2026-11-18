@@ -10,15 +10,15 @@
 
 ## 决策
 
-| 层 | 选型 | 版本基线（2026-11-18 npm latest） |
-| --- | --- | --- |
-| 框架 | Vue 3（组合式 API + `<script setup>`） | 3.5.45 |
-| 构建 | Vite | 8.3.8 |
-| 语言 | TypeScript | 7.0.2（生态不适配则回退 5.x） |
-| 地图 | Apache ECharts（geo/map + scatter） | 6.1.0 |
-| 路由/状态 | Vue Router / Pinia | 5.5.1 / 4.1.0 |
-| 包管理 | pnpm（corepack 锁定） | 开发机 11.22.0 |
-| 多端壳（M4） | Tauri 2（桌面 + 移动），Capacitor 作备选 | 2.12.5 / 8.6.2 |
+| 层           | 选型                                     | 版本基线（2026-11-18 npm latest） |
+| ------------ | ---------------------------------------- | --------------------------------- |
+| 框架         | Vue 3（组合式 API + `<script setup>`）   | 3.5.45                            |
+| 构建         | Vite                                     | 8.3.8                             |
+| 语言         | TypeScript                               | 7.0.2（生态不适配则回退 5.x）     |
+| 地图         | Apache ECharts（geo/map + scatter）      | 6.1.0                             |
+| 路由/状态    | Vue Router / Pinia                       | 5.5.1 / 4.1.0                     |
+| 包管理       | pnpm（corepack 锁定）                    | 开发机 11.22.0                    |
+| 多端壳（M4） | Tauri 2（桌面 + 移动），Capacitor 作备选 | 2.12.5 / 8.6.2                    |
 
 ## 理由
 
@@ -38,15 +38,14 @@
 
 ## 备选方案
 
-| 方案 | 放弃原因 |
-| --- | --- |
-| React + Vite + ECharts | 团队熟悉度低，本项目没有需要 React 生态的诉求 |
-| Vue 3 + uni-app | 一套码覆盖多端很诱人，但地图交互能力受限、桌面端弱，与"地图体验优先"冲突 |
+| 方案                             | 放弃原因                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| React + Vite + ECharts           | 团队熟悉度低，本项目没有需要 React 生态的诉求                            |
+| Vue 3 + uni-app                  | 一套码覆盖多端很诱人，但地图交互能力受限、桌面端弱，与"地图体验优先"冲突 |
 | MapLibre GL / Leaflet + 真实底图 | 需要底图服务与合规成本，MVP 阶段收益小于成本；保留为"真实地图"阶段的候选 |
-| Electron | 包体与内存开销大，Tauri 2 已能覆盖同样场景 |
+| Electron                         | 包体与内存开销大，Tauri 2 已能覆盖同样场景                               |
 
 ## 参考
 
 - Tauri v2 稳定版 2024-10-02 发布，同时支持桌面与 iOS/Android：[Tauri 2.0 发布说明](https://github.com/tauri-apps/tauri-docs/blob/e63e51d3b6f9391db758050f278bf62447ac6eb5/src/content/docs/blog/tauri-2.0.mdx)。
 - ECharts 地图数据需自行提供与 `registerMap` 注册：[ECharts 常见问题](https://echarts.apache.org/zh/faq.html)。
-
