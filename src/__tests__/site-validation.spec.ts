@@ -107,6 +107,59 @@ describe('validateSites', () => {
     broken['updatedAt'] = '2026/11/18'
     expect(expectProblems([broken]).some((problem) => problem.includes('YYYY-MM-DD'))).toBe(true)
   })
+
+  it('province 用简称时报错', () => {
+    const broken = validSite()
+    broken['province'] = '山西'
+    expect(expectProblems([broken]).some((problem) => problem.includes('省级行政区全称'))).toBe(
+      true,
+    )
+  })
+
+  it('坐标落在境外时报错', () => {
+    const broken = validSite()
+    // 东京：全球范围合法，但不在中国外包框内，对应「抄错一位 / 经纬度写反」
+    broken['location'] = { lng: 139.7, lat: 35.7 }
+    expect(expectProblems([broken]).some((problem) => problem.includes('不在中国范围内'))).toBe(
+      true,
+    )
+  })
+
+  it('updatedAt 是非法日期时报错', () => {
+    for (const value of ['2026-13-01', '2026-02-30']) {
+      const broken = validSite()
+      broken['updatedAt'] = value
+      expect(expectProblems([broken]).some((problem) => problem.includes('不是真实日期'))).toBe(
+        true,
+      )
+    }
+  })
+
+  it('cover 允许占位图，也允许与 id 一致的正式图', () => {
+    expect(validateSites([validSite()])).toHaveLength(1)
+
+    const withRealCover = validSite()
+    withRealCover['cover'] = '/images/sites/demo-site/cover.webp'
+    expect(validateSites([withRealCover])).toHaveLength(1)
+  })
+
+  it('cover 目录与 id 不一致时报错', () => {
+    const broken = validSite()
+    broken['cover'] = '/images/sites/other-site/cover.webp'
+    expect(expectProblems([broken]).some((problem) => problem.includes('不一致'))).toBe(true)
+  })
+
+  it('gallery 图片目录与 id 不一致时报错', () => {
+    const broken = validSite()
+    broken['gallery'] = ['/images/sites/other-site/01.webp']
+    expect(expectProblems([broken]).some((problem) => problem.includes('gallery[0]'))).toBe(true)
+  })
+
+  it('gallery 非 webp 时报错', () => {
+    const broken = validSite()
+    broken['gallery'] = ['/images/sites/demo-site/01.jpg']
+    expect(expectProblems([broken]).some((problem) => problem.includes('.webp'))).toBe(true)
+  })
 })
 
 describe('isSiteCategory', () => {
