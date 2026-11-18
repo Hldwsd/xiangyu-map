@@ -1,0 +1,16 @@
+# 统一换行符，避免 Windows/macOS 混用时整文件 diff
+* text=auto eol=lf
+
+# 二进制资源不做文本转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# 地图数据按文本处理（便于 review diff）
+*.geojson text eol=lf
+*.json text eol=lf

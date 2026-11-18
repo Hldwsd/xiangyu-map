@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 项目规划
+    url: https://github.com/Hldwsd/xiangyu-map/blob/main/docs/PROJECT_PLAN.md
+    about: 先看里程碑、范围与分工，再决定要不要开 Issue
+  - name: 协作规范
+    url: https://github.com/Hldwsd/xiangyu-map/blob/main/docs/COLLABORATION.md
+    about: 分支、提交、PR 与评审规则

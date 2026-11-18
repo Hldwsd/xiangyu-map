@@ -1,0 +1,53 @@
+name: Bug 报告
+description: 地图、详情页、交互或构建出问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请确认：清缓存后能否复现、是否已在最新 `main` 上复现。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 现象
+      description: 实际发生了什么，报错信息请原样贴出
+      placeholder: 点击西藏的地标后，侧栏空白，控制台报 ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      placeholder: 应显示项目摘要，并可通过「查看详情」进入 /site/:id
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开首页
+        2. 地图缩放到西藏
+        3. 点击地标
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      description: 浏览器与版本、系统、屏幕宽度（移动端请写机型）
+      placeholder: Chrome 142 / Windows 11 / 1440px
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 影响程度
+      options:
+        - 阻塞（主流程走不通）
+        - 严重（功能错误但有替代路径）
+        - 一般（体验/样式问题）
+        - 轻微（文案、细节）
+    validations:
+      required: true

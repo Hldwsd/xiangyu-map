@@ -1,0 +1,41 @@
+name: 功能建议
+description: 提出新功能或对现有体验的改进
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先对照 [项目规划](../blob/main/docs/PROJECT_PLAN.md) 的「目标与范围」：不在 MVP 内的需求可以先记下来，但会被排到 M3 之后。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 谁在什么场景下遇到什么困难
+      placeholder: 用户想按「季节」规划路线，但现在只能按分类筛。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 你希望它怎么工作（可以用草图描述）
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案 / 不做的理由
+      description: 有没有更轻量的做法？这个需求可以不做吗？
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: 建议里程碑
+      options:
+        - M1 地图内核
+        - M2 内容与交互
+        - M3 质量与上线
+        - M4 多端预研
+        - 待定 / 只记录
+    validations:
+      required: true
