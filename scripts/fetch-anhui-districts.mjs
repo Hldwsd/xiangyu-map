@@ -84,12 +84,22 @@ function quantizeGeometry(geometry) {
       (point, index) =>
         index === 0 || point[0] !== rounded[index - 1][0] || point[1] !== rounded[index - 1][1],
     )
-    if (deduped.length > 0) {
-      const first = deduped[0]
-      const last = deduped[deduped.length - 1]
-      if (first[0] !== last[0] || first[1] !== last[1]) deduped.push([...first])
+    // 顶点抽稀：按「顶点坐标的哈希」决定去留，而不是按位置下标。
+    // 相邻区县共享的边界顶点坐标完全相同，因此两边会去掉同一批点，边界仍然严丝合缝；
+    // 如果按下标间隔抽，接缝处就会错开，又回到「几何切割 + 压线」的老问题。
+    const keepEvery = 3
+    const kept = deduped.filter((point, index) => {
+      if (index === 0) return true
+      const key = Math.round(point[0] * 1000) * 31 + Math.round(point[1] * 1000) * 17
+      return key % keepEvery === 0
+    })
+    const thinned = kept.length >= 4 ? kept : deduped
+    if (thinned.length > 0) {
+      const first = thinned[0]
+      const last = thinned[thinned.length - 1]
+      if (first[0] !== last[0] || first[1] !== last[1]) thinned.push([...first])
     }
-    return deduped
+    return thinned
   }
 
   if (geometry.type === 'Polygon') {
