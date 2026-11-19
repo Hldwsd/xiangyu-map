@@ -49,26 +49,26 @@ const options = computed(() =>
 
 .city__label {
   font-size: 0.78rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .city__select {
   padding: 0.38rem 0.6rem;
   font: inherit;
   font-size: 0.82rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
   cursor: pointer;
-  background: rgba(255, 253, 248, 0.92);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 8px;
+  background: rgb(var(--surface-rgb) / 92%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
 .city__select:hover {
-  border-color: var(--accent, #b45309);
+  border-color: var(--accent);
 }
 
 .city__select:focus-visible {
-  border-color: var(--accent, #b45309);
+  border-color: var(--accent);
   outline: 2px solid transparent;
 }
 </style>

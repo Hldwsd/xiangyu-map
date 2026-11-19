@@ -2,17 +2,15 @@ import type { EChartsOption } from 'echarts'
 
 import type { MarkerGroup } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
+import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
 import type { Site, SiteCategory } from '@/types/site'
 
-/** 分类配色。与 assets/main.css 中的 --cat-* 变量保持一致 */
-export const CATEGORY_COLORS: Record<SiteCategory, string> = {
-  古镇: '#b45309',
-  非遗: '#7c3aed',
-  红色: '#c53030',
-  自然: '#0f766e',
-  演艺: '#be185d',
-  乡村: '#4d7c0f',
-}
+/**
+ * 分类配色。默认值与 tokens.css 里方向 A 的 `--cat-*` 一致；
+ * 实际渲染时由组件从 CSS 变量读当前主题（见 theme.ts 的 readThemePalette），
+ * 这样「换主题」不用改组件代码。
+ */
+export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
 
 /**
  * 分类形状。只用颜色区分分类时，色觉障碍用户与黑白打印场景会丢失信息，
@@ -80,12 +78,12 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-const SELECTED_SYMBOL_SIZE = 20
+const SELECTED_SYMBOL_SIZE = 22
 /**
  * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
- * 所以把基础尺寸定在 13：小于 13 时贴边与密集区经常点不中（M1 要求命中率 100%）。
+ * 黑白色块在浅底上本来就不显眼，定在 15 才够「一眼看见」；小于 13 时贴边与密集区经常点不中。
  */
-const DEFAULT_SYMBOL_SIZE = 13
+const DEFAULT_SYMBOL_SIZE = 15
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
@@ -96,11 +94,12 @@ export function toScatterData(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
+  palette: ThemePalette = DEFAULT_PALETTE,
 ): MapScatterDatum[] {
   // 没给分组时按「每个项目一颗」处理：默认视野下不聚合，
   // 聚合是组件拿到像素坐标之后的决定（见 refreshMarkers）。
   if (groups === undefined) {
-    return sites.map((site) => toSiteDatum(site, selectedId))
+    return sites.map((site) => toSiteDatum(site, selectedId, palette))
   }
 
   const byId = new Map(sites.map((site) => [site.id, site]))
@@ -109,7 +108,7 @@ export function toScatterData(
   for (const group of groups) {
     if (group.ids.length === 1) {
       const site = byId.get(group.ids[0] ?? '')
-      if (site !== undefined) data.push(toSiteDatum(site, selectedId))
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette))
       continue
     }
 
@@ -129,8 +128,8 @@ export function toScatterData(
       // 数字越大点越大，但按对数增长：20 个目标的簇不该吃掉半张地图
       symbolSize: Math.min(CLUSTER_MAX_SIZE, CLUSTER_BASE_SIZE + Math.log2(count) * 4),
       itemStyle: {
-        color: '#b45309',
-        borderColor: '#fffdf8',
+        color: palette.cluster,
+        borderColor: '#ffffff',
         borderWidth: 2,
         shadowBlur: 10,
         shadowColor: 'rgba(52, 40, 24, 0.4)',
@@ -138,7 +137,7 @@ export function toScatterData(
       label: {
         show: true,
         formatter: String(count),
-        color: '#fffdf8',
+        color: '#ffffff',
         fontSize: 11,
         fontWeight: 'bold',
       },
@@ -148,9 +147,13 @@ export function toScatterData(
   return data
 }
 
-function toSiteDatum(site: Site, selectedId: string | null): SiteScatterDatum {
+function toSiteDatum(
+  site: Site,
+  selectedId: string | null,
+  palette: ThemePalette,
+): SiteScatterDatum {
   const selected = site.id === selectedId
-  const color = CATEGORY_COLORS[site.category]
+  const color = palette.category[site.category]
 
   return {
     name: site.name,
@@ -162,7 +165,7 @@ function toSiteDatum(site: Site, selectedId: string | null): SiteScatterDatum {
     symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
     itemStyle: {
       color,
-      borderColor: '#fffdf8',
+      borderColor: '#ffffff',
       borderWidth: selected ? 2.5 : 1.4,
       shadowBlur: selected ? 12 : 4,
       shadowColor: 'rgba(52, 40, 24, 0.35)',
@@ -222,8 +225,9 @@ export function buildAnhuiMapOption(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
+  palette: ThemePalette = DEFAULT_PALETTE,
 ): EChartsOption {
-  const data = toScatterData(sites, selectedId, groups)
+  const data = toScatterData(sites, selectedId, groups, palette)
 
   return {
     backgroundColor: 'transparent',
@@ -252,17 +256,17 @@ export function buildAnhuiMapOption(
       layoutSize: '92%',
       label: {
         show: true,
-        color: '#8a7a63',
+        color: palette.mapLabel,
         fontSize: 10,
       },
       itemStyle: {
-        areaColor: '#efe7d8',
-        borderColor: '#cbbfa8',
+        areaColor: palette.mapArea,
+        borderColor: palette.mapBorder,
         borderWidth: 0.9,
       },
       emphasis: {
-        itemStyle: { areaColor: '#e3d8c2' },
-        label: { show: true, color: '#2a2620', fontWeight: 'bold' },
+        itemStyle: { areaColor: palette.mapAreaHover },
+        label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
       },
     },
     series: [

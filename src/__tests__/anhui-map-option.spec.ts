@@ -44,12 +44,14 @@ describe('toScatterData', () => {
     expect(other?.label.show).toBe(false)
   })
 
-  it('每个分类都有自己的颜色', () => {
+  it('地标颜色统一取自 token：单色方向下六类同色', () => {
     const data = siteData(sites, null)
     for (const datum of data) {
       expect(datum.itemStyle.color).toBe(CATEGORY_COLORS[datum.category])
     }
-    expect(new Set(Object.values(CATEGORY_COLORS)).size).toBe(Object.keys(CATEGORY_COLORS).length)
+    // 黑白方向刻意放弃「用颜色区分分类」，改由形状承载；
+    // 这里断言同色，是为了防止有人偷偷把颜色编码加回来却没更新这条说明。
+    expect(new Set(Object.values(CATEGORY_COLORS)).size).toBe(1)
   })
 
   it('每个分类都有自己的形状，且六个形状互不相同', () => {
@@ -60,10 +62,10 @@ describe('toScatterData', () => {
     expect(new Set(Object.values(CATEGORY_SYMBOLS)).size).toBe(Object.keys(CATEGORY_SYMBOLS).length)
   })
 
-  it('基础尺寸不小于 13，命中区才够点', () => {
+  it('基础尺寸不小于 15，黑白色块在浅底上也够显眼、够点', () => {
     const data = siteData(sites, null)
     for (const datum of data) {
-      expect(datum.symbolSize).toBeGreaterThanOrEqual(13)
+      expect(datum.symbolSize).toBeGreaterThanOrEqual(15)
     }
   })
 })

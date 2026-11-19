@@ -13,6 +13,7 @@ import {
   type MapScatterDatum,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
+import { readThemePalette, type ThemePalette } from '@/theme/theme'
 import { ANHUI_MAP_NAME, loadAnhuiMap } from '@/services/anhui-map-loader'
 import type { Site } from '@/types/site'
 
@@ -23,7 +24,7 @@ echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
  * 取值略大于基础地标直径（13px）：再小就会把「视觉上明显分开」的两颗也叠起来。
  */
-const CLUSTER_MIN_GAP = 15
+const CLUSTER_MIN_GAP = 17
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 
@@ -46,6 +47,13 @@ let currentData: MapScatterDatum[] = []
 /** 缩放动画的尾巴上补算几次：ECharts 的投影矩阵在渲染帧里才更新 */
 let settleTimers: number[] = []
 let refreshHandle: number | null = null
+/** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
+let palette: ThemePalette | null = null
+
+function themePalette(): ThemePalette {
+  palette ??= readThemePalette()
+  return palette
+}
 
 function handleChartClick(params: unknown): void {
   const payload = params as {
@@ -137,7 +145,7 @@ function refreshMarkers(): void {
   if (instance === null || status.value !== 'ready') return
 
   const groups = computeGroups(instance)
-  currentData = toScatterData(props.sites, props.selectedId, groups)
+  currentData = toScatterData(props.sites, props.selectedId, groups, themePalette())
   instance.setOption({ series: [{ id: 'sites', data: currentData }] })
 }
 
@@ -157,7 +165,7 @@ function datumIndexOfSite(siteId: string): number {
 }
 
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
-  return buildAnhuiMapOption(props.sites, props.selectedId)
+  return buildAnhuiMapOption(props.sites, props.selectedId, undefined, themePalette())
 }
 
 /**
@@ -168,7 +176,7 @@ function resetRoam(): void {
   if (chart.value === null || container.value === null) return
   if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
   chart.value.setOption(currentOption(), { notMerge: true })
-  currentData = toScatterData(props.sites, props.selectedId)
+  currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
   scheduleRefresh()
 }
 
@@ -227,7 +235,7 @@ async function render(): Promise<void> {
     chart.value.setOption(currentOption(), { notMerge: true })
     chart.value.resize()
     status.value = 'ready'
-    currentData = toScatterData(props.sites, props.selectedId)
+    currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
     refreshMarkers()
   } catch (error: unknown) {
     status.value = 'error'
@@ -338,11 +346,11 @@ watch(
   justify-content: center;
   margin: 0;
   font-size: 0.85rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .anhui-map__hint--error {
-  color: var(--danger, #b3261e);
+  color: var(--danger);
 }
 
 .anhui-map__retry {
@@ -352,7 +360,7 @@ watch(
   cursor: pointer;
   background: transparent;
   border: 1px solid currentcolor;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 /*
@@ -370,10 +378,10 @@ watch(
   padding: 0;
   overflow: auto;
   list-style: none;
-  background: rgb(255 253 248 / 96%);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgb(42 38 32 / 12%);
+  background: rgb(var(--surface-rgb) / 96%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   clip-path: inset(50%);
 }
 
@@ -388,18 +396,18 @@ watch(
   padding: 0.28rem 0.45rem;
   font: inherit;
   font-size: 0.78rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
 }
 
 .anhui-map__a11y-item:focus-visible {
-  color: #fff;
-  background: var(--accent, #b45309);
-  outline: 2px solid var(--accent, #b45309);
+  color: var(--accent-ink);
+  background: var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 </style>

@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
-import { CATEGORY_COLORS } from '@/components/map/anhui-map-option'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import CityFilter from '@/components/site/CityFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
@@ -68,9 +67,8 @@ const empty = computed(() => filteredSites.value.length === 0)
         <ul>
           <li v-for="site in filteredSites" :key="site.id">
             <button type="button" class="home__item" @click="store.selectSite(site.id)">
-              <span class="home__dot" :style="{ background: CATEGORY_COLORS[site.category] }" />
               <span class="home__item-name">{{ site.name }}</span>
-              <span class="home__item-meta">{{ site.city }}</span>
+              <span class="home__item-meta">{{ site.category }} · {{ site.city }}</span>
             </button>
           </li>
         </ul>
@@ -100,10 +98,9 @@ const empty = computed(() => filteredSites.value.length === 0)
   padding: 0.9rem;
   overflow: hidden;
   background:
-    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 70%), transparent 60%),
-    var(--paper-2, #efe7d8);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 16px;
+    radial-gradient(circle at 30% 20%, var(--map-glow), transparent 60%), var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
 }
 
 .home__filters {
@@ -112,9 +109,9 @@ const empty = computed(() => filteredSites.value.length === 0)
   flex: 0 0 auto;
   gap: 0.65rem;
   padding: 0.7rem 0.8rem;
-  background: rgb(255 253 248 / 82%);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 12px;
+  background: rgb(var(--surface-rgb) / 82%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(6px);
 }
 
@@ -133,24 +130,24 @@ const empty = computed(() => filteredSites.value.length === 0)
   align-items: center;
   margin: 0;
   font-size: 0.78rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .home__reset {
   padding: 0.2rem 0.6rem;
   font: inherit;
   font-size: 0.75rem;
-  color: var(--accent, #b45309);
+  color: var(--accent);
   cursor: pointer;
   background: transparent;
   border: 1px solid currentcolor;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .home__reset--solid {
-  color: #fffdf8;
-  background: var(--accent, #b45309);
-  border-color: var(--accent, #b45309);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .home__aside {
@@ -161,7 +158,7 @@ const empty = computed(() => filteredSites.value.length === 0)
 .home__list-title {
   margin: 0 0 0.5rem;
   font-size: 0.78rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .home__list ul {
@@ -172,16 +169,16 @@ const empty = computed(() => filteredSites.value.length === 0)
 
 .home__item {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.1rem 0.5rem;
+  grid-template-columns: 1fr;
+  gap: 0.15rem;
   width: 100%;
   padding: 0.6rem 0.7rem;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  background: rgb(255 253 248 / 78%);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 10px;
+  background: rgb(var(--surface-rgb) / 78%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   transition: border-color 0.15s ease;
 }
 
@@ -190,45 +187,37 @@ const empty = computed(() => filteredSites.value.length === 0)
 }
 
 .home__item:hover {
-  border-color: var(--accent, #b45309);
-}
-
-.home__dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-top: 0.4rem;
-  border-radius: 999px;
+  border-color: var(--accent);
 }
 
 .home__item-name {
   font-size: 0.92rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .home__item-meta {
-  grid-column: 2;
   font-size: 0.75rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .home__empty {
   padding: 1.4rem 1.1rem;
-  background: rgb(255 253 248 / 78%);
-  border: 1px dashed var(--line, #ddd2bd);
-  border-radius: 12px;
+  background: rgb(var(--surface-rgb) / 78%);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
 }
 
 .home__empty-title {
   margin: 0 0 0.35rem;
   font-size: 0.95rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .home__empty-text {
   margin: 0 0 0.8rem;
   font-size: 0.82rem;
   line-height: 1.6;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 @media (width <= 900px) {

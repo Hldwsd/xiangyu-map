@@ -69,11 +69,11 @@ defineProps<{
   padding: 0.35rem 0.7rem;
   font: inherit;
   font-size: 0.82rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
   cursor: pointer;
-  background: rgba(255, 253, 248, 0.86);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 999px;
+  background: rgb(var(--surface-rgb) / 86%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
@@ -81,13 +81,13 @@ defineProps<{
 }
 
 .filter__chip:hover {
-  border-color: var(--accent, #b45309);
+  border-color: var(--accent);
 }
 
 .filter__chip--active {
-  color: #fffdf8;
-  background: var(--accent, #b45309);
-  border-color: var(--accent, #b45309);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .filter__count {
@@ -103,7 +103,7 @@ defineProps<{
 
 .filter__search-label {
   font-size: 0.78rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .filter__input {
@@ -113,13 +113,13 @@ defineProps<{
   font: inherit;
   font-size: 0.85rem;
   color: inherit;
-  background: rgba(255, 253, 248, 0.92);
-  border: 1px solid var(--line, #ddd2bd);
-  border-radius: 8px;
+  background: rgb(var(--surface-rgb) / 92%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
 .filter__input:focus-visible {
-  border-color: var(--accent, #b45309);
+  border-color: var(--accent);
   outline: 2px solid transparent;
 }
 </style>
