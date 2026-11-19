@@ -123,9 +123,12 @@ describe('useSitesStore', () => {
     expect(store.filteredSites.map((site) => site.id)).toEqual(['hongcun'])
   })
 
-  it('没有项目的城市筛出空列表，不回退到全量', () => {
+  it('城市与分类组合没有结果时筛出空列表，不回退到全量', () => {
     const store = useSitesStore()
-    store.setCity('铜陵市')
+    // 16 个市现在都至少有 1 条数据，所以「空结果」要靠组合条件造出来：
+    // 亳州市只有花戏楼（非遗），没有自然类项目
+    store.setCity('亳州市')
+    store.setCategory('自然')
 
     expect(store.filteredSites).toHaveLength(0)
   })
@@ -137,7 +140,7 @@ describe('useSitesStore', () => {
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
     expect(store.cityCounts['黄山市']).toBe(3)
-    expect(store.cityCounts['铜陵市']).toBe(0)
+    expect(store.cityCounts['铜陵市']).toBe(1)
   })
 
   it('城市筛选把当前选中项排除后，选中状态被清空', () => {

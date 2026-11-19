@@ -86,12 +86,19 @@ describe('CategoryFilter', () => {
 
 describe('SiteDetailView', () => {
   it('渲染标题与相邻导航，末条没有下一条', () => {
+    // 末条随数据文件变化，所以从 store 里取最后一条，别把 id 写死
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const sites = useSitesStore().sites
+    const site = sites[sites.length - 1]
+    if (site === undefined) throw new Error('测试数据为空')
+
     const wrapper = mount(SiteDetailView, {
-      props: { id: 'hongcun' },
-      global: { plugins: [createPinia()], stubs: { RouterLink: routerLinkStub } },
+      props: { id: site.id },
+      global: { plugins: [pinia], stubs: { RouterLink: routerLinkStub } },
     })
 
-    expect(wrapper.get('.detail__title').text()).toBe('宏村')
+    expect(wrapper.get('.detail__title').text()).toBe(site.name)
     expect(wrapper.get('.detail__pager').text()).toContain('上一条')
     expect(wrapper.get('.detail__pager').text()).toContain('已是最后一条')
   })
