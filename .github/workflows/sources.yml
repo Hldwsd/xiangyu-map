@@ -1,0 +1,33 @@
+name: Sources
+
+# 来源可访问性检查：只回答「这些 sources 现在能不能打开」，不回答「代码对不对」。
+# 所以它是**非阻断**的（continue-on-error），也只在数据或脚本变化时跑：
+# 外网探测会因反爬、网络抖动变红，那种红不该决定一个 PR 能不能合并。
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/data/sites.ts'
+      - 'scripts/check-sources.mjs'
+      - '.github/workflows/sources.yml'
+
+concurrency:
+  group: sources-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check sources
+        # 不装依赖：脚本只用 node 内置模块（fetch / fs / url）
+        run: node scripts/check-sources.mjs --timeout=20000

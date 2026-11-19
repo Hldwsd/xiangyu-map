@@ -48,7 +48,7 @@ pnpm data:anhui-map          # 重新抓取 public/maps/anhui.json
 
 - 坐标一律 **GCJ-02**，且必须落在安徽省外包框内；`id` 是 kebab-case 深链，上线后不可改（改了旧链接就死）。
 - `province` 固定 `安徽省`；`city` 必须是 `src/types/site.ts` 里 16 个地级市之一（写「黄山」而不是「黄山市」会校验失败）。
-- `summary` ≤ 60 字；`sources` 必填，必须是可访问的 `http(s)` 链接。
+- `summary` ≤ 60 字；`sources` 必填，必须是可访问的 `http(s)` 链接。加完数据跑一次 `node scripts/check-sources.mjs`——政府站点对脚本返回 403/412 属「反爬」，不算失败，但主动放弃的候选要写进 PR 正文。
 - 示例数据必须在 `tags` 首项写「示例数据」，别让占位内容看起来像事实。
 - 图片放 `public/images/sites/<id>/`，WebP、单张 ≤ 300 KB。数据里写站点根路径（`/images/sites/...`），渲染时用 `src/utils/asset-url.ts` 的 `assetUrl()` 套上部署基地址。
 
