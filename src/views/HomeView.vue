@@ -84,6 +84,15 @@ function selectFromList(id: string): void {
       </div>
     </Transition>
 
+    <!-- 筛到 0 条时地图是空的，需要一句话解释并给出口 -->
+    <div v-if="filteredSites.length === 0" class="map-shell__void">
+      <span class="map-shell__void-icon"><AppIcon name="search" :size="18" /></span>
+      <p>没有匹配的项目</p>
+      <button type="button" class="map-shell__void-reset" @click="store.resetFilters()">
+        清空筛选
+      </button>
+    </div>
+
     <!-- 底部状态条：这张图画的是什么、当前筛出多少 -->
     <div class="map-shell__meta">
       <span class="map-shell__scope">
@@ -97,8 +106,9 @@ function selectFromList(id: string): void {
       </button>
     </div>
 
+    <!-- 空结果时由中间的提示卡提供「清空筛选」，底部不再重复一个按钮 -->
     <button
-      v-if="hasActiveFilter"
+      v-if="hasActiveFilter && filteredSites.length > 0"
       type="button"
       class="map-shell__reset"
       @click="store.resetFilters()"
@@ -220,6 +230,53 @@ function selectFromList(id: string): void {
   border: 1px solid var(--accent);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-card);
+}
+
+/* 空结果提示：居中、不挡顶部栏与底部条 */
+.map-shell__void {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  text-align: center;
+  background: rgb(var(--surface-rgb) / 92%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transform: translate(-50%, -50%);
+}
+
+.map-shell__void-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--ink-soft);
+  background: var(--surface-muted);
+  border-radius: 50%;
+}
+
+.map-shell__void p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.map-shell__void-reset {
+  padding: 0.25rem 0.8rem;
+  font: inherit;
+  font-size: var(--text-2xs);
+  color: var(--accent-ink);
+  cursor: pointer;
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius-pill);
 }
 
 /* 选中卡片：桌面右下、窄屏贴底 */

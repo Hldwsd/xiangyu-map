@@ -1,14 +1,30 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
 import AppIcon from '@/components/icons/AppIcon.vue'
+import { useFocusTrap } from '@/composables/use-focus-trap'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import type { Site } from '@/types/site'
 
-defineProps<{ sites: Site[]; selectedId: string | null }>()
+const props = defineProps<{ sites: Site[]; selectedId: string | null; open?: boolean }>()
+
+const sheet = ref<HTMLElement | null>(null)
+useFocusTrap(
+  computed(() => props.open !== false),
+  sheet,
+)
 const emit = defineEmits<{ select: [id: string]; close: [] }>()
 </script>
 
 <template>
-  <section class="sheet" role="dialog" aria-label="项目列表">
+  <section
+    ref="sheet"
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="项目列表"
+    tabindex="-1"
+  >
     <header class="sheet__header">
       <h2 class="sheet__title">
         <AppIcon name="all" :size="12" />
