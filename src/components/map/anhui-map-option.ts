@@ -307,6 +307,9 @@ export function buildAnhuiMapOption(
         zlevel: 0,
         z: 2,
         silent: true,
+        // 和散点一样必须关掉补间：geo 的 zoom 是瞬时生效的，lines 若还按 420ms 补间，
+        // 缩放时河道就会比地图与地标晚半拍（用户实测到的那一条）。
+        animation: false,
         // polyline：把每条河的折线整体画出来，而不是首尾相连的「飞线」
         polyline: true,
         lineStyle: { color: palette.riverLine, opacity: 0.9, cap: 'round' },
