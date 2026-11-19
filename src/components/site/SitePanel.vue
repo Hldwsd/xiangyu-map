@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
+import AppIcon from '@/components/icons/AppIcon.vue'
+import CategoryIcon from '@/components/icons/CategoryIcon.vue'
+
 import type { Site } from '@/types/site'
 import { assetUrl } from '@/utils/asset-url'
 
@@ -10,7 +13,9 @@ const emit = defineEmits<{ close: [] }>()
 
 <template>
   <article class="panel">
-    <button type="button" class="panel__close" aria-label="关闭" @click="emit('close')">×</button>
+    <button type="button" class="panel__close" aria-label="关闭" @click="emit('close')">
+      <AppIcon name="close" :size="15" />
+    </button>
 
     <img
       class="panel__cover"
@@ -21,7 +26,9 @@ const emit = defineEmits<{ close: [] }>()
 
     <div class="panel__body">
       <p class="panel__meta">
-        <span class="panel__category">{{ site.category }}</span>
+        <span class="panel__category">
+          <CategoryIcon :category="site.category" :size="12" />{{ site.category }}
+        </span>
         <span>{{ site.province }} · {{ site.city }}</span>
       </p>
 
@@ -34,17 +41,18 @@ const emit = defineEmits<{ close: [] }>()
 
       <dl class="panel__facts">
         <template v-if="site.bestSeason">
-          <dt>最佳季节</dt>
+          <dt><AppIcon name="calendar" :size="12" />最佳季节</dt>
           <dd>{{ site.bestSeason }}</dd>
         </template>
         <template v-if="site.transport">
-          <dt>交通</dt>
+          <dt><AppIcon name="route" :size="12" />交通</dt>
           <dd>{{ site.transport }}</dd>
         </template>
       </dl>
 
       <RouterLink class="panel__link" :to="{ name: 'site-detail', params: { id: site.id } }">
-        查看详情 →
+        查看详情
+        <AppIcon name="next" :size="13" />
       </RouterLink>
     </div>
   </article>
@@ -66,9 +74,8 @@ const emit = defineEmits<{ close: [] }>()
   position: absolute;
   top: 0.5rem;
   right: 0.6rem;
-  width: 1.9rem;
-  height: 1.9rem;
-  font-size: 1.1rem;
+  width: 1.8rem;
+  height: 1.8rem;
   line-height: 1;
   color: var(--ink-inverse);
   cursor: pointer;
@@ -174,5 +181,23 @@ const emit = defineEmits<{ close: [] }>()
 
 .panel__link:hover {
   color: var(--ink);
+}
+.panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel__category,
+.panel__facts dt {
+  display: inline-flex;
+  gap: 0.28rem;
+  align-items: center;
+}
+
+.panel__link {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
 }
 </style>
