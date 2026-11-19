@@ -43,6 +43,16 @@ M0 最后一项（Issue #7）要求「PR 出预览地址、main 合并即上线�
 - **官方 `actions/deploy-pages`**：只需 `GITHUB_TOKEN`，但一次部署只推进一个产物包，做不了「主站 + 每次 PR 一个子目录」的结构，与预览需求冲突。
 - **Netlify / Surge / Vercel 静态 CLI（一次性上传）**：要么账号，要么每次带 token，在 CI 里都是同一个问题。
 
+## 修订（2026-11-19）：并发写 `gh-pages` 的失败模式
+
+第一版让 `deploy.yml` 与 `preview.yml` 共用 `concurrency.group: gh-pages-deploy`，想让两次推同一分支串行。但 GitHub 的真实语义是：**同组里新排队的运行会取消此前仍在 pending 的运行**，`cancel-in-progress: false` 只保护正在运行的，不保护排队的。于是合并 PR 时 `push: main`（部署）与 `pull_request: closed`（预览清理）同时触发，部署先排队、被后到的清理挤掉——运行状态 `cancelled`、`jobs` 为空、没有日志，线上静默停在旧产物（[Issue #27](https://github.com/Hldwsd/xiangyu-map/issues/27)）。比失败更危险的是它看起来不像失败。
+
+改法：
+
+- 两个工作流各用各的 `concurrency` 组（`pages-deploy` / `pages-preview`），互不取消；
+- 并发写同一分支的问题改用**推送重试**解决：自己 clone `gh-pages` → 只替换自己的目录（部署替换根目录、保留 `pr-*`；预览只替换 `pr-<n>`）→ 推送失败退避重试 3 次，而不是依赖 `peaceiris/actions-gh-pages`（它没有重试）；
+- 三种目录操作（部署根、预览子目录、清理）都在本地用临时 bare 仓库跑过：部署后根目录被新产物替换、`pr-7`/`pr-8` 原样保留；预览只替换 `pr-7`、根目录与 `pr-8` 不动；清理只删 `pr-8`。
+
 ## 参考
 
 - GitHub Pages 用量限制（1 GB 站点、10 分钟部署超时、100 GB/月软带宽、10 次/小时软构建限制——用自定义 Actions 工作流构建时不受最后一条限制）：[GitHub Docs](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)
