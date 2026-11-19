@@ -51,15 +51,16 @@ pnpm dev          # http://localhost:5173
 
 常用命令：
 
-| 命令                  | 作用                                       |
-| --------------------- | ------------------------------------------ |
-| `pnpm dev`            | 本地开发（HMR）                            |
-| `pnpm build`          | 类型检查 + 生产构建（CI 与本地都跑这一条） |
-| `pnpm preview`        | 预览 `dist/`                               |
-| `pnpm test:unit`      | 单元测试（`--run` 跑一次）                 |
-| `pnpm lint`           | ESLint（`lint:fix` 自动修）                |
-| `pnpm format`         | Prettier 格式化（`format:check` 只校验）   |
-| `pnpm data:anhui-map` | 重新抓取底图到 `public/maps/anhui.json`    |
+| 命令                             | 作用                                                                  |
+| -------------------------------- | --------------------------------------------------------------------- |
+| `pnpm dev`                       | 本地开发（HMR）                                                       |
+| `pnpm build`                     | 类型检查 + 生产构建（CI 与本地都跑这一条）                            |
+| `pnpm preview`                   | 预览 `dist/`                                                          |
+| `pnpm test:unit`                 | 单元测试（`--run` 跑一次）                                            |
+| `pnpm lint`                      | ESLint（`lint:fix` 自动修）                                           |
+| `pnpm format`                    | Prettier 格式化（`format:check` 只校验）                              |
+| `pnpm data:anhui-map`            | 重新抓取底图到 `public/maps/anhui.json`                               |
+| `node scripts/check-sources.mjs` | 检查每条数据的 `sources` 是否可达（加 `--strict` 有不可达时退出码 1） |
 
 首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
 
@@ -80,6 +81,7 @@ pnpm dev          # http://localhost:5173
 - **地标数据**：`src/data/sites.ts`，字段契约在 `src/types/site.ts`（改字段需双方在 PR 确认）。新增一个项目 = 加一条数据 + 放图，不动组件代码；`province` 固定为安徽省，`city` 必须是 16 个地级市之一（联合类型，写错编译期就报错）。
 - **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、城市属于 16 个地级市、坐标落在安徽省内、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
 - **底图**：`public/maps/anhui.json`，由 `pnpm data:anhui-map` 从 DataV.GeoAtlas 抓取并校验（16 个市级要素），详见 [public/maps/README.md](public/maps/README.md)。
+- **来源核验**：`node scripts/check-sources.mjs` 把每条数据的 `sources` 跑一遍，按「可达 / 反爬 / 不可达 / 占位」分类；政府站点常对脚本请求返回 403/412，这类单列为「反爬」不算失败（`.github/workflows/sources.yml` 在数据变更时跑它，非阻断）。
 - **图片来源**：正式图片放 `public/images/sites/<id>/`（WebP，单张 ≤ 300 KB），示例数据统一用 `public/images/placeholder.svg`。数据里写的是站点根路径（`/images/...`），渲染时由 `src/utils/asset-url.ts` 套上部署基地址 —— 部署在 `/xiangyu-map/` 这类子路径下也不会 404。
 
 ## 目录结构
