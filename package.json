@@ -2,7 +2,7 @@
   "name": "xiangyu-map",
   "version": "0.0.0",
   "private": true,
-  "description": "乡遇地图 —— 以中国地图为入口的文旅项目发现站点",
+  "description": "乡遇安徽 —— 以安徽省地图为入口的文旅项目发现站点",
   "type": "module",
   "packageManager": "pnpm@11.22.0",
   "engines": {
@@ -19,7 +19,7 @@
     "lint:fix": "eslint . --cache --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "data:china-map": "node scripts/fetch-china-map.mjs"
+    "data:anhui-map": "node scripts/fetch-anhui-map.mjs"
   },
   "dependencies": {
     "echarts": "^6.1.0",

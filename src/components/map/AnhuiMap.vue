@@ -6,8 +6,8 @@ import { GeoComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsType } from 'echarts/core'
 
-import { buildChinaMapOption } from '@/components/map/china-map-option'
-import { CHINA_MAP_NAME, loadChinaMap } from '@/services/china-map-loader'
+import { buildAnhuiMapOption } from '@/components/map/anhui-map-option'
+import { ANHUI_MAP_NAME, loadAnhuiMap } from '@/services/anhui-map-loader'
 import type { Site } from '@/types/site'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
@@ -41,10 +41,10 @@ async function render(): Promise<void> {
   errorMessage.value = ''
 
   try {
-    const geoJson = await loadChinaMap()
+    const geoJson = await loadAnhuiMap()
     if (disposed || container.value === null) return
 
-    echarts.registerMap(CHINA_MAP_NAME, geoJson as Parameters<typeof echarts.registerMap>[1])
+    echarts.registerMap(ANHUI_MAP_NAME, geoJson as Parameters<typeof echarts.registerMap>[1])
 
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
@@ -52,7 +52,7 @@ async function render(): Promise<void> {
       chart.value = instance
     }
 
-    chart.value.setOption(buildChinaMapOption(props.sites, props.selectedId))
+    chart.value.setOption(buildAnhuiMapOption(props.sites, props.selectedId))
     chart.value.resize()
     status.value = 'ready'
   } catch (error: unknown) {
@@ -80,44 +80,44 @@ watch(
   () => [props.sites, props.selectedId] as const,
   () => {
     if (status.value === 'ready' && chart.value !== null) {
-      chart.value.setOption(buildChinaMapOption(props.sites, props.selectedId))
+      chart.value.setOption(buildAnhuiMapOption(props.sites, props.selectedId))
     }
   },
 )
 </script>
 
 <template>
-  <div class="china-map">
+  <div class="anhui-map">
     <div
       ref="container"
-      class="china-map__canvas"
+      class="anhui-map__canvas"
       role="img"
-      aria-label="中国地图，标注了各文旅项目的位置"
+      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置"
     />
 
-    <p v-if="status === 'loading'" class="china-map__hint">底图加载中…</p>
+    <p v-if="status === 'loading'" class="anhui-map__hint">底图加载中…</p>
 
-    <div v-else-if="status === 'error'" class="china-map__hint china-map__hint--error">
+    <div v-else-if="status === 'error'" class="anhui-map__hint anhui-map__hint--error">
       <span>{{ errorMessage }}</span>
-      <button type="button" class="china-map__retry" @click="render">重试</button>
+      <button type="button" class="anhui-map__retry" @click="render">重试</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.china-map {
+.anhui-map {
   position: relative;
   width: 100%;
   height: 100%;
   min-height: 320px;
 }
 
-.china-map__canvas {
+.anhui-map__canvas {
   width: 100%;
   height: 100%;
 }
 
-.china-map__hint {
+.anhui-map__hint {
   position: absolute;
   inset: auto 0 1rem;
   display: flex;
@@ -129,11 +129,11 @@ watch(
   color: var(--ink-soft, #6b6154);
 }
 
-.china-map__hint--error {
+.anhui-map__hint--error {
   color: var(--danger, #b3261e);
 }
 
-.china-map__retry {
+.anhui-map__retry {
   padding: 0.25rem 0.7rem;
   font: inherit;
   color: inherit;

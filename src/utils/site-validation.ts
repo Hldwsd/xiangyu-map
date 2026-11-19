@@ -1,11 +1,25 @@
-import { SITE_CATEGORIES, type Site, type SiteCategory } from '@/types/site'
+import {
+  ANHUI_CITIES,
+  ANHUI_PROVINCE,
+  SITE_CATEGORIES,
+  type Site,
+  type SiteCategory,
+} from '@/types/site'
+import { ANHUI_BBOX, isAnhuiCity } from '@/utils/region'
 
 /** summary 的字数上限，与 docs/PROJECT_PLAN.md 数据契约一致 */
 export const SUMMARY_MAX_LENGTH = 60
 
+/** 示例数据的统一占位封面；正式图必须落在 public/images/sites/<id>/ 下 */
+export const PLACEHOLDER_COVER = '/images/placeholder.svg'
+
+// 外包框的取值与理由见 src/utils/region.ts 的 ANHUI_BBOX：
+// 只用来拦住「坐标落到外省」「经纬度写反」，不判断点位是否真的在岸上。
+
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const URL_PATTERN = /^https?:\/\/\S+$/
+const IMAGE_PATH_PATTERN = /^\/images\/sites\/([a-z0-9-]+)\/[a-z0-9][a-z0-9._-]*\.webp$/
 
 const CATEGORY_SET: ReadonlySet<string> = new Set(SITE_CATEGORIES)
 
@@ -23,6 +37,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+/** 校验 YYYY-MM-DD 是不是真实存在的日期：2026-13-01、2026-02-30 这类值能过正则但不是日期 */
+function isRealDate(value: string): boolean {
+  const parts = value.split('-')
+  const year = Number(parts[0])
+  const month = Number(parts[1])
+  const day = Number(parts[2])
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  )
+}
+
+/** 图片路径必须是 /images/sites/<id>/xxx.webp；返回其中的目录名，格式不对返回 null */
+function imageDirOf(path: string): string | null {
+  const matched = IMAGE_PATH_PATTERN.exec(path)
+  return matched ? (matched[1] ?? null) : null
 }
 
 /** 字符串数组；空数组允许，但每个元素必须非空 */
@@ -59,8 +91,23 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
     problems.push(`${label}.category: 必须是 ${SITE_CATEGORIES.join(' / ')} 之一`)
   }
 
-  if (!isNonEmptyString(raw['province'])) problems.push(`${label}.province: 必须是非空字符串`)
-  if (!isNonEmptyString(raw['city'])) problems.push(`${label}.city: 必须是非空字符串`)
+  const province = raw['province']
+  if (!isNonEmptyString(province)) {
+    problems.push(`${label}.province: 必须是非空字符串`)
+  } else if (province !== ANHUI_PROVINCE) {
+    // 当前范围只有安徽。别的省能过「非空」，但会让省份文案前后矛盾
+    problems.push(`${label}.province: 当前只收录「${ANHUI_PROVINCE}」，收到 "${province}"`)
+  }
+
+  const city = raw['city']
+  if (!isNonEmptyString(city)) {
+    problems.push(`${label}.city: 必须是非空字符串`)
+  } else if (!isAnhuiCity(city)) {
+    // 简称或错字（「黄山」而非「黄山市」）能骗过非空校验，但会让市级筛选与分组静默落空
+    problems.push(
+      `${label}.city: "${city}" 不在 ${ANHUI_CITIES.length} 个地级市内（如「黄山市」，见 src/types/site.ts）`,
+    )
+  }
 
   const location = raw['location']
   if (!isRecord(location)) {
@@ -74,6 +121,19 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
     if (typeof lat !== 'number' || !Number.isFinite(lat) || lat < -90 || lat > 90) {
       problems.push(`${label}.location.lat: 必须是 -90~90 之间的数字`)
     }
+    // 全球范围合法但落在境外，通常是抄错一位或经纬度写反
+    if (
+      typeof lng === 'number' &&
+      typeof lat === 'number' &&
+      Number.isFinite(lng) &&
+      Number.isFinite(lat) &&
+      (lng < ANHUI_BBOX.minLng ||
+        lng > ANHUI_BBOX.maxLng ||
+        lat < ANHUI_BBOX.minLat ||
+        lat > ANHUI_BBOX.maxLat)
+    ) {
+      problems.push(`${label}.location: (${lng}, ${lat}) 不在安徽省范围内，检查是否把经纬度写反`)
+    }
   }
 
   const summary = raw['summary']
@@ -86,9 +146,33 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
   }
 
   if (!isNonEmptyString(raw['description'])) problems.push(`${label}.description: 必须是非空字符串`)
-  if (!isNonEmptyString(raw['cover'])) problems.push(`${label}.cover: 必须是非空字符串`)
+  const cover = raw['cover']
+  if (!isNonEmptyString(cover)) {
+    problems.push(`${label}.cover: 必须是非空字符串`)
+  } else if (cover !== PLACEHOLDER_COVER) {
+    // 正式图按 id 建目录，路径与 id 对不上时页面只会显示裂图，不会报错
+    const dir = imageDirOf(cover)
+    if (dir === null) {
+      problems.push(`${label}.cover: 必须是 ${PLACEHOLDER_COVER} 或 /images/sites/<id>/xxx.webp`)
+    } else if (isNonEmptyString(id) && dir !== id) {
+      problems.push(`${label}.cover: 目录名 "${dir}" 与 id "${id}" 不一致`)
+    }
+  }
 
-  if (readStringArray(raw['gallery']) === null) problems.push(`${label}.gallery: 必须是字符串数组`)
+  const gallery = readStringArray(raw['gallery'])
+  if (gallery === null) {
+    problems.push(`${label}.gallery: 必须是字符串数组`)
+  } else {
+    gallery.forEach((image, index) => {
+      const dir = imageDirOf(image)
+      if (dir === null) {
+        problems.push(`${label}.gallery[${index}]: 必须是 /images/sites/<id>/xxx.webp`)
+      } else if (isNonEmptyString(id) && dir !== id) {
+        problems.push(`${label}.gallery[${index}]: 目录名 "${dir}" 与 id "${id}" 不一致`)
+      }
+    })
+  }
+
   if (readStringArray(raw['tags']) === null) problems.push(`${label}.tags: 必须是字符串数组`)
 
   const sources = readStringArray(raw['sources'])
@@ -103,6 +187,8 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
   const updatedAt = raw['updatedAt']
   if (typeof updatedAt !== 'string' || !DATE_PATTERN.test(updatedAt)) {
     problems.push(`${label}.updatedAt: 必须是 YYYY-MM-DD 格式`)
+  } else if (!isRealDate(updatedAt)) {
+    problems.push(`${label}.updatedAt: "${updatedAt}" 不是真实日期`)
   }
 
   for (const optional of ['bestSeason', 'transport', 'bookingUrl'] as const) {

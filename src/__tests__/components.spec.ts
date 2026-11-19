@@ -8,11 +8,11 @@ import type { Site } from '@/types/site'
 import type { SiteCategory } from '@/types/site'
 
 const counts: Record<SiteCategory, number> = {
-  古镇: 4,
+  古镇: 3,
   非遗: 2,
   红色: 1,
-  自然: 1,
-  演艺: 1,
+  自然: 3,
+  演艺: 0,
   乡村: 1,
 }
 
@@ -25,18 +25,19 @@ function findSite(id: string): Site {
 describe('SitePanel', () => {
   it('展示名称、分类与省市', () => {
     const wrapper = mount(SitePanel, {
-      props: { site: findSite('wuzhen') },
+      props: { site: findSite('hongcun') },
       global: { stubs: { RouterLink: { template: '<a class="link-stub"><slot /></a>' } } },
     })
 
-    expect(wrapper.text()).toContain('乌镇')
-    expect(wrapper.text()).toContain('浙江省')
-    expect(wrapper.text()).toContain('水网穿镇而过')
+    expect(wrapper.text()).toContain('宏村')
+    expect(wrapper.text()).toContain('安徽省')
+    expect(wrapper.text()).toContain('黄山市')
+    expect(wrapper.text()).toContain('月沼与南湖')
   })
 
   it('点击关闭按钮时抛出 close 事件', async () => {
     const wrapper = mount(SitePanel, {
-      props: { site: findSite('wuzhen') },
+      props: { site: findSite('hongcun') },
       global: { stubs: { RouterLink: { template: '<a class="link-stub"><slot /></a>' } } },
     })
 
@@ -73,7 +74,7 @@ describe('CategoryFilter', () => {
       props: { category: '全部', query: '', counts, total: 10 },
     })
 
-    await wrapper.get('input').setValue('平遥')
-    expect(wrapper.emitted('update:query')?.[0]).toEqual(['平遥'])
+    await wrapper.get('input').setValue('宏村')
+    expect(wrapper.emitted('update:query')?.[0]).toEqual(['宏村'])
   })
 })
