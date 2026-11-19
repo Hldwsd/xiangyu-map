@@ -6,12 +6,26 @@ import { GeoComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsType } from 'echarts/core'
 
-import { buildAnhuiMapOption } from '@/components/map/anhui-map-option'
+import {
+  buildAnhuiMapOption,
+  toScatterData,
+  type ClusterScatterDatum,
+  type MapScatterDatum,
+} from '@/components/map/anhui-map-option'
+import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME, loadAnhuiMap } from '@/services/anhui-map-loader'
 import type { Site } from '@/types/site'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
 echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
+
+/**
+ * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
+ * 取值略大于基础地标直径（13px）：再小就会把「视觉上明显分开」的两颗也叠起来。
+ */
+const CLUSTER_MIN_GAP = 15
+/** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
+const CLUSTER_ZOOM_FACTOR = 2
 
 const props = defineProps<{
   sites: Site[]
@@ -27,13 +41,119 @@ const errorMessage = ref('')
 
 let resizeObserver: ResizeObserver | null = null
 let disposed = false
+/** 当前画在图上的一批点（单点或簇），键盘高亮要按它找下标 */
+let currentData: MapScatterDatum[] = []
+/** 缩放动画的尾巴上补算几次：ECharts 的投影矩阵在渲染帧里才更新 */
+let settleTimers: number[] = []
+let refreshHandle: number | null = null
 
 function handleChartClick(params: unknown): void {
-  const payload = params as { seriesType?: string; data?: { siteId?: string } }
+  const payload = params as {
+    seriesType?: string
+    data?: Partial<ClusterScatterDatum> & { siteId?: string }
+  }
+  if (payload.seriesType !== 'scatter') return
+
+  const clusterIds = payload.data?.clusterIds
+  if (Array.isArray(clusterIds) && clusterIds.length > 1) {
+    zoomIntoCluster(clusterIds, payload.data?.value)
+    return
+  }
+
   const siteId = payload.data?.siteId
-  if (payload.seriesType === 'scatter' && typeof siteId === 'string') {
+  if (typeof siteId === 'string') {
     emit('select', siteId)
   }
+}
+
+/**
+ * 点簇就放大一档。放大到 `scaleLimit.max` 还分不开时，
+ * 说明这几个项目在同一处（同一景区里的多个项目），直接选中第一个：
+ * 让用户卡在「点了没反应」比选错一个更糟。
+ */
+function zoomIntoCluster(clusterIds: string[], value: unknown): void {
+  const instance = chart.value
+  if (instance === null || !Array.isArray(value)) return
+
+  const [lng, lat] = value as [number, number]
+  const option = instance.getOption() as {
+    geo?: Array<{ zoom?: number; scaleLimit?: { max?: number } }>
+  }
+  const zoom = option.geo?.[0]?.zoom ?? 1
+  const maxZoom = option.geo?.[0]?.scaleLimit?.max ?? 8
+
+  if (zoom >= maxZoom - 0.05) {
+    const firstId = clusterIds[0]
+    if (firstId !== undefined) emit('select', firstId)
+    return
+  }
+
+  instance.setOption({
+    geo: { center: [lng, lat], zoom: Math.min(maxZoom, zoom * CLUSTER_ZOOM_FACTOR) },
+  })
+  // `setOption` 之后 geo 的投影矩阵要等渲染帧才更新，此刻 convertToPixel 还是旧值。
+  // 缩放在 ECharts 里是带缓动的动画，所以沿动画尾巴补算几次；每次都很轻（22 个点）。
+  scheduleRefresh()
+  scheduleSettledRefresh()
+}
+
+function scheduleSettledRefresh(): void {
+  for (const delay of [90, 260, 520]) {
+    settleTimers.push(
+      window.setTimeout(() => {
+        refreshMarkers()
+      }, delay),
+    )
+  }
+}
+
+/** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
+function computeGroups(instance: EChartsType): MarkerGroup[] | undefined {
+  const pixels = new Map<string, readonly [number, number] | null>()
+
+  for (const site of props.sites) {
+    const point = instance.convertToPixel({ geoIndex: 0 }, [site.location.lng, site.location.lat])
+    const usable =
+      Array.isArray(point) &&
+      Number.isFinite(point[0] as number) &&
+      Number.isFinite(point[1] as number)
+    pixels.set(site.id, usable ? ([point[0] as number, point[1] as number] as const) : null)
+  }
+
+  const groups = groupOverlappingMarkers(
+    props.sites,
+    (site) => pixels.get(site.id) ?? null,
+    CLUSTER_MIN_GAP,
+  )
+  return groups.length === 0 ? undefined : groups
+}
+
+/**
+ * 重画地标层。只替换 `series.data`（按 id 合并），不动 geo：
+ * 用 notMerge 重建会把用户的缩放和拖拽状态一起清掉。
+ */
+function refreshMarkers(): void {
+  const instance = chart.value
+  if (instance === null || status.value !== 'ready') return
+
+  const groups = computeGroups(instance)
+  currentData = toScatterData(props.sites, props.selectedId, groups)
+  instance.setOption({ series: [{ id: 'sites', data: currentData }] })
+}
+
+function scheduleRefresh(): void {
+  if (refreshHandle !== null) return
+  refreshHandle = window.requestAnimationFrame(() => {
+    refreshHandle = null
+    refreshMarkers()
+  })
+}
+
+/** 按项目 id 找它在当前这批点里的下标；被并进簇时返回簇的下标 */
+function datumIndexOfSite(siteId: string): number {
+  return currentData.findIndex((datum) =>
+    'clusterIds' in datum ? datum.clusterIds.includes(siteId) : datum.siteId === siteId,
+  )
 }
 
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
@@ -48,23 +168,36 @@ function resetRoam(): void {
   if (chart.value === null || container.value === null) return
   if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
   chart.value.setOption(currentOption(), { notMerge: true })
+  currentData = toScatterData(props.sites, props.selectedId)
+  scheduleRefresh()
 }
 
 /**
  * 键盘操作的地标列表：canvas 里的地标对读屏和 Tab 不可达，
  * 所以另渲染一份等价的按钮列表，聚焦时在地图上高亮对应地标，Enter 打开详情。
+ *
+ * 注意不能直接用列表的下标做 `dataIndex`：图上画的是「点 + 簇」，
+ * 顺序与列表不同，被并进簇的项目也没有自己的点。所以先按 id 反查一次。
  */
 function focusMarker(index: number): void {
   const instance = chart.value
-  if (instance === null) return
-  instance.dispatchAction({ type: 'highlight', seriesId: 'sites', dataIndex: index })
-  instance.dispatchAction({ type: 'showTip', seriesId: 'sites', dataIndex: index })
+  const site = props.sites[index]
+  if (instance === null || site === undefined) return
+
+  const dataIndex = datumIndexOfSite(site.id)
+  if (dataIndex < 0) return
+  instance.dispatchAction({ type: 'highlight', seriesId: 'sites', dataIndex })
+  instance.dispatchAction({ type: 'showTip', seriesId: 'sites', dataIndex })
 }
 
 function blurMarker(index: number): void {
   const instance = chart.value
-  if (instance === null) return
-  instance.dispatchAction({ type: 'downplay', seriesId: 'sites', dataIndex: index })
+  const site = props.sites[index]
+  if (instance === null || site === undefined) return
+
+  const dataIndex = datumIndexOfSite(site.id)
+  if (dataIndex < 0) return
+  instance.dispatchAction({ type: 'downplay', seriesId: 'sites', dataIndex })
   instance.dispatchAction({ type: 'hideTip' })
 }
 
@@ -84,6 +217,8 @@ async function render(): Promise<void> {
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
       instance.on('click', handleChartClick)
+      // 缩放/拖拽之后像素距离变了，聚合结果要跟着重算
+      instance.on('georoam', scheduleRefresh)
       // zr 级别的事件才拿得到双击，ECharts 的 chart.on('dblclick') 只对图形元素生效
       instance.getZr().on('dblclick', resetRoam)
       chart.value = instance
@@ -92,6 +227,8 @@ async function render(): Promise<void> {
     chart.value.setOption(currentOption(), { notMerge: true })
     chart.value.resize()
     status.value = 'ready'
+    currentData = toScatterData(props.sites, props.selectedId)
+    refreshMarkers()
   } catch (error: unknown) {
     status.value = 'error'
     errorMessage.value = error instanceof Error ? error.message : '底图加载失败'
@@ -103,7 +240,11 @@ function handleResize(): void {
   if (el === null) return
   const sized = el.clientWidth > 0 && el.clientHeight > 0
   if (chart.value !== null) {
-    if (sized) chart.value.resize()
+    if (sized) {
+      chart.value.resize()
+      // 画布尺寸变了，同样的经纬度会落到不同的像素位置，聚合要重算
+      scheduleRefresh()
+    }
     return
   }
   if (sized && status.value !== 'error') void render()
@@ -120,6 +261,13 @@ onBeforeUnmount(() => {
   disposed = true
   resizeObserver?.disconnect()
   resizeObserver = null
+  if (refreshHandle !== null) {
+    window.cancelAnimationFrame(refreshHandle)
+    refreshHandle = null
+  }
+  for (const timer of settleTimers) window.clearTimeout(timer)
+  settleTimers = []
+  chart.value?.off('georoam', scheduleRefresh)
   chart.value?.getZr().off('dblclick', resetRoam)
   chart.value?.dispose()
   chart.value = null
@@ -130,6 +278,7 @@ watch(
   () => {
     if (status.value === 'ready' && chart.value !== null) {
       chart.value.setOption(currentOption())
+      refreshMarkers()
     }
   },
 )
