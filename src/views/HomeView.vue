@@ -100,10 +100,9 @@ const empty = computed(() => filteredSites.value.length === 0)
   padding: 0.9rem;
   overflow: hidden;
   background:
-    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 70%), transparent 60%),
-    var(--paper-2, #efe7d8);
+    radial-gradient(circle at 30% 20%, var(--map-glow), transparent 60%), var(--paper-2, #efe7d8);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
 }
 
 .home__filters {
@@ -112,9 +111,9 @@ const empty = computed(() => filteredSites.value.length === 0)
   flex: 0 0 auto;
   gap: 0.65rem;
   padding: 0.7rem 0.8rem;
-  background: rgb(255 253 248 / 82%);
+  background: rgb(var(--surface-rgb) / 82%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(6px);
 }
 
@@ -144,11 +143,11 @@ const empty = computed(() => filteredSites.value.length === 0)
   cursor: pointer;
   background: transparent;
   border: 1px solid currentcolor;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .home__reset--solid {
-  color: #fffdf8;
+  color: var(--accent-ink);
   background: var(--accent, #b45309);
   border-color: var(--accent, #b45309);
 }
@@ -179,9 +178,9 @@ const empty = computed(() => filteredSites.value.length === 0)
   font: inherit;
   text-align: left;
   cursor: pointer;
-  background: rgb(255 253 248 / 78%);
+  background: rgb(var(--surface-rgb) / 78%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   transition: border-color 0.15s ease;
 }
 
@@ -197,7 +196,7 @@ const empty = computed(() => filteredSites.value.length === 0)
   width: 0.5rem;
   height: 0.5rem;
   margin-top: 0.4rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .home__item-name {
@@ -213,9 +212,9 @@ const empty = computed(() => filteredSites.value.length === 0)
 
 .home__empty {
   padding: 1.4rem 1.1rem;
-  background: rgb(255 253 248 / 78%);
+  background: rgb(var(--surface-rgb) / 78%);
   border: 1px dashed var(--line, #ddd2bd);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .home__empty-title {

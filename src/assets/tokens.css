@@ -1,0 +1,176 @@
+/*
+ * 设计基线 token。
+ *
+ * 规则：颜色、字体、圆角、阴影、地图配色只在这里定义，组件里不写死。
+ * 三个方向（A/B/C）共用同一套 token 名字，只覆盖值——选型定下来之后，
+ * 删掉未选中的两组，其余组件一行不用改。
+ *
+ * 为什么用 `--xxx-rgb` 三元组：半透明表面（卡片、筛选条）需要和背景同色系又带透明度，
+ * 拆成 rgb(var(--surface-rgb) / 82%) 才能让三个方向各自换底色而不必复制一堆 rgba 值。
+ */
+
+:root {
+  /* ---- 方向 A：纸墨乡野（默认） ---- */
+  --paper: #f7f3ea;
+  --paper-glow-a: #fdfbf5;
+  --paper-glow-b: #f6efe1;
+  --surface-rgb: 255 253 248;
+
+  --ink: #2a2620;
+  --ink-soft: #6b6154;
+  --ink-inverse: #fffdf8;
+  --line: #ddd2bd;
+
+  --accent: #b45309;
+  --accent-ink: #fffdf8;
+  --danger: #b3261e;
+
+  /* 深色遮罩（图片说明、地图提示条） */
+  --overlay-rgb: 28 26 22;
+
+  /* 地图：与 anhui-map-option.ts 里的 fallback 保持一致 */
+  --map-glow: rgb(255 255 255 / 70%);
+  --map-area: #efe7d8;
+  --map-border: #cbbfa8;
+  --map-label: #8a7a63;
+  --map-area-hover: #e3d8c2;
+  --cluster: #b45309;
+
+  /* 分类色：地标、图例、后续详情页标签共用 */
+  --cat-ancient-town: #b45309;
+  --cat-intangible: #7c3aed;
+  --cat-red: #c53030;
+  --cat-nature: #0f766e;
+  --cat-performance: #be185d;
+  --cat-village: #4d7c0f;
+
+  /* ---- 字体 ---- */
+  --font-sans:
+    system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC',
+    sans-serif;
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', var(--font-sans);
+  --tracking-display: 0.02em;
+  --tracking-brand: 0.06em;
+
+  /* ---- 圆角 ---- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* ---- 阴影 ---- */
+  --shadow-soft: 0 1px 2px rgb(42 38 32 / 8%);
+  --shadow-card: 0 6px 18px rgb(42 38 32 / 12%);
+  --shadow-panel: 0 18px 40px -28px rgb(60 44 20 / 55%);
+
+  /* ---- 描边 ---- */
+  --border-width: 1px;
+}
+
+/*
+ * 方向 B：徽派几何
+ * 白墙黛瓦的线性语言——冷白底、近黑墨、朱砂点缀、直角、几乎不用阴影，靠 1px 线分层。
+ */
+[data-theme='b'] {
+  --paper: #f4f5f4;
+  --paper-glow-a: #ffffff;
+  --paper-glow-b: #eceeec;
+  --surface-rgb: 255 255 255;
+
+  --ink: #1b1f1e;
+  --ink-soft: #5c6462;
+  --ink-inverse: #ffffff;
+  --line: #d7dbd8;
+
+  --accent: #9a3b2e;
+  --accent-ink: #ffffff;
+  --danger: #a3271f;
+
+  --overlay-rgb: 24 28 27;
+
+  --map-glow: rgb(255 255 255 / 55%);
+  --map-area: #e7eae7;
+  --map-border: #b7bfb8;
+  --map-label: #6b7a72;
+  --map-area-hover: #dbe0db;
+  --cluster: #9a3b2e;
+
+  --cat-ancient-town: #6b5340;
+  --cat-intangible: #6f4257;
+  --cat-red: #9a3b2e;
+  --cat-nature: #3f6b5a;
+  --cat-performance: #8a4a5a;
+  --cat-village: #5c7238;
+
+  --font-display: var(--font-sans);
+  --tracking-display: 0.12em;
+  --tracking-brand: 0.22em;
+
+  --radius-xs: 0;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-pill: 2px;
+
+  --shadow-soft: none;
+  --shadow-card: none;
+  --shadow-panel: none;
+
+  --border-width: 1px;
+}
+
+/*
+ * 方向 C：数据图鉴
+ * 更中性的信息产品——冷灰底、纯白卡、深青强调、清晰的分层阴影，把注意力留给地图与分类色。
+ */
+[data-theme='c'] {
+  --paper: #f6f7f9;
+  --paper-glow-a: #ffffff;
+  --paper-glow-b: #eef1f6;
+  --surface-rgb: 255 255 255;
+
+  --ink: #12161b;
+  --ink-soft: #5a6472;
+  --ink-inverse: #ffffff;
+  --line: #e2e6ec;
+
+  --accent: #12646a;
+  --accent-ink: #ffffff;
+  --danger: #c0392b;
+
+  --overlay-rgb: 18 22 27;
+
+  --map-glow: rgb(255 255 255 / 60%);
+  --map-area: #eef1f5;
+  --map-border: #cfd6e0;
+  --map-label: #64707f;
+  --map-area-hover: #e2e8f0;
+  --cluster: #12646a;
+
+  --cat-ancient-town: #a35f00;
+  --cat-intangible: #6d3fc0;
+  --cat-red: #c0392b;
+  --cat-nature: #0f766e;
+  --cat-performance: #b02a5b;
+  --cat-village: #4d7c0f;
+
+  --font-display: var(--font-sans);
+  --tracking-display: 0.01em;
+  --tracking-brand: 0.04em;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 1px 2px rgb(18 22 27 / 6%);
+  --shadow-card: 0 1px 2px rgb(18 22 27 / 6%), 0 6px 16px rgb(18 22 27 / 5%);
+  --shadow-panel: 0 12px 32px -20px rgb(18 22 27 / 30%);
+
+  --border-width: 1px;
+}

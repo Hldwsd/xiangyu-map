@@ -58,9 +58,9 @@ const options = computed(() =>
   font-size: 0.82rem;
   color: var(--ink, #2a2620);
   cursor: pointer;
-  background: rgba(255, 253, 248, 0.92);
+  background: rgb(var(--surface-rgb) / 92%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .city__select:hover {

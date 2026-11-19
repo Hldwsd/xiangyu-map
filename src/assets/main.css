@@ -1,13 +1,4 @@
 :root {
-  /* 纸色底 + 赭石强调色：偏乡野、偏实物，不用纯白与高饱和蓝 */
-  --paper: #f7f3ea;
-  --paper-2: #efe7d8;
-  --ink: #2a2620;
-  --ink-soft: #6b6154;
-  --line: #ddd2bd;
-  --accent: #b45309;
-  --danger: #b3261e;
-
   color-scheme: light;
 }
 
@@ -24,20 +15,13 @@ body {
 
 body {
   margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    'PingFang SC',
-    'Hiragino Sans GB',
-    'Microsoft YaHei',
-    'Noto Sans SC',
-    sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
   background:
-    radial-gradient(circle at 12% 8%, #fdfbf5 0%, transparent 45%),
-    radial-gradient(circle at 88% 0%, #f6efe1 0%, transparent 40%), var(--paper);
+    radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
+    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%), var(--paper);
   -webkit-font-smoothing: antialiased;
 }
 

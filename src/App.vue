@@ -52,9 +52,10 @@ import { RouterLink, RouterView } from 'vue-router'
 }
 
 .app__brand-name {
+  font-family: var(--font-display);
   font-size: 1.22rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-brand);
   color: var(--ink, #2a2620);
 }
 

@@ -2,17 +2,15 @@ import type { EChartsOption } from 'echarts'
 
 import type { MarkerGroup } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
+import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
 import type { Site, SiteCategory } from '@/types/site'
 
-/** 分类配色。与 assets/main.css 中的 --cat-* 变量保持一致 */
-export const CATEGORY_COLORS: Record<SiteCategory, string> = {
-  古镇: '#b45309',
-  非遗: '#7c3aed',
-  红色: '#c53030',
-  自然: '#0f766e',
-  演艺: '#be185d',
-  乡村: '#4d7c0f',
-}
+/**
+ * 分类配色。默认值与 tokens.css 里方向 A 的 `--cat-*` 一致；
+ * 实际渲染时由组件从 CSS 变量读当前主题（见 theme.ts 的 readThemePalette），
+ * 这样「换主题」不用改组件代码。
+ */
+export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
 
 /**
  * 分类形状。只用颜色区分分类时，色觉障碍用户与黑白打印场景会丢失信息，
@@ -96,11 +94,12 @@ export function toScatterData(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
+  palette: ThemePalette = DEFAULT_PALETTE,
 ): MapScatterDatum[] {
   // 没给分组时按「每个项目一颗」处理：默认视野下不聚合，
   // 聚合是组件拿到像素坐标之后的决定（见 refreshMarkers）。
   if (groups === undefined) {
-    return sites.map((site) => toSiteDatum(site, selectedId))
+    return sites.map((site) => toSiteDatum(site, selectedId, palette))
   }
 
   const byId = new Map(sites.map((site) => [site.id, site]))
@@ -109,7 +108,7 @@ export function toScatterData(
   for (const group of groups) {
     if (group.ids.length === 1) {
       const site = byId.get(group.ids[0] ?? '')
-      if (site !== undefined) data.push(toSiteDatum(site, selectedId))
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette))
       continue
     }
 
@@ -129,7 +128,7 @@ export function toScatterData(
       // 数字越大点越大，但按对数增长：20 个目标的簇不该吃掉半张地图
       symbolSize: Math.min(CLUSTER_MAX_SIZE, CLUSTER_BASE_SIZE + Math.log2(count) * 4),
       itemStyle: {
-        color: '#b45309',
+        color: palette.cluster,
         borderColor: '#fffdf8',
         borderWidth: 2,
         shadowBlur: 10,
@@ -148,9 +147,13 @@ export function toScatterData(
   return data
 }
 
-function toSiteDatum(site: Site, selectedId: string | null): SiteScatterDatum {
+function toSiteDatum(
+  site: Site,
+  selectedId: string | null,
+  palette: ThemePalette,
+): SiteScatterDatum {
   const selected = site.id === selectedId
-  const color = CATEGORY_COLORS[site.category]
+  const color = palette.category[site.category]
 
   return {
     name: site.name,
@@ -222,8 +225,9 @@ export function buildAnhuiMapOption(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
+  palette: ThemePalette = DEFAULT_PALETTE,
 ): EChartsOption {
-  const data = toScatterData(sites, selectedId, groups)
+  const data = toScatterData(sites, selectedId, groups, palette)
 
   return {
     backgroundColor: 'transparent',
@@ -252,17 +256,17 @@ export function buildAnhuiMapOption(
       layoutSize: '92%',
       label: {
         show: true,
-        color: '#8a7a63',
+        color: palette.mapLabel,
         fontSize: 10,
       },
       itemStyle: {
-        areaColor: '#efe7d8',
-        borderColor: '#cbbfa8',
+        areaColor: palette.mapArea,
+        borderColor: palette.mapBorder,
         borderWidth: 0.9,
       },
       emphasis: {
-        itemStyle: { areaColor: '#e3d8c2' },
-        label: { show: true, color: '#2a2620', fontWeight: 'bold' },
+        itemStyle: { areaColor: palette.mapAreaHover },
+        label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
       },
     },
     series: [

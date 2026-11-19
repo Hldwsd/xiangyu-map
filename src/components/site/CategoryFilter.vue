@@ -71,9 +71,9 @@ defineProps<{
   font-size: 0.82rem;
   color: var(--ink, #2a2620);
   cursor: pointer;
-  background: rgba(255, 253, 248, 0.86);
+  background: rgb(var(--surface-rgb) / 86%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
@@ -85,7 +85,7 @@ defineProps<{
 }
 
 .filter__chip--active {
-  color: #fffdf8;
+  color: var(--accent-ink);
   background: var(--accent, #b45309);
   border-color: var(--accent, #b45309);
 }
@@ -113,9 +113,9 @@ defineProps<{
   font: inherit;
   font-size: 0.85rem;
   color: inherit;
-  background: rgba(255, 253, 248, 0.92);
+  background: rgb(var(--surface-rgb) / 92%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .filter__input:focus-visible {

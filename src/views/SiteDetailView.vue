@@ -191,7 +191,7 @@ function markBroken(url: string): void {
   padding: 0.1rem 0.5rem;
   color: var(--accent, #b45309);
   border: 1px solid currentcolor;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .detail__updated {
@@ -201,8 +201,10 @@ function markBroken(url: string): void {
 
 .detail__title {
   margin: 0 0 0.5rem;
+  font-family: var(--font-display);
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   line-height: 1.25;
+  letter-spacing: var(--tracking-display);
   color: var(--ink, #2a2620);
 }
 
@@ -220,7 +222,7 @@ function markBroken(url: string): void {
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: var(--paper-2, #efe7d8);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 .detail__section {
@@ -249,7 +251,7 @@ function markBroken(url: string): void {
 
 .detail__gallery img {
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .detail__facts {
@@ -288,7 +290,7 @@ function markBroken(url: string): void {
   line-height: 1.6 !important;
   color: var(--ink-soft, #6b6154) !important;
   background: var(--paper-2, #efe7d8);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .detail__back--bottom {
@@ -311,9 +313,9 @@ function markBroken(url: string): void {
   padding: 0.6rem 0.75rem;
   color: var(--ink, #2a2620);
   text-decoration: none;
-  background: rgb(255 253 248 / 78%);
+  background: rgb(var(--surface-rgb) / 78%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .detail__pager-item--next {

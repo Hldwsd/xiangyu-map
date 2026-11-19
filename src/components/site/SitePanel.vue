@@ -56,10 +56,10 @@ const emit = defineEmits<{ close: [] }>()
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: rgb(255 253 248 / 96%);
+  background: rgb(var(--surface-rgb) / 96%);
   border: 1px solid var(--line, #ddd2bd);
-  border-radius: 14px;
-  box-shadow: 0 18px 40px -28px rgb(60 44 20 / 55%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
 }
 
 .panel__close {
@@ -70,15 +70,15 @@ const emit = defineEmits<{ close: [] }>()
   height: 1.9rem;
   font-size: 1.1rem;
   line-height: 1;
-  color: #fffdf8;
+  color: var(--ink-inverse);
   cursor: pointer;
-  background: rgb(28 26 22 / 45%);
+  background: rgb(var(--overlay-rgb) / 45%);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .panel__close:hover {
-  background: rgb(28 26 22 / 70%);
+  background: rgb(var(--overlay-rgb) / 70%);
 }
 
 .panel__cover {
@@ -110,7 +110,7 @@ const emit = defineEmits<{ close: [] }>()
   font-size: 0.72rem;
   color: var(--accent, #b45309);
   border: 1px solid currentcolor;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .panel__title {
@@ -142,7 +142,7 @@ const emit = defineEmits<{ close: [] }>()
   font-size: 0.72rem;
   color: var(--ink-soft, #6b6154);
   background: var(--paper-2, #efe7d8);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .panel__facts {
