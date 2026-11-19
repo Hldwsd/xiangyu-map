@@ -13,11 +13,18 @@ on:
 permissions:
   contents: write
 
-# 和 preview.yml 共用同一个 concurrency group：两个工作流都会推 gh-pages，
-# 并行推会互相覆盖，宁可排队。
+# 独立的 concurrency group。以前这里和 preview.yml 共用 gh-pages-deploy，本意是让两次
+# 推 gh-pages 串行；但 GitHub 的语义是「同组里新排队的运行会取消此前 pending 的运行」
+# （即使 cancel-in-progress: false），于是合并 PR 时 push:main 的部署会被 pull_request:closed
+# 的预览清理挤掉——运行状态是 cancelled、jobs 为空，线上静默不更新（见 Issue #27）。
+# 现在各用各的组，靠下面「推送失败就 fetch 重试」解决并发写同一分支的问题。
 concurrency:
-  group: gh-pages-deploy
+  group: pages-deploy
   cancel-in-progress: false
+
+env:
+  PAGES_DIR: .
+  COMMIT_MSG: 'ci(deploy): 发布 main @ ${{ github.sha }}'
 
 jobs:
   deploy:
@@ -48,14 +55,36 @@ jobs:
         run: cp dist/index.html dist/404.html
 
       - name: Publish
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./dist
-          destination_dir: .
-          # 保留 pr-<n>/ 预览目录，只覆盖根目录的构建产物
-          keep_files: true
-          user_name: github-actions[bot]
-          user_email: 41898282+github-actions[bot]@users.noreply.github.com
-          commit_message: 'ci(deploy): 发布 main @ ${{ github.sha }}'
+        # 不用 peaceiris/actions-gh-pages：它没有推送重试，而 Preview 工作流随时可能
+        # 同时推 gh-pages（预览构建/清理），一次 non-fast-forward 就会让部署红掉。
+        # 这里克隆 gh-pages、只替换根目录产物（pr-* 原样保留）、失败退避重试 3 次。
+        run: |
+          set -euo pipefail
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          for attempt in 1 2 3; do
+            rm -rf /tmp/pages
+            git clone --depth=1 --branch gh-pages "$remote" /tmp/pages
+            # 清根目录，但保留 pr-*（每个 PR 的预览产物归 preview.yml 管）
+            find /tmp/pages -mindepth 1 -maxdepth 1 \
+              -not -name 'pr-*' -not -name '.git' -exec rm -rf {} +
+            cp -a dist/. /tmp/pages/
+            cd /tmp/pages
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            if git diff --cached --quiet; then
+              echo "gh-pages 内容无变化，跳过推送"
+              exit 0
+            fi
+            git commit -q -m "$COMMIT_MSG"
+            if git push origin gh-pages; then
+              echo "已发布（第 $attempt 次尝试）"
+              exit 0
+            fi
+            echo "第 $attempt 次推送失败，可能是 Preview 同时推送，退避重试"
+            sleep $((attempt * 5))
+          done
+          echo "推送 gh-pages 连续失败 3 次" >&2
+          exit 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
