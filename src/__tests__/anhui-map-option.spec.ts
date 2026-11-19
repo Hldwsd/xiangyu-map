@@ -20,8 +20,10 @@ function siteData(subset: typeof sites, selectedId: string | null): SiteScatterD
 
 function scatterDataOf(option: EChartsOption): unknown[] {
   const series = Array.isArray(option.series) ? option.series : []
-  const first = series[0] as { data?: unknown[] } | undefined
-  return first?.data ?? []
+  // series 里现在还有河道线，按 id 找散点，不依赖顺序
+  const sites = series.find((item) => (item as { id?: string }).id === 'sites') as
+    { data?: unknown[] } | undefined
+  return sites?.data ?? []
 }
 
 describe('toScatterData', () => {
@@ -153,7 +155,9 @@ describe('buildAnhuiMapOption', () => {
 
   it('地标可点击（cursor pointer）且缩放有上下限', () => {
     const option = buildAnhuiMapOption(sites, null)
-    const series = (option.series as Array<{ cursor?: string }>)[0]
+    const series = (option.series as Array<{ id?: string; cursor?: string }>).find(
+      (item) => item.id === 'sites',
+    )
     const geo = option.geo as { scaleLimit?: { min?: number; max?: number } }
 
     expect(series?.cursor).toBe('pointer')

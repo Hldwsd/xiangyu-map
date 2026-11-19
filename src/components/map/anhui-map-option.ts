@@ -76,6 +76,13 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
+/** 河道线：一条河可能由很多段组成 */
+export interface RiverLine {
+  name: string
+  width: number
+  coords: [number, number][]
+}
+
 /** 逐要素样式：区县界只画线、水域填浅蓝、市域保持默认 */
 export interface MapRegionStyle {
   name: string
@@ -240,6 +247,7 @@ export function buildAnhuiMapOption(
   groups?: MarkerGroup[],
   palette: ThemePalette = DEFAULT_PALETTE,
   regions: MapRegionStyle[] = [],
+  rivers: RiverLine[] = [],
 ): EChartsOption {
   const data = toScatterData(sites, selectedId, groups, palette)
 
@@ -288,6 +296,21 @@ export function buildAnhuiMapOption(
       },
     },
     series: [
+      {
+        id: 'rivers',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        zlevel: 1,
+        z: 2,
+        silent: true,
+        // polyline：把每条河的折线整体画出来，而不是首尾相连的「飞线」
+        polyline: true,
+        lineStyle: { color: palette.riverLine, opacity: 0.9, cap: 'round' },
+        data: rivers.map((river) => ({
+          coords: river.coords,
+          lineStyle: { width: river.width },
+        })),
+      },
       {
         id: 'sites',
         name: '文旅项目',
