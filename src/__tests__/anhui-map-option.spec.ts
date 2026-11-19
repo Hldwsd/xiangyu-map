@@ -3,6 +3,7 @@ import type { EChartsOption } from 'echarts'
 
 import {
   CATEGORY_COLORS,
+  CATEGORY_SYMBOLS,
   buildAnhuiMapOption,
   escapeHtml,
   formatSiteTooltip,
@@ -42,6 +43,21 @@ describe('toScatterData', () => {
       expect(datum.itemStyle.color).toBe(CATEGORY_COLORS[datum.category])
     }
     expect(new Set(Object.values(CATEGORY_COLORS)).size).toBe(Object.keys(CATEGORY_COLORS).length)
+  })
+
+  it('每个分类都有自己的形状，且六个形状互不相同', () => {
+    const data = toScatterData(sites, null)
+    for (const datum of data) {
+      expect(datum.symbol).toBe(CATEGORY_SYMBOLS[datum.category])
+    }
+    expect(new Set(Object.values(CATEGORY_SYMBOLS)).size).toBe(Object.keys(CATEGORY_SYMBOLS).length)
+  })
+
+  it('基础尺寸不小于 13，命中区才够点', () => {
+    const data = toScatterData(sites, null)
+    for (const datum of data) {
+      expect(datum.symbolSize).toBeGreaterThanOrEqual(13)
+    }
   })
 })
 
@@ -99,6 +115,26 @@ describe('buildAnhuiMapOption', () => {
 
     expect(geo['center']).toBeUndefined()
     expect(geo['zoom']).toBeUndefined()
+  })
+
+  it('省界内缩 8%，贴边地标不被画布裁掉', () => {
+    const geo = buildAnhuiMapOption(sites, null).geo as {
+      layoutCenter?: unknown
+      layoutSize?: unknown
+    }
+
+    expect(geo.layoutCenter).toEqual(['50%', '50%'])
+    expect(geo.layoutSize).toBe('92%')
+  })
+
+  it('地标可点击（cursor pointer）且缩放有上下限', () => {
+    const option = buildAnhuiMapOption(sites, null)
+    const series = (option.series as Array<{ cursor?: string }>)[0]
+    const geo = option.geo as { scaleLimit?: { min?: number; max?: number } }
+
+    expect(series?.cursor).toBe('pointer')
+    expect(geo.scaleLimit?.min).toBeGreaterThan(0)
+    expect(geo.scaleLimit?.max).toBeGreaterThan(geo.scaleLimit?.min ?? 0)
   })
 
   it('筛选后只保留传入的项目', () => {

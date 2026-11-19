@@ -9,7 +9,15 @@ export default defineConfigWithVueTs(
     files: ['**/*.{vue,ts,mts,tsx}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/node_modules/**']),
+  globalIgnores([
+    '**/dist/**',
+    '**/dist-ssr/**',
+    '**/coverage/**',
+    '**/node_modules/**',
+    // .tmp/ 是本地临时脚本与备份的落地目录（已 gitignore）：里面的文件不进 tsconfig，
+    // 用 project service 解析会直接报「not found by the project service」。
+    '**/.tmp/**',
+  ]),
 
   ...pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,

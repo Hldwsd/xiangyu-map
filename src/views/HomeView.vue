@@ -20,8 +20,8 @@ const empty = computed(() => filteredSites.value.length === 0)
 <template>
   <div class="home">
     <section class="home__map-area">
-      <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
-
+      <!-- 筛选条占一行、不叠在地图上：叠放时它会盖住地图北侧（宿州/亳州一带）的地标，
+           那些地标就在视觉上「看得见、点不着」，命中率也就不再等于 100%。 -->
       <div class="home__filters">
         <CategoryFilter
           :category="store.category"
@@ -35,17 +35,21 @@ const empty = computed(() => filteredSites.value.length === 0)
         <CityFilter :city="store.city" :counts="cityCounts" @update:city="store.setCity" />
       </div>
 
-      <p class="home__counter">
-        地图上 {{ filteredSites.length }} / {{ total }} 个项目
-        <button
-          v-if="hasActiveFilter"
-          type="button"
-          class="home__reset"
-          @click="store.resetFilters()"
-        >
-          清空筛选
-        </button>
-      </p>
+      <div class="home__stage">
+        <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
+
+        <p class="home__counter">
+          地图上 {{ filteredSites.length }} / {{ total }} 个项目
+          <button
+            v-if="hasActiveFilter"
+            type="button"
+            class="home__reset"
+            @click="store.resetFilters()"
+          >
+            清空筛选
+          </button>
+        </p>
+      </div>
     </section>
 
     <aside class="home__aside">
@@ -90,6 +94,10 @@ const empty = computed(() => filteredSites.value.length === 0)
 
 .home__map-area {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.9rem;
   overflow: hidden;
   background:
     radial-gradient(circle at 30% 20%, rgb(255 255 255 / 70%), transparent 60%),
@@ -99,18 +107,21 @@ const empty = computed(() => filteredSites.value.length === 0)
 }
 
 .home__filters {
-  position: absolute;
-  top: 0.9rem;
-  left: 0.9rem;
-  right: 0.9rem;
   display: flex;
   flex-direction: column;
+  flex: 0 0 auto;
   gap: 0.65rem;
   padding: 0.7rem 0.8rem;
   background: rgb(255 253 248 / 82%);
   border: 1px solid var(--line, #ddd2bd);
   border-radius: 12px;
   backdrop-filter: blur(6px);
+}
+
+.home__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .home__counter {
@@ -228,8 +239,8 @@ const empty = computed(() => filteredSites.value.length === 0)
   }
 
   .home__map-area {
-    height: 62vh;
-    min-height: 380px;
+    height: 68vh;
+    min-height: 420px;
   }
 
   .home__aside {
