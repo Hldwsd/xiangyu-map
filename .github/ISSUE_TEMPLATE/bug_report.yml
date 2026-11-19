@@ -1,7 +1,7 @@
 name: Bug 报告
 description: 地图、详情页、交互或构建出问题
-title: "[Bug] "
-labels: ["bug"]
+title: '[Bug] '
+labels: ['bug']
 body:
   - type: markdown
     attributes:

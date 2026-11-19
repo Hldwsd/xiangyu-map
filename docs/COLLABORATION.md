@@ -37,13 +37,13 @@ git config --global user.email "<在 GitHub → Settings → Emails 复制你的
 
 短分支 + PR，不用 Git Flow，不长期保留 develop 分支。
 
-| 类型 | 命名 | 例 |
-| --- | --- | --- |
-| 功能 | `feat/<scope>-<简述>` | `feat/map-marker-cluster` |
-| 修复 | `fix/<scope>-<简述>` | `fix/detail-image-404` |
-| 文档 | `docs/<简述>` | `docs/collaboration-rules` |
+| 类型 | 命名                      | 例                             |
+| ---- | ------------------------- | ------------------------------ |
+| 功能 | `feat/<scope>-<简述>`     | `feat/map-marker-cluster`      |
+| 修复 | `fix/<scope>-<简述>`      | `fix/detail-image-404`         |
+| 文档 | `docs/<简述>`             | `docs/collaboration-rules`     |
 | 重构 | `refactor/<scope>-<简述>` | `refactor/map-into-composable` |
-| 杂务 | `chore/<简述>` | `chore/bump-echarts` |
+| 杂务 | `chore/<简述>`            | `chore/bump-echarts`           |
 
 规则：
 
@@ -70,19 +70,19 @@ git config --global user.email "<在 GitHub → Settings → Emails 复制你的
 
 `type`：
 
-| type | 用途 |
-| --- | --- |
-| `feat` | 新功能 |
-| `fix` | 修 bug |
-| `docs` | 文档 |
-| `style` | 格式（不影响逻辑） |
-| `refactor` | 重构（不改行为） |
-| `perf` | 性能优化 |
-| `test` | 测试 |
-| `build` | 构建、依赖、脚本 |
-| `ci` | CI 配置 |
-| `chore` | 杂务 |
-| `revert` | 回滚 |
+| type       | 用途               |
+| ---------- | ------------------ |
+| `feat`     | 新功能             |
+| `fix`      | 修 bug             |
+| `docs`     | 文档               |
+| `style`    | 格式（不影响逻辑） |
+| `refactor` | 重构（不改行为）   |
+| `perf`     | 性能优化           |
+| `test`     | 测试               |
+| `build`    | 构建、依赖、脚本   |
+| `ci`       | CI 配置            |
+| `chore`    | 杂务               |
+| `revert`   | 回滚               |
 
 `scope`：`map`（地图渲染）、`data`（数据与校验）、`ui`（通用组件与样式）、`detail`（详情页）、`filter`（筛选搜索）、`router`、`store`、`build`、`ci`、`docs`、`deps`。
 
@@ -157,12 +157,12 @@ PR 体积：超过 400 行改动先说明理由并拆；纯格式化与业务改
 
 ## 九、日常节奏
 
-| 时间 | 动作 |
-| --- | --- |
-| 每天开工 | 互发一句「今天做什么」，避免同时改同一块 |
-| 每天收工 | 推分支、开/更新 PR，不留未提交的本地改动过夜 |
-| 每周日 | 3 行复盘 + 下周排期微调（直接改规划文档的里程碑表，说明改期原因） |
-| 每个里程碑结束 | 对照 DoD 验收，未达成的项写进下一个里程碑，不默默延期 |
+| 时间           | 动作                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| 每天开工       | 互发一句「今天做什么」，避免同时改同一块                          |
+| 每天收工       | 推分支、开/更新 PR，不留未提交的本地改动过夜                      |
+| 每周日         | 3 行复盘 + 下周排期微调（直接改规划文档的里程碑表，说明改期原因） |
+| 每个里程碑结束 | 对照 DoD 验收，未达成的项写进下一个里程碑，不默默延期             |
 
 ## 十、安全与仓库卫生
 
