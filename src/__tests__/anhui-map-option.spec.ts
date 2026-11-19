@@ -54,6 +54,15 @@ describe('toScatterData', () => {
     expect(new Set(Object.values(CATEGORY_COLORS)).size).toBe(1)
   })
 
+  it('选中态换成另一张图：墨底白线，与未选中互不相同', () => {
+    const data = siteData(sites, 'hongcun')
+    const selected = data.find((datum) => datum.siteId === 'hongcun')
+    const other = data.find((datum) => datum.siteId === 'huangshan-scenic')
+
+    expect(selected?.symbol).not.toBe(other?.symbol)
+    expect(selected?.symbol.startsWith('image://data:image/svg+xml')).toBe(true)
+  })
+
   it('每个分类都有自己的形状，且六个形状互不相同', () => {
     const data = siteData(sites, null)
     for (const datum of data) {
@@ -62,10 +71,10 @@ describe('toScatterData', () => {
     expect(new Set(Object.values(CATEGORY_SYMBOLS)).size).toBe(Object.keys(CATEGORY_SYMBOLS).length)
   })
 
-  it('基础尺寸不小于 15，黑白色块在浅底上也够显眼、够点', () => {
+  it('基础尺寸不小于 28，圆钉里的线条才认得出、也够点', () => {
     const data = siteData(sites, null)
     for (const datum of data) {
-      expect(datum.symbolSize).toBeGreaterThanOrEqual(15)
+      expect(datum.symbolSize).toBeGreaterThanOrEqual(28)
     }
   })
 })
