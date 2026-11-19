@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(22)
-    expect(store.filteredSites).toHaveLength(22)
+    expect(store.sites).toHaveLength(26)
+    expect(store.filteredSites).toHaveLength(26)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -32,6 +32,7 @@ describe('useSitesStore', () => {
         'langyashan',
         'tiantangzhai',
         'bagongshan',
+        'wanfohu',
       ].sort(),
     )
   })
@@ -54,8 +55,9 @@ describe('useSitesStore', () => {
     store.setQuery('  HONG  ')
     expect(store.filteredSites).toHaveLength(0)
 
+    // 西递的 summary 里提到了宏村，所以「宏村」会命中两条：宏村本身 + 西递
     store.setQuery('  宏村 ')
-    expect(store.filteredSites).toHaveLength(1)
+    expect(store.filteredSites.map((site) => site.id).sort()).toEqual(['hongcun', 'xidi'].sort())
   })
 
   it('筛选把当前选中项排除后，选中状态被清空', () => {
@@ -76,7 +78,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     const sum = Object.values(store.categoryCounts).reduce((total, count) => total + count, 0)
     expect(sum).toBe(store.sites.length)
-    expect(store.categoryCounts['古镇']).toBe(5)
+    expect(store.categoryCounts['古镇']).toBe(6)
   })
 
   it('getSiteById 找不到时返回 null', () => {
@@ -103,7 +105,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setCity('黄山市')
 
-    expect(store.filteredSites).toHaveLength(3)
+    expect(store.filteredSites).toHaveLength(5)
     expect(store.filteredSites.every((site) => site.city === '黄山市')).toBe(true)
   })
 
@@ -120,7 +122,8 @@ describe('useSitesStore', () => {
     store.setCity('黄山市')
     store.setQuery('宏村')
 
-    expect(store.filteredSites.map((site) => site.id)).toEqual(['hongcun'])
+    // 同样因为西递的 summary 提到宏村，这两条都在黄山市内
+    expect(store.filteredSites.map((site) => site.id).sort()).toEqual(['hongcun', 'xidi'].sort())
   })
 
   it('城市与分类组合没有结果时筛出空列表，不回退到全量', () => {
@@ -139,7 +142,7 @@ describe('useSitesStore', () => {
 
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
-    expect(store.cityCounts['黄山市']).toBe(3)
+    expect(store.cityCounts['黄山市']).toBe(5)
     expect(store.cityCounts['铜陵市']).toBe(1)
   })
 
@@ -173,11 +176,13 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setQuery('黄山')
 
-    // 黄山风景区命中名称（权重 4）；徽州古城与宏村只命中所在城市（权重 2），保持原始顺序
+    // 黄山风景区命中名称（权重 4）；其余四条只命中所在城市（权重 2），保持数据文件顺序
     expect(store.filteredSites.map((site) => site.id)).toEqual([
       'huangshan-scenic',
       'huizhou-ancient-city',
       'hongcun',
+      'xidi',
+      'tunxi-old-street',
     ])
   })
 
