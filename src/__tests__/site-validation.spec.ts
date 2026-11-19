@@ -40,7 +40,7 @@ function expectProblems(raw: unknown): string[] {
 describe('validateSites', () => {
   it('接受仓库里的全部数据', () => {
     const validated = validateSites(sites)
-    expect(validated).toHaveLength(30)
+    expect(validated).toHaveLength(36)
     expect(validated.map((site) => site.id)).toContain('hongcun')
     expect(validated.every((site) => site.province === '安徽省')).toBe(true)
   })

@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(30)
-    expect(store.filteredSites).toHaveLength(30)
+    expect(store.sites).toHaveLength(36)
+    expect(store.filteredSites).toHaveLength(36)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -34,6 +34,8 @@ describe('useSitesStore', () => {
         'bagongshan',
         'wanfohu',
         'shuimo-tingxi',
+        'qiyunshan',
+        'huatinghu',
       ].sort(),
     )
   })
@@ -106,7 +108,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setCity('黄山市')
 
-    expect(store.filteredSites).toHaveLength(5)
+    expect(store.filteredSites).toHaveLength(7)
     expect(store.filteredSites.every((site) => site.city === '黄山市')).toBe(true)
   })
 
@@ -115,7 +117,9 @@ describe('useSitesStore', () => {
     store.setCategory('自然')
     store.setCity('黄山市')
 
-    expect(store.filteredSites.map((site) => site.id)).toEqual(['huangshan-scenic'])
+    expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
+      ['huangshan-scenic', 'qiyunshan'].sort(),
+    )
   })
 
   it('关键词与城市同时生效', () => {
@@ -143,7 +147,7 @@ describe('useSitesStore', () => {
 
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
-    expect(store.cityCounts['黄山市']).toBe(5)
+    expect(store.cityCounts['黄山市']).toBe(7)
     expect(store.cityCounts['铜陵市']).toBe(1)
   })
 
@@ -184,6 +188,8 @@ describe('useSitesStore', () => {
       'hongcun',
       'xidi',
       'tunxi-old-street',
+      'qiyunshan',
+      'chengkan',
     ])
   })
 
