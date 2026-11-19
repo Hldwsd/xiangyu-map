@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(26)
-    expect(store.filteredSites).toHaveLength(26)
+    expect(store.sites).toHaveLength(30)
+    expect(store.filteredSites).toHaveLength(30)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -33,6 +33,7 @@ describe('useSitesStore', () => {
         'tiantangzhai',
         'bagongshan',
         'wanfohu',
+        'shuimo-tingxi',
       ].sort(),
     )
   })

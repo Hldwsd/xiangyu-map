@@ -1,7 +1,7 @@
 import type { Site } from '@/types/site'
 
 /**
- * 地标数据（26 条，全部在安徽省内，覆盖 16 个地级市）。
+ * 地标数据（30 条，全部在安徽省内，覆盖 16 个地级市）。
  *
  * 两组来源，别混着看：
  * - 前 10 条为 M0 示例数据：文案是编辑示例、`tags` 首位带「示例数据」、图片为占位；
@@ -479,6 +479,78 @@ export const sites: Site[] = [
     bestSeason: '4-6 月、9-10 月',
     transport: '舒城东站打车约 40 分钟',
     sources: ['https://www.luan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'taohuatan',
+    name: '桃花潭',
+    category: '乡村',
+    province: '安徽省',
+    city: '宣城市',
+    location: { lng: 118.16, lat: 30.42 },
+    summary: '泾县青弋江上的深潭，两岸村落与古渡相对，春天桃花开时最像诗里写的。',
+    description:
+      '桃花潭在泾县西南，青弋江在此转出一个深潭，两岸是村落、古渡与踏歌岸阁。\n\n它因李白《赠汪伦》而知名；清晨江面起雾时最好看，夏季可以坐竹筏，水浅处还能下水。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['青弋江', '古渡', '诗酒'],
+    bestSeason: '3-4 月、9-10 月',
+    transport: '泾县站打车约 50 分钟',
+    sources: ['http://www.jingxian.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'chaji-village',
+    name: '查济',
+    category: '乡村',
+    province: '安徽省',
+    city: '宣城市',
+    location: { lng: 118.12, lat: 30.43 },
+    summary: '泾县山里的查姓古村，祠堂与民居沿溪铺开，规模比一般古村大得多。',
+    description:
+      '查济在泾县桃花潭镇，是皖南保存规模较大的古村落之一：溪水穿村、石桥众多，祠堂与老宅沿着水声排布。\n\n游客密度不高，适合慢慢走；巷子窄且多石阶，穿双舒服的鞋。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['古村落', '徽派', '溪流'],
+    bestSeason: '3-4 月、10-11 月',
+    transport: '泾县站打车约 50 分钟',
+    sources: ['http://www.jingxian.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'shuimo-tingxi',
+    name: '水墨汀溪',
+    category: '自然',
+    province: '安徽省',
+    city: '宣城市',
+    location: { lng: 118.4, lat: 30.42 },
+    summary: '泾县东南的山涧溪谷，水浅石白、树荫密，夏天适合沿溪踩水走一段。',
+    description:
+      '水墨汀溪在泾县汀溪乡，溪流在花岗岩河床上拐出许多浅滩与水潭，两岸是竹林与阔叶林。\n\n夏天最舒服，可以沿溪走一段、下到浅滩踩水；雨后水量大，石头滑，注意脚下。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['溪谷', '竹林', '避暑'],
+    bestSeason: '5-9 月',
+    transport: '泾县站打车约 1 小时',
+    sources: ['http://www.jingxian.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'maolin-battlefield',
+    name: '茂林皖南事变激战地',
+    category: '红色',
+    province: '安徽省',
+    city: '宣城市',
+    location: { lng: 118.25, lat: 30.36 },
+    summary: '皖南事变的主要激战地，山坳里的旧址与纪念碑，适合安静走一趟。',
+    description:
+      '1941 年皖南事变中，新四军在茂林一带被围，山坳与溪谷间留下了多处战场遗址。\n\n镇上有纪念碑与旧址群；配合周边地形看，会更容易理解当年为什么在这里被围住。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['皖南事变', '旧址', '山地'],
+    bestSeason: '全年',
+    transport: '泾县站打车约 50 分钟',
+    sources: ['http://www.jingxian.gov.cn/'],
     updatedAt: '2026-11-19',
   },
 ]
