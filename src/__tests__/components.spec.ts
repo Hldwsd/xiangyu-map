@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { sites } from '@/data/sites'
+import { useSitesStore } from '@/stores/sites'
 import type { Site } from '@/types/site'
 import type { SiteCategory } from '@/types/site'
+import SiteDetailView from '@/views/SiteDetailView.vue'
+
+const routerLinkStub = { props: ['to'], template: '<a class="link-stub"><slot /></a>' }
 
 const counts: Record<SiteCategory, number> = {
   古镇: 3,
@@ -76,5 +81,54 @@ describe('CategoryFilter', () => {
 
     await wrapper.get('input').setValue('宏村')
     expect(wrapper.emitted('update:query')?.[0]).toEqual(['宏村'])
+  })
+})
+
+describe('SiteDetailView', () => {
+  it('渲染标题与相邻导航，末条没有下一条', () => {
+    const wrapper = mount(SiteDetailView, {
+      props: { id: 'hongcun' },
+      global: { plugins: [createPinia()], stubs: { RouterLink: routerLinkStub } },
+    })
+
+    expect(wrapper.get('.detail__title').text()).toBe('宏村')
+    expect(wrapper.get('.detail__pager').text()).toContain('上一条')
+    expect(wrapper.get('.detail__pager').text()).toContain('已是最后一条')
+  })
+
+  it('首条没有上一条', () => {
+    const wrapper = mount(SiteDetailView, {
+      props: { id: 'sanhe-ancient-town' },
+      global: { plugins: [createPinia()], stubs: { RouterLink: routerLinkStub } },
+    })
+
+    expect(wrapper.get('.detail__pager').text()).toContain('已是第一条')
+  })
+
+  it('封面加载失败时换成占位图，且不会无限重试', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    const target = useSitesStore().sites.find((item) => item.id === 'hongcun')
+    if (target === undefined) throw new Error('测试数据里缺少 hongcun')
+
+    const originalCover = target.cover
+    target.cover = '/images/sites/hongcun/cover.webp'
+
+    try {
+      const wrapper = mount(SiteDetailView, {
+        props: { id: 'hongcun' },
+        global: { plugins: [pinia], stubs: { RouterLink: routerLinkStub } },
+      })
+
+      expect(wrapper.get('.detail__cover').attributes('src')).toBe(
+        '/images/sites/hongcun/cover.webp',
+      )
+
+      await wrapper.get('.detail__cover').trigger('error')
+      expect(wrapper.get('.detail__cover').attributes('src')).toBe('/images/placeholder.svg')
+    } finally {
+      target.cover = originalCover
+    }
   })
 })

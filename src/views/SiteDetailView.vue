@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useSitesStore } from '@/stores/sites'
 import { assetUrl } from '@/utils/asset-url'
+
+const FALLBACK_COVER = '/images/placeholder.svg'
 
 const props = defineProps<{ id: string }>()
 
@@ -18,6 +20,29 @@ const paragraphs = computed(() => {
     .map((line) => line.trim())
     .filter((line) => line !== '')
 })
+
+/** 相邻项目按数据文件顺序取，不循环：首尾各给一句明确的边界提示，比绕回更可预期 */
+const index = computed(() => store.sites.findIndex((item) => item.id === props.id))
+const previous = computed(() => (index.value > 0 ? (store.sites[index.value - 1] ?? null) : null))
+const next = computed(() => {
+  if (index.value < 0) return null
+  return store.sites[index.value + 1] ?? null
+})
+
+/**
+ * 图片失败占位。
+ * 记下坏掉的地址再换占位图，而不是在原元素上改 src——占位图自己也可能 404，
+ * 那样会变成无限的 error 循环。
+ */
+const brokenImages = ref<ReadonlySet<string>>(new Set())
+
+function srcFor(url: string): string {
+  return brokenImages.value.has(url) ? FALLBACK_COVER : url
+}
+
+function markBroken(url: string): void {
+  brokenImages.value = new Set([...brokenImages.value, url])
+}
 </script>
 
 <template>
@@ -34,7 +59,12 @@ const paragraphs = computed(() => {
       <p class="detail__summary">{{ site.summary }}</p>
     </header>
 
-    <img class="detail__cover" :src="assetUrl(site.cover)" :alt="`${site.name} 封面`" />
+    <img
+      class="detail__cover"
+      :src="assetUrl(srcFor(site.cover))"
+      :alt="`${site.name} 封面`"
+      @error="markBroken(site.cover)"
+    />
 
     <section class="detail__section">
       <h2>简介</h2>
@@ -47,9 +77,10 @@ const paragraphs = computed(() => {
         <img
           v-for="image in site.gallery"
           :key="image"
-          :src="assetUrl(image)"
+          :src="assetUrl(srcFor(image))"
           :alt="site.name"
           loading="lazy"
+          @error="markBroken(image)"
         />
       </div>
     </section>
@@ -89,6 +120,30 @@ const paragraphs = computed(() => {
         当前为示例数据：文案、图片与来源均为占位，正式上线前会逐条替换为可核验的官方资料。
       </p>
     </section>
+
+    <nav class="detail__pager" aria-label="相邻项目">
+      <RouterLink
+        v-if="previous"
+        class="detail__pager-item"
+        :to="{ name: 'site-detail', params: { id: previous.id } }"
+      >
+        <span class="detail__pager-dir">← 上一条</span>
+        <span class="detail__pager-name">{{ previous.name }}</span>
+      </RouterLink>
+      <span v-else class="detail__pager-item detail__pager-item--empty">已是第一条</span>
+
+      <RouterLink
+        v-if="next"
+        class="detail__pager-item detail__pager-item--next"
+        :to="{ name: 'site-detail', params: { id: next.id } }"
+      >
+        <span class="detail__pager-dir">下一条 →</span>
+        <span class="detail__pager-name">{{ next.name }}</span>
+      </RouterLink>
+      <span v-else class="detail__pager-item detail__pager-item--empty detail__pager-item--next"
+        >已是最后一条</span
+      >
+    </nav>
 
     <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }"
       >← 返回地图</RouterLink
@@ -238,6 +293,46 @@ const paragraphs = computed(() => {
 
 .detail__back--bottom {
   margin-top: 2rem;
+}
+
+.detail__pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding-top: 1.2rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--line, #ddd2bd);
+}
+
+.detail__pager-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--ink, #2a2620);
+  text-decoration: none;
+  background: rgb(255 253 248 / 78%);
+  border: 1px solid var(--line, #ddd2bd);
+  border-radius: 10px;
+}
+
+.detail__pager-item--next {
+  text-align: right;
+}
+
+.detail__pager-item--empty {
+  color: var(--ink-soft, #6b6154);
+  background: transparent;
+  border-style: dashed;
+}
+
+.detail__pager-dir {
+  font-size: 0.72rem;
+  color: var(--ink-soft, #6b6154);
+}
+
+.detail__pager-name {
+  font-size: 0.9rem;
 }
 
 .detail--missing {
