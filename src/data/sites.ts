@@ -4,8 +4,8 @@ import type { Site } from '@/types/site'
  * 地标数据（22 条，全部在安徽省内，覆盖 16 个地级市）。
  *
  * 两组来源，别混着看：
- * - 前 10 条为 M0 示例数据：`sources` 是 example.com 占位、`tags` 首位带「示例数据」、
- *   文案为编辑示例，用于跑通链路，正式上线前必须逐条替换。
+ * - 前 10 条为 M0 示例数据：文案是编辑示例、`tags` 首位带「示例数据」、图片为占位；
+ *   来源已换成可核验的景区官网或区县政府门户，但正文内容仍待逐条替换。
  * - 后 12 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网，已逐条 curl 验证可访问；
  *   图片仍是占位，待授权素材到位后补。
  *
@@ -27,7 +27,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '水乡', '古镇'],
     bestSeason: '3-5 月、9-11 月',
     transport: '合肥市区自驾约 1 小时，或乘至肥西的班车后转乘',
-    sources: ['https://example.com/sites/sanhe-ancient-town'],
+    sources: ['https://www.ah.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -45,7 +45,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '徽派', '古城'],
     bestSeason: '3-4 月、10-11 月',
     transport: '黄山北站转乘至歙县，县城内步行可达',
-    sources: ['https://example.com/sites/huizhou-ancient-city'],
+    sources: ['http://www.shexian.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -63,7 +63,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '古城', '城墙'],
     bestSeason: '4-5 月、10 月',
     transport: '淮南市区自驾约 40 分钟',
-    sources: ['https://example.com/sites/shouxian-ancient-city'],
+    sources: ['https://www.shouxian.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -81,7 +81,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '山岳', '云海'],
     bestSeason: '4-5 月、9-11 月',
     transport: '黄山北站转乘景区班车至汤口，再换乘上山',
-    sources: ['https://example.com/sites/huangshan-scenic'],
+    sources: ['http://www.hsly.com/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -99,7 +99,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '山岳', '寺院'],
     bestSeason: '4-6 月、9-11 月',
     transport: '池州站转乘至柯村换乘中心',
-    sources: ['https://example.com/sites/jiuhuashan'],
+    sources: ['http://www.jiuhuashan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -117,7 +117,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '山岳', '花岗岩'],
     bestSeason: '4-5 月、9-10 月',
     transport: '潜山站转乘至景区大门',
-    sources: ['https://example.com/sites/tianzhushan'],
+    sources: ['http://www.tzs.com.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -135,7 +135,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '红色', '纪念馆'],
     bestSeason: '全年',
     transport: '泾县县城自驾约 40 分钟',
-    sources: ['https://example.com/sites/yunling-memorial'],
+    sources: ['http://www.jingxian.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -153,7 +153,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '非遗', '砖雕'],
     bestSeason: '4-5 月、9-10 月',
     transport: '亳州站打车约 20 分钟',
-    sources: ['https://example.com/sites/huaxilou'],
+    sources: ['https://www.bozhou.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -171,7 +171,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '非遗', '手工艺'],
     bestSeason: '全年',
     transport: '芜湖市区内步行或打车可达',
-    sources: ['https://example.com/sites/wuhu-iron-painting'],
+    sources: ['https://www.wuhu.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -189,7 +189,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '徽派', '村落'],
     bestSeason: '3-4 月、11 月',
     transport: '黄山北站转乘至黟县，再换乘至宏村',
-    sources: ['https://example.com/sites/hongcun'],
+    sources: ['http://www.hongcun.com.cn/'],
     updatedAt: '2026-11-19',
   },
   {
