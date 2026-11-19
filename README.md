@@ -21,7 +21,7 @@
 
 - 地标数据是 **10 条示例占位数据**（坐标近似、文案为编辑示例、`sources` 指向 example.com），图上与详情页都有「示例数据」标注，正式内容在 M1–M2 替换；
 - 底图用 DataV.GeoAtlas 的公开安徽省 GeoJSON（16 个市级要素）做开发期示意，来源、sha256 与合规待办记在 [public/maps/README.md](public/maps/README.md)，**上线前必须确认审图号**；
-- 部署链路（M0 最后一项）尚未接，线上地址暂无。
+- 部署链路已接通（见下节），线上是开发版，内容仍是示例数据。
 
 进度以 [规划文档的里程碑表](docs/PROJECT_PLAN.md#里程碑与排期) 为准，本文件不重复排期，避免两处漂移。
 
@@ -63,12 +63,24 @@ pnpm dev          # http://localhost:5173
 
 首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
 
+## 部署
+
+| 环境    | 地址                                         | 触发                                                                  |
+| ------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| 线上    | https://hldwsd.github.io/xiangyu-map/        | 推送 `main`（`.github/workflows/deploy.yml`）                         |
+| PR 预览 | https://hldwsd.github.io/xiangyu-map/pr-<n>/ | PR 打开/更新（`.github/workflows/preview.yml`），链接自动贴在该 PR 里 |
+
+- 站点是 GitHub Pages 的 `gh-pages` 分支，主站在根目录、每个 PR 一个 `pr-<n>/` 子目录，PR 关闭时自动清理；
+- 因为部署在子路径下，所有资源路径都走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`，`public/maps` 的加载器同理）。本地要在子路径下验证，可以 `pnpm build-only --base=/xiangyu-map/` 后用任意静态服务器挂在同名前缀下；
+- 深链（`/site/<id>` 刷新）靠 `dist/404.html` 兜底，构建时由 `deploy.yml` 复制 `index.html` 生成；
+- 选型与代价见 [ADR 0003](docs/adr/0003-deployment.md)。
+
 ## 数据与底图
 
 - **地标数据**：`src/data/sites.ts`，字段契约在 `src/types/site.ts`（改字段需双方在 PR 确认）。新增一个项目 = 加一条数据 + 放图，不动组件代码；`province` 固定为安徽省，`city` 必须是 16 个地级市之一（联合类型，写错编译期就报错）。
 - **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、城市属于 16 个地级市、坐标落在安徽省内、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
 - **底图**：`public/maps/anhui.json`，由 `pnpm data:anhui-map` 从 DataV.GeoAtlas 抓取并校验（16 个市级要素），详见 [public/maps/README.md](public/maps/README.md)。
-- **图片来源**：正式图片放 `public/images/sites/<id>/`（WebP，单张 ≤ 300 KB），示例数据统一用 `public/images/placeholder.svg`。
+- **图片来源**：正式图片放 `public/images/sites/<id>/`（WebP，单张 ≤ 300 KB），示例数据统一用 `public/images/placeholder.svg`。数据里写的是站点根路径（`/images/...`），渲染时由 `src/utils/asset-url.ts` 套上部署基地址 —— 部署在 `/xiangyu-map/` 这类子路径下也不会 404。
 
 ## 目录结构
 

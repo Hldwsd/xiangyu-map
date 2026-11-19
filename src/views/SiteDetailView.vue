@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useSitesStore } from '@/stores/sites'
+import { assetUrl } from '@/utils/asset-url'
 
 const props = defineProps<{ id: string }>()
 
@@ -33,7 +34,7 @@ const paragraphs = computed(() => {
       <p class="detail__summary">{{ site.summary }}</p>
     </header>
 
-    <img class="detail__cover" :src="site.cover" :alt="`${site.name} 封面`" />
+    <img class="detail__cover" :src="assetUrl(site.cover)" :alt="`${site.name} 封面`" />
 
     <section class="detail__section">
       <h2>简介</h2>
@@ -46,7 +47,7 @@ const paragraphs = computed(() => {
         <img
           v-for="image in site.gallery"
           :key="image"
-          :src="image"
+          :src="assetUrl(image)"
           :alt="site.name"
           loading="lazy"
         />

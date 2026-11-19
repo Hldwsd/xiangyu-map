@@ -1,0 +1,121 @@
+name: Preview
+
+# 每个 PR 一份预览：构建到 gh-pages 的 pr-<n>/ 子目录，并在 PR 里贴一条可点的链接。
+# 与 deploy.yml 共用 concurrency group，避免两次推送 gh-pages 互相覆盖。
+# 已知限制：GitHub Pages 只有根目录一个 404.html，预览站的深链会落到主站的 404 页；
+# 预览以首页为准，深链行为在合并进 main 后才是准确的。
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+env:
+  PREVIEW_BASE: /${{ github.event.repository.name }}/pr-${{ github.event.number }}/
+
+jobs:
+  preview:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build-only --base=${{ env.PREVIEW_BASE }}
+
+      - name: Publish preview
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          destination_dir: pr-${{ github.event.number }}
+          keep_files: true
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: 'ci(preview): PR #${{ github.event.number }} @ ${{ github.event.pull_request.head.sha }}'
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.number }}/
+        with:
+          script: |
+            const marker = '<!-- deploy-preview -->'
+            const body = [
+              marker,
+              '### 预览环境已更新',
+              '',
+              `- 预览地址：${process.env.PREVIEW_URL}`,
+              `- 版本：\`${context.payload.pull_request.head.sha.slice(0, 7)}\``,
+              '',
+              '每次推送到本 PR 都会重新构建；合并进 main 后主站地址：' +
+                `https://${context.repo.owner}.github.io/${context.repo.repo}/`,
+            ].join('\n')
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            })
+            const existing = comments.find((comment) => comment.body?.includes(marker))
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              })
+            }
+
+  cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+
+      - name: Remove preview directory
+        run: |
+          dir="pr-${{ github.event.number }}"
+          if [ -d "$dir" ]; then
+            git rm -r --quiet "$dir"
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit --quiet -m "ci(preview): 清理 PR #${{ github.event.number }} 的预览目录"
+            git push
+          else
+            echo "没有 $dir 目录，跳过"
+          fi

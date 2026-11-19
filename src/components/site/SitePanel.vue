@@ -2,6 +2,7 @@
 import { RouterLink } from 'vue-router'
 
 import type { Site } from '@/types/site'
+import { assetUrl } from '@/utils/asset-url'
 
 defineProps<{ site: Site }>()
 const emit = defineEmits<{ close: [] }>()
@@ -11,7 +12,12 @@ const emit = defineEmits<{ close: [] }>()
   <article class="panel">
     <button type="button" class="panel__close" aria-label="关闭" @click="emit('close')">×</button>
 
-    <img class="panel__cover" :src="site.cover" :alt="`${site.name} 封面`" loading="lazy" />
+    <img
+      class="panel__cover"
+      :src="assetUrl(site.cover)"
+      :alt="`${site.name} 封面`"
+      loading="lazy"
+    />
 
     <div class="panel__body">
       <p class="panel__meta">

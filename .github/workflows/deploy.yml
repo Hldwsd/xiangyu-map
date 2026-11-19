@@ -1,0 +1,61 @@
+name: Deploy
+
+# main 合并即上线：构建 → 塞进 gh-pages 根目录 → GitHub Pages 发布。
+# 为什么用 gh-pages 分支而不是官方 actions/deploy-pages：PR 预览需要把每个 PR 的构建
+# 放在同一个站点的子目录下（/pr-<n>/），官方 Pages 部署一次只能推进一个产物包。
+# 详见 docs/adr/0003-deployment.md。
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 和 preview.yml 共用同一个 concurrency group：两个工作流都会推 gh-pages，
+# 并行推会互相覆盖，宁可排队。
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        # 线上地址是 https://<owner>.github.io/<repo>/，基路径必须是 /<repo>/
+        run: pnpm build-only --base=/${{ github.event.repository.name }}/
+
+      - name: SPA 回退页
+        # GitHub Pages 对未知路径返回根目录 404.html；把它做成 index.html 的副本，
+        # 深链（/site/hongcun）刷新后仍由同一个 SPA 接管。
+        run: cp dist/index.html dist/404.html
+
+      - name: Publish
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          destination_dir: .
+          # 保留 pr-<n>/ 预览目录，只覆盖根目录的构建产物
+          keep_files: true
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: 'ci(deploy): 发布 main @ ${{ github.sha }}'

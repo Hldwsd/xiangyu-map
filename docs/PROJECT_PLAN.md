@@ -203,7 +203,7 @@ export interface Site {
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 分类 | 只用 `SiteCategory` 六个值；新增分类需改类型 + 图例配色，单独 PR                                                                                                                         |
 | 坐标 | 统一 GCJ-02；若 geoJSON 底图与取点存在明显偏移（> 1km），统一做一次 WGS-84 → GCJ-02 转换，不逐条手改                                                                                     |
-| 图片 | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放                                                                                                                  |
+| 图片 | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放；数据里写站点根路径（`/images/...`），渲染时用 `src/utils/asset-url.ts` 的 `assetUrl()` 套部署基地址             |
 | 来源 | `sources` 必填：官方站点、开放数据或授权素材；无来源数据不入库                                                                                                                           |
 | 校验 | 启动时校验：id 唯一与格式、分类枚举、省份固定为安徽省、城市属于 16 个地级市、坐标落在安徽省外包框内、summary 长度、图片路径与 id 一致、updatedAt 真实日期；单测覆盖真实数据，CI 必须通过 |
 
@@ -252,11 +252,11 @@ export interface Site {
 - [x] 【A】`public/maps/anhui.json` 落地（16 个市级要素，gzip 39.8 KB），`registerMap` 渲染出 16 个地级市边界与市名，页脚与 `public/maps/README.md` 注明来源、审图号待办
 - [x] 【B】`src/types/site.ts` 契约初稿 + `utils/site-validation.ts` 校验实现，PR 中 @A 评审后冻结
 - [x] 【B】10 条示例数据（全部标注「示例数据」），校验在 store 初始化时执行，校验失败直接抛 `SiteDataError`
-- [ ] 【A】部署链路打通（GitHub Pages 或 Vercel），推 main 自动出预览地址
+- [x] 【A】部署链路打通（[ADR 0003](adr/0003-deployment.md)）：GitHub Pages 分支发布 `https://hldwsd.github.io/xiangyu-map/`，PR 走 `/pr-<n>/` 子目录预览并在评论里维护链接；资源路径统一走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`），`404.html` 兜底深链
 - [x] 【A】范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)）：底图换 `anhui.json`（16 市）、`province` 固定 + `city` 收成 16 市联合类型、校验换 `ANHUI_BBOX` 与市级白名单、10 条示例数据与 48 个用例同步
 - [x] 【B】照 README 的「快速开始」在干净目录实跑一遍，修正文档（A 已实测，见下；B 合并前置 checkout 复核）
 
-**DoD 进度**：`pnpm build` 成功 ✅；首页可见安徽省 16 个地级市的分区轮廓与市名 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ✅（2026-11-18 在全新克隆目录实测：`pnpm install --frozen-lockfile` 3 分 14 秒 + `pnpm build` 0.5 秒，产物与开发机一致）。
+**DoD 进度**：`pnpm build` 成功 ✅；首页可见安徽省 16 个地级市的分区轮廓与市名 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ✅（2026-11-18 在全新克隆目录实测：`pnpm install --frozen-lockfile` 3 分 14 秒 + `pnpm build` 0.5 秒，产物与开发机一致）；`main` 合并自动部署 + PR 预览 ✅（2026-11-19，见 [ADR 0003](adr/0003-deployment.md)）。
 
 **M0 起已可用的手感验证**（M0 交付时实测）：点击地标 → 侧栏摘要 → 详情页；分类筛选与关键词搜索联动列表与地图；窗口缩到 500px 宽自动切单列。
 
@@ -304,9 +304,9 @@ export interface Site {
 - Tauri 2 桌面壳：复用 `dist/`，跑通 Windows 打包与安装
 - 移动端方案对比（Tauri 2 mobile vs Capacitor）：包体、插件生态、地图性能、上架流程
 - 适配问题清单：安全区、手势冲突、`back` 键行为、离线缓存
-- 产出 ADR 0003（结论 + 代价），以及 v0.2.0 的候选清单
+- 产出 ADR 0004（结论 + 代价），以及 v0.2.0 的候选清单
 
-**DoD**：本机产出可安装的 Windows 包；ADR 0003 记录选型结论与遗留问题。
+**DoD**：本机产出可安装的 Windows 包；ADR 0004 记录选型结论与遗留问题。
 
 ## 工程与质量标准
 
