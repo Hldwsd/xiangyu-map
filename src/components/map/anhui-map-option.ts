@@ -13,6 +13,19 @@ export const CATEGORY_COLORS: Record<SiteCategory, string> = {
   乡村: '#4d7c0f',
 }
 
+/**
+ * 分类形状。只用颜色区分分类时，色觉障碍用户与黑白打印场景会丢失信息，
+ * 所以再用形状做一层冗余编码（都是 ECharts 内置 symbol，不增加依赖与体积）。
+ */
+export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
+  古镇: 'circle',
+  非遗: 'diamond',
+  红色: 'pin',
+  自然: 'triangle',
+  演艺: 'roundRect',
+  乡村: 'rect',
+}
+
 export interface SiteScatterDatum {
   name: string
   /** ECharts geo 坐标系顺序是 [lng, lat] */
@@ -20,6 +33,7 @@ export interface SiteScatterDatum {
   siteId: string
   category: SiteCategory
   summary: string
+  symbol: string
   symbolSize: number
   itemStyle: {
     color: string
@@ -33,8 +47,12 @@ export interface SiteScatterDatum {
   }
 }
 
-const SELECTED_SYMBOL_SIZE = 18
-const DEFAULT_SYMBOL_SIZE = 11
+const SELECTED_SYMBOL_SIZE = 20
+/**
+ * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
+ * 所以把基础尺寸定在 13：小于 13 时贴边与密集区经常点不中（M1 要求命中率 100%）。
+ */
+const DEFAULT_SYMBOL_SIZE = 13
 
 /** 把项目列表转成散点数据；选中的点放大，方便在密集区域里认出来 */
 export function toScatterData(sites: Site[], selectedId: string | null): SiteScatterDatum[] {
@@ -48,11 +66,12 @@ export function toScatterData(sites: Site[], selectedId: string | null): SiteSca
       siteId: site.id,
       category: site.category,
       summary: site.summary,
+      symbol: CATEGORY_SYMBOLS[site.category],
       symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
       itemStyle: {
         color,
         borderColor: '#fffdf8',
-        borderWidth: selected ? 2 : 1.2,
+        borderWidth: selected ? 2.5 : 1.4,
         shadowBlur: selected ? 12 : 4,
         shadowColor: 'rgba(52, 40, 24, 0.35)',
       },
@@ -118,6 +137,12 @@ export function buildAnhuiMapOption(sites: Site[], selectedId: string | null): E
       // 否则「某个市没有项目」会被误读成「那个市不存在」。
       scaleLimit: { min: 0.9, max: 8 },
       selectedMode: false,
+      /**
+       * 留 8% 内边距。省界正好贴住画布边缘时，边界上地标的圆点会被裁掉一半，
+       * 视觉上像「半个点」，点击命中区也随之变小——这是 M1「贴边地标也要点得中」的直接前提。
+       */
+      layoutCenter: ['50%', '50%'],
+      layoutSize: '92%',
       label: {
         show: true,
         color: '#8a7a63',
@@ -141,6 +166,7 @@ export function buildAnhuiMapOption(sites: Site[], selectedId: string | null): E
         coordinateSystem: 'geo',
         zlevel: 2,
         data,
+        cursor: 'pointer',
         emphasis: {
           scale: 1.6,
           itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
