@@ -1,5 +1,6 @@
 import type { EChartsOption } from 'echarts'
 
+import type { MarkerGroup } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
 import type { Site, SiteCategory } from '@/types/site'
 
@@ -47,6 +48,38 @@ export interface SiteScatterDatum {
   }
 }
 
+/**
+ * 聚合后的簇。屏幕距离太近的几个地标合成一颗带数字的点，点它放大到能分开为止。
+ *
+ * 这里没有 `category`：一个簇里可能混着不同分类，硬塞一个颜色等于撒谎。
+ * 簇用中性色 + 数量，颜色只在单点时表达分类。
+ */
+export interface ClusterScatterDatum {
+  name: string
+  value: [number, number]
+  clusterIds: string[]
+  clusterNames: string[]
+  count: number
+  symbol: string
+  symbolSize: number
+  itemStyle: {
+    color: string
+    borderColor: string
+    borderWidth: number
+    shadowBlur: number
+    shadowColor: string
+  }
+  label: {
+    show: boolean
+    formatter: string
+    color: string
+    fontSize: number
+    fontWeight: 'bold'
+  }
+}
+
+export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
+
 const SELECTED_SYMBOL_SIZE = 20
 /**
  * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
@@ -54,30 +87,88 @@ const SELECTED_SYMBOL_SIZE = 20
  */
 const DEFAULT_SYMBOL_SIZE = 13
 
-/** 把项目列表转成散点数据；选中的点放大，方便在密集区域里认出来 */
-export function toScatterData(sites: Site[], selectedId: string | null): SiteScatterDatum[] {
-  return sites.map((site) => {
-    const selected = site.id === selectedId
-    const color = CATEGORY_COLORS[site.category]
+/** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
+const CLUSTER_BASE_SIZE = 18
+const CLUSTER_MAX_SIZE = 34
 
-    return {
-      name: site.name,
-      value: [site.location.lng, site.location.lat],
-      siteId: site.id,
-      category: site.category,
-      summary: site.summary,
-      symbol: CATEGORY_SYMBOLS[site.category],
-      symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
-      itemStyle: {
-        color,
-        borderColor: '#fffdf8',
-        borderWidth: selected ? 2.5 : 1.4,
-        shadowBlur: selected ? 12 : 4,
-        shadowColor: 'rgba(52, 40, 24, 0.35)',
-      },
-      label: { show: selected },
+/** 把项目列表转成散点数据；选中的点放大，方便在密集区域里认出来 */
+export function toScatterData(
+  sites: Site[],
+  selectedId: string | null,
+  groups?: MarkerGroup[],
+): MapScatterDatum[] {
+  // 没给分组时按「每个项目一颗」处理：默认视野下不聚合，
+  // 聚合是组件拿到像素坐标之后的决定（见 refreshMarkers）。
+  if (groups === undefined) {
+    return sites.map((site) => toSiteDatum(site, selectedId))
+  }
+
+  const byId = new Map(sites.map((site) => [site.id, site]))
+  const data: MapScatterDatum[] = []
+
+  for (const group of groups) {
+    if (group.ids.length === 1) {
+      const site = byId.get(group.ids[0] ?? '')
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId))
+      continue
     }
-  })
+
+    const members = group.ids
+      .map((id) => byId.get(id))
+      .filter((site): site is Site => site !== undefined)
+    if (members.length === 0) continue
+
+    const count = members.length
+    data.push({
+      name: `${count} 个文旅项目`,
+      value: [group.lng, group.lat],
+      clusterIds: group.ids,
+      clusterNames: members.map((site) => site.name),
+      count,
+      symbol: 'circle',
+      // 数字越大点越大，但按对数增长：20 个目标的簇不该吃掉半张地图
+      symbolSize: Math.min(CLUSTER_MAX_SIZE, CLUSTER_BASE_SIZE + Math.log2(count) * 4),
+      itemStyle: {
+        color: '#b45309',
+        borderColor: '#fffdf8',
+        borderWidth: 2,
+        shadowBlur: 10,
+        shadowColor: 'rgba(52, 40, 24, 0.4)',
+      },
+      label: {
+        show: true,
+        formatter: String(count),
+        color: '#fffdf8',
+        fontSize: 11,
+        fontWeight: 'bold',
+      },
+    })
+  }
+
+  return data
+}
+
+function toSiteDatum(site: Site, selectedId: string | null): SiteScatterDatum {
+  const selected = site.id === selectedId
+  const color = CATEGORY_COLORS[site.category]
+
+  return {
+    name: site.name,
+    value: [site.location.lng, site.location.lat],
+    siteId: site.id,
+    category: site.category,
+    summary: site.summary,
+    symbol: CATEGORY_SYMBOLS[site.category],
+    symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
+    itemStyle: {
+      color,
+      borderColor: '#fffdf8',
+      borderWidth: selected ? 2.5 : 1.4,
+      shadowBlur: selected ? 12 : 4,
+      shadowColor: 'rgba(52, 40, 24, 0.35)',
+    },
+    label: { show: selected },
+  }
 }
 
 const HTML_ESCAPES: Record<string, string> = {
@@ -97,10 +188,22 @@ export function escapeHtml(value: string): string {
  * tooltip 内容。抽成独立函数是为了能被单测直接覆盖（不依赖 ECharts 渲染）。
  */
 export function formatSiteTooltip(params: unknown): string {
-  const datum = (params as { data?: Partial<SiteScatterDatum> }).data
-  if (datum?.name === undefined) return ''
+  const datum = (params as { data?: Partial<MapScatterDatum> }).data
+  if (datum === undefined) return ''
 
-  const meta = [datum.category, datum.summary]
+  // 簇：先说「几个」，再把名字列出来——用户关心的是「这里藏了什么」，
+  // 光给一个 3 是查不到东西的。
+  const cluster = datum as Partial<ClusterScatterDatum>
+  if (cluster.clusterNames !== undefined && cluster.clusterNames.length > 0) {
+    const names = cluster.clusterNames.map((name) => escapeHtml(name)).join('、')
+    return `<strong>${cluster.count ?? cluster.clusterNames.length} 个文旅项目</strong><br/>${names}<br/><span style="opacity:.7">点击放大查看</span>`
+  }
+
+  if (datum.name === undefined) return ''
+  const meta = [
+    (datum as Partial<SiteScatterDatum>).category,
+    (datum as Partial<SiteScatterDatum>).summary,
+  ]
     .filter((part) => part !== undefined && part !== '')
     .join(' · ')
   return `<strong>${escapeHtml(datum.name)}</strong><br/>${escapeHtml(meta)}`
@@ -115,8 +218,12 @@ export function formatSiteTooltip(params: unknown): string {
  * 市级划分靠 geo 的默认行为：底图是 16 个地级市要素，每个要素自带边界与名称，
  * 所以「划线 + 标市名」不需要额外画图层；这里只调样式与层级。
  */
-export function buildAnhuiMapOption(sites: Site[], selectedId: string | null): EChartsOption {
-  const data = toScatterData(sites, selectedId)
+export function buildAnhuiMapOption(
+  sites: Site[],
+  selectedId: string | null,
+  groups?: MarkerGroup[],
+): EChartsOption {
+  const data = toScatterData(sites, selectedId, groups)
 
   return {
     backgroundColor: 'transparent',

@@ -8,8 +8,15 @@ import {
   escapeHtml,
   formatSiteTooltip,
   toScatterData,
+  type ClusterScatterDatum,
+  type SiteScatterDatum,
 } from '@/components/map/anhui-map-option'
 import { sites } from '@/data/sites'
+
+/** 不传分组时，每一项都是「单点」，类型上单独收窄一次，省得每处断言都写 cast */
+function siteData(subset: typeof sites, selectedId: string | null): SiteScatterDatum[] {
+  return toScatterData(subset, selectedId) as SiteScatterDatum[]
+}
 
 function scatterDataOf(option: EChartsOption): unknown[] {
   const series = Array.isArray(option.series) ? option.series : []
@@ -19,7 +26,7 @@ function scatterDataOf(option: EChartsOption): unknown[] {
 
 describe('toScatterData', () => {
   it('每个项目生成一个散点，坐标顺序是 [lng, lat]', () => {
-    const data = toScatterData(sites, null)
+    const data = siteData(sites, null)
     expect(data).toHaveLength(sites.length)
 
     const hongcun = data.find((datum) => datum.siteId === 'hongcun')
@@ -28,7 +35,7 @@ describe('toScatterData', () => {
   })
 
   it('默认不显示名称标签，选中项放大并显示标签', () => {
-    const data = toScatterData(sites, 'hongcun')
+    const data = siteData(sites, 'hongcun')
     const selected = data.find((datum) => datum.siteId === 'hongcun')
     const other = data.find((datum) => datum.siteId === 'huangshan-scenic')
 
@@ -38,7 +45,7 @@ describe('toScatterData', () => {
   })
 
   it('每个分类都有自己的颜色', () => {
-    const data = toScatterData(sites, null)
+    const data = siteData(sites, null)
     for (const datum of data) {
       expect(datum.itemStyle.color).toBe(CATEGORY_COLORS[datum.category])
     }
@@ -46,7 +53,7 @@ describe('toScatterData', () => {
   })
 
   it('每个分类都有自己的形状，且六个形状互不相同', () => {
-    const data = toScatterData(sites, null)
+    const data = siteData(sites, null)
     for (const datum of data) {
       expect(datum.symbol).toBe(CATEGORY_SYMBOLS[datum.category])
     }
@@ -54,7 +61,7 @@ describe('toScatterData', () => {
   })
 
   it('基础尺寸不小于 13，命中区才够点', () => {
-    const data = toScatterData(sites, null)
+    const data = siteData(sites, null)
     for (const datum of data) {
       expect(datum.symbolSize).toBeGreaterThanOrEqual(13)
     }
@@ -142,5 +149,64 @@ describe('buildAnhuiMapOption', () => {
     const option = buildAnhuiMapOption(subset, null)
 
     expect(scatterDataOf(option)).toHaveLength(subset.length)
+  })
+})
+
+describe('buildAnhuiMapOption 的聚合点', () => {
+  const pair = sites.slice(0, 2)
+
+  it('簇画成一颗带数量的点，标签就是数量', () => {
+    const data = toScatterData(pair, null, [
+      { ids: pair.map((site) => site.id), lng: 117, lat: 31 },
+    ])
+
+    expect(data).toHaveLength(1)
+    const cluster = data[0] as unknown as ClusterScatterDatum
+    expect(cluster.count).toBe(2)
+    expect(cluster.label.show).toBe(true)
+    expect(cluster.label.formatter).toBe('2')
+    expect(cluster.clusterNames).toEqual(pair.map((site) => site.name))
+  })
+
+  it('只有一颗的簇仍然画成该项目的分类点', () => {
+    const site = pair[0]
+    const data = toScatterData(pair, null, [
+      { ids: [site?.id ?? ''], lng: site?.location.lng ?? 0, lat: site?.location.lat ?? 0 },
+    ])
+
+    expect(data).toHaveLength(1)
+    expect(data[0]).toMatchObject({
+      siteId: site?.id,
+      symbol: CATEGORY_SYMBOLS[site?.category ?? '古镇'],
+    })
+  })
+
+  it('簇的 tooltip 先说数量、再列名字', () => {
+    const html = formatSiteTooltip({
+      data: {
+        count: 2,
+        clusterNames: pair.map((site) => site.name),
+      },
+    })
+
+    expect(html).toContain('2 个文旅项目')
+    for (const site of pair) expect(html).toContain(site.name)
+  })
+
+  it('簇内名字同样转义', () => {
+    const html = formatSiteTooltip({ data: { count: 1, clusterNames: ['<img>'] } })
+
+    expect(html).toContain('&lt;img&gt;')
+    expect(html).not.toContain('<img>')
+  })
+
+  it('数量越多点越大，但有上限', () => {
+    const few = toScatterData(pair, null, [{ ids: pair.map((s) => s.id), lng: 117, lat: 31 }])
+    const many = toScatterData(sites, null, [{ ids: sites.map((s) => s.id), lng: 117, lat: 31 }])
+
+    const fewSize = (few[0] as unknown as ClusterScatterDatum).symbolSize
+    const manySize = (many[0] as unknown as ClusterScatterDatum).symbolSize
+    expect(manySize).toBeGreaterThan(fewSize)
+    expect(manySize).toBeLessThanOrEqual(34)
   })
 })
