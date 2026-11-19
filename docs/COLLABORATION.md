@@ -109,7 +109,7 @@ fix bug
 
 流程：
 
-1. 从最新 `main` 切分支 → 开发 → 本地自检（`pnpm lint`、`pnpm typecheck`、`pnpm test`）；
+1. 从最新 `main` 切分支 → 开发 → 本地自检（`pnpm lint`、`pnpm format:check`、`pnpm type-check`、`pnpm test:unit --run`、`pnpm build`）；
 2. 推送分支，开 PR，标题沿用提交规范（squash 后它就是主干上的提交标题）；
 3. 按模板填「变更内容 / 为什么 / 验证方式 / 截图 / 影响面」；
 4. 指定对方为 reviewer，**24 小时内**给结论：approve、评论、或 request changes；
