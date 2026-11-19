@@ -111,7 +111,12 @@ function selectFromList(id: string): void {
       >
         <AppIcon name="reset" :size="13" />清空筛选
       </button>
-      <button type="button" class="map-shell__list-toggle" @click="listOpen = true">
+      <button
+        type="button"
+        class="map-shell__list-toggle"
+        :aria-expanded="listOpen"
+        @click="listOpen = !listOpen"
+      >
         <AppIcon name="all" :size="13" />
         列表
         <span class="map-shell__count">{{ filteredSites.length }}</span>
