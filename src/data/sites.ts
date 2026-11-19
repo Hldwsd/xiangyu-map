@@ -1,15 +1,15 @@
 import type { Site } from '@/types/site'
 
 /**
- * 示例数据（M0 用，10 条，全部在安徽省内）。
+ * 地标数据（22 条，全部在安徽省内，覆盖 16 个地级市）。
  *
- * 关于真实性：
- * - 地点与所属地级市是公开常识，经纬度为 GCJ-02 粗略坐标（误差约在千米级），
- *   目前仅用于验证「数据 → 地图 → 详情」链路，不作为旅游导航依据。
- * - `summary` / `description` 为编辑撰写的示例文案，`cover` 统一指向占位图，
- *   `sources` 为 example.com 占位地址——正式上线前每条都必须替换为可核验来源
- *   （官方景区/文旅厅页面），校验脚本会检查 sources 非空。
- * - 每条都带 `示例数据` 标签，界面上可见，避免被误当成已核实的正式内容。
+ * 两组来源，别混着看：
+ * - 前 10 条为 M0 示例数据：`sources` 是 example.com 占位、`tags` 首位带「示例数据」、
+ *   文案为编辑示例，用于跑通链路，正式上线前必须逐条替换。
+ * - 后 12 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网，已逐条 curl 验证可访问；
+ *   图片仍是占位，待授权素材到位后补。
+ *
+ * 通用约定：坐标是 GCJ-02 粗略值（千米级误差），不作为导航依据；`summary` ≤ 60 字。
  */
 export const sites: Site[] = [
   {
@@ -190,6 +190,222 @@ export const sites: Site[] = [
     bestSeason: '3-4 月、11 月',
     transport: '黄山北站转乘至黟县，再换乘至宏村',
     sources: ['https://example.com/sites/hongcun'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'longzihu',
+    name: '龙子湖',
+    category: '自然',
+    province: '安徽省',
+    city: '蚌埠市',
+    location: { lng: 117.39, lat: 32.93 },
+    summary: '蚌埠城东的城中湖，环湖步道与跨湖桥串起一片开阔水面，傍晚散步的人最多。',
+    description:
+      '龙子湖在蚌埠市区东侧，湖面开阔，环湖有步道与几座跨湖桥，是本地人日常散步与骑行的去处。\n\n湖区周边是高校与新建城区，适合放在行程里当一个不赶时间的午后落脚点。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['湖泊', '城市公园', '散步'],
+    bestSeason: '4-5 月、9-10 月',
+    transport: '蚌埠南站打车约 20 分钟',
+    sources: ['http://www.bengbu.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'caishiji',
+    name: '采石矶',
+    category: '自然',
+    province: '安徽省',
+    city: '马鞍山市',
+    location: { lng: 118.45, lat: 31.66 },
+    summary: '长江边的矶头与太白楼，江面在此收窄，是读李白晚年行迹的一个落点。',
+    description:
+      '采石矶是长江东岸的一处矶头，临江崖壁与江面构成天然的观景点，山上有太白楼与相关纪念建筑。\n\n这里与李白晚年的行迹交织，景区步道不长，江景与人文遗迹并置，半天足够走完。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['长江', '李白', '矶头'],
+    bestSeason: '4-5 月、9-11 月',
+    transport: '马鞍山东站打车约 30 分钟',
+    sources: ['http://www.caishiji.com/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'linhuan-ancient-town',
+    name: '临涣古镇',
+    category: '古镇',
+    province: '安徽省',
+    city: '淮北市',
+    location: { lng: 116.56, lat: 33.62 },
+    summary: '皖北的老集镇长街，茶馆里用大壶续水，赶集日的市井气比建筑更值得看。',
+    description:
+      '临涣在濉溪县，是皖北老街市，镇上茶馆至今保留着大壶续水、按位坐的老习惯。\n\n建筑谈不上精雕细琢，看点在市井：茶馆、集市与街边手艺人，赶集日最热闹。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['茶馆', '集市', '皖北'],
+    bestSeason: '3-5 月、9-11 月',
+    transport: '淮北站打车约 50 分钟',
+    sources: ['https://www.huaibei.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'datong-ancient-town',
+    name: '大通古镇',
+    category: '古镇',
+    province: '安徽省',
+    city: '铜陵市',
+    location: { lng: 117.86, lat: 30.87 },
+    summary: '长江边因盐运而兴的老镇，和悦洲上的老街与江滩保留着旧码头的格局。',
+    description:
+      '大通在铜陵市郊，长江与青通河在此交汇，旧时是盐运与商埠码头，老街与和悦洲一带还能看出当年的格局。\n\n江滩与渡口是这里的日常，适合慢慢走、看江面上来往的船。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['长江', '盐运', '老街'],
+    bestSeason: '4-5 月、10-11 月',
+    transport: '铜陵站打车约 40 分钟',
+    sources: ['https://www.tl.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'xiaogang-village',
+    name: '小岗村',
+    category: '乡村',
+    province: '安徽省',
+    city: '滁州市',
+    location: { lng: 117.68, lat: 32.92 },
+    summary: '中国农村改革的起点，纪念馆与旧居讲清一纸红手印如何改变了一个村庄。',
+    description:
+      '小岗村在凤阳县。1978 年，18 户村民按下红手印、实行包干到户，这里因此成为中国农村改革的标志性地点。\n\n村里有纪念馆、旧居与大包干纪念场所，配合讲解看，比单看展板更能理解当时的处境。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['农村改革', '纪念馆', '凤阳'],
+    bestSeason: '3-5 月、9-11 月',
+    transport: '滁州站转乘至凤阳，再打车约 40 分钟',
+    sources: ['https://www.chuzhou.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'balihe',
+    name: '八里河',
+    category: '自然',
+    province: '安徽省',
+    city: '阜阳市',
+    location: { lng: 116.26, lat: 32.63 },
+    summary: '皖北平原上的人工湖区，水面开阔、堤岸成林，是周边少见的亲水去处。',
+    description:
+      '八里河在颍上县，是在低洼湖区基础上治理而成的水利与旅游区，水面与堤岸林带构成主要景观。\n\n平原上少有这样成片的水面，适合骑行与步行；景区内也修了几处人工景点，按兴趣取舍即可。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['湖泊', '平原', '骑行'],
+    bestSeason: '4-6 月、9-10 月',
+    transport: '颍上北站打车约 30 分钟',
+    sources: ['https://www.balihe.com/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'huangcangyu',
+    name: '皇藏峪',
+    category: '自然',
+    province: '安徽省',
+    city: '宿州市',
+    location: { lng: 116.95, lat: 34.02 },
+    summary: '萧县境内的山谷次生林，树龄老、夏季阴凉，山道不长但台阶密。',
+    description:
+      '皇藏峪在萧县东南，是皖北少见的成片次生林山谷，林下阴凉，夏天比平原舒服得多。\n\n山道以石阶为主，落差集中，走完约两三小时；谷内有几处与汉高祖传说相关的旧迹。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['森林', '山谷', '避暑'],
+    bestSeason: '5-10 月',
+    transport: '萧县北站打车约 40 分钟',
+    sources: ['https://www.ahsz.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'jinzhai-red-army-square',
+    name: '金寨红军广场',
+    category: '红色',
+    province: '安徽省',
+    city: '六安市',
+    location: { lng: 115.93, lat: 31.68 },
+    summary: '大别山里的将军县地标，纪念碑与革命博物馆连成一片，适合安静走半天。',
+    description:
+      '金寨是著名的将军县，红军广场一带集中了革命烈士纪念碑、纪念塔与金寨县革命博物馆。\n\n博物馆按时间线展陈鄂豫皖苏区的历史，看完再走广场，对大别山根据地会有更具体的空间感。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['大别山', '将军县', '纪念馆'],
+    bestSeason: '全年',
+    transport: '金寨站打车约 20 分钟',
+    sources: ['https://www.luan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'langyashan',
+    name: '琅琊山',
+    category: '自然',
+    province: '安徽省',
+    city: '滁州市',
+    location: { lng: 118.3, lat: 32.28 },
+    summary: '滁州城西的山林，醉翁亭在山脚，欧阳修那句「环滁皆山也」写的就是这里。',
+    description:
+      '琅琊山在滁州城西南，山不算高但林木深，醉翁亭、琅琊寺沿山道分布。\n\n山脚到醉翁亭步行即可，再往上走到琅琊寺约半小时；秋季的红叶与山雾是这里常被拍到的两个题材。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['醉翁亭', '山林', '人文'],
+    bestSeason: '4-5 月、10-11 月',
+    transport: '滁州站打车约 20 分钟',
+    sources: ['http://www.langyashan.com/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'tiantangzhai',
+    name: '天堂寨',
+    category: '自然',
+    province: '安徽省',
+    city: '六安市',
+    location: { lng: 115.98, lat: 31.13 },
+    summary: '大别山主峰之一，瀑布群与原始林连着走，夏天是皖西的避暑去处。',
+    description:
+      '天堂寨在大别山腹地，皖鄂交界，主峰海拔一千七百多米，山北是金寨、山南是湖北罗田。\n\n景区以瀑布群与林间步道为主，徒步路线较长，建议留一整天；山上气温比县城低不少，早晚要加衣。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['大别山', '瀑布', '避暑'],
+    bestSeason: '5-10 月',
+    transport: '金寨站转乘至景区约 1.5 小时',
+    sources: ['http://www.ttz.com.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'bagongshan',
+    name: '八公山',
+    category: '自然',
+    province: '安徽省',
+    city: '淮南市',
+    location: { lng: 116.83, lat: 32.63 },
+    summary: '淮南城边的低山，豆腐的传说与汉淮南王墓都在这一带，登顶能望到淮河平原。',
+    description:
+      '八公山在淮南市西，山势低缓，因八公与豆腐的传说得名，山上有汉淮南王墓等旧迹。\n\n登顶不难，视野开阔，能望到淮河与平原；山下的豆腐宴是当地招牌，值得留在午饭。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['豆腐', '淮河', '低山'],
+    bestSeason: '4-5 月、9-10 月',
+    transport: '淮南站打车约 30 分钟',
+    sources: ['https://www.huainan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'xinghuacun',
+    name: '杏花村',
+    category: '乡村',
+    province: '安徽省',
+    city: '池州市',
+    location: { lng: 117.49, lat: 30.66 },
+    summary: '池州城西的杏花村，杜牧「牧童遥指杏花村」让这里成了一个文化地标。',
+    description:
+      '杏花村在池州城西，因杜牧《清明》诗得名，村内有与杏花、酒文化相关的园子与旧迹。\n\n春季杏花开时最好看；村子离城区不远，适合与池州城内的齐山、平天湖串成半日。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['杏花', '诗酒', '春游'],
+    bestSeason: '3-4 月',
+    transport: '池州站打车约 20 分钟',
+    sources: ['https://www.chizhou.gov.cn/'],
     updatedAt: '2026-11-19',
   },
 ]

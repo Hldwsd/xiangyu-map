@@ -13,12 +13,12 @@ import SiteDetailView from '@/views/SiteDetailView.vue'
 const routerLinkStub = { props: ['to'], template: '<a class="link-stub"><slot /></a>' }
 
 const counts: Record<SiteCategory, number> = {
-  古镇: 3,
+  古镇: 5,
   非遗: 2,
-  红色: 1,
-  自然: 3,
+  红色: 2,
+  自然: 10,
   演艺: 0,
-  乡村: 1,
+  乡村: 3,
 }
 
 function findSite(id: string): Site {
@@ -54,18 +54,18 @@ describe('SitePanel', () => {
 describe('CategoryFilter', () => {
   it('渲染「全部」加 6 个分类，并显示数量', () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 10 },
+      props: { category: '全部', query: '', counts, total: 22 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
     expect(chips).toHaveLength(7)
     expect(chips[0]?.text()).toContain('全部')
-    expect(chips[0]?.text()).toContain('10')
+    expect(chips[0]?.text()).toContain('22')
   })
 
   it('点击分类时更新 v-model', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 10 },
+      props: { category: '全部', query: '', counts, total: 22 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
@@ -76,7 +76,7 @@ describe('CategoryFilter', () => {
 
   it('输入关键词时更新 query', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 10 },
+      props: { category: '全部', query: '', counts, total: 22 },
     })
 
     await wrapper.get('input').setValue('宏村')
@@ -86,12 +86,19 @@ describe('CategoryFilter', () => {
 
 describe('SiteDetailView', () => {
   it('渲染标题与相邻导航，末条没有下一条', () => {
+    // 末条随数据文件变化，所以从 store 里取最后一条，别把 id 写死
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const sites = useSitesStore().sites
+    const site = sites[sites.length - 1]
+    if (site === undefined) throw new Error('测试数据为空')
+
     const wrapper = mount(SiteDetailView, {
-      props: { id: 'hongcun' },
-      global: { plugins: [createPinia()], stubs: { RouterLink: routerLinkStub } },
+      props: { id: site.id },
+      global: { plugins: [pinia], stubs: { RouterLink: routerLinkStub } },
     })
 
-    expect(wrapper.get('.detail__title').text()).toBe('宏村')
+    expect(wrapper.get('.detail__title').text()).toBe(site.name)
     expect(wrapper.get('.detail__pager').text()).toContain('上一条')
     expect(wrapper.get('.detail__pager').text()).toContain('已是最后一条')
   })

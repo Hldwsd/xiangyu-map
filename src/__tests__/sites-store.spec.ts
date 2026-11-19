@@ -8,10 +8,10 @@ describe('useSitesStore', () => {
     setActivePinia(createPinia())
   })
 
-  it('启动时加载全部示例数据', () => {
+  it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(10)
-    expect(store.filteredSites).toHaveLength(10)
+    expect(store.sites).toHaveLength(22)
+    expect(store.filteredSites).toHaveLength(22)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -21,14 +21,27 @@ describe('useSitesStore', () => {
     store.setCategory('自然')
 
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['huangshan-scenic', 'jiuhuashan', 'tianzhushan'].sort(),
+      [
+        'huangshan-scenic',
+        'jiuhuashan',
+        'tianzhushan',
+        'longzihu',
+        'caishiji',
+        'balihe',
+        'huangcangyu',
+        'langyashan',
+        'tiantangzhai',
+        'bagongshan',
+      ].sort(),
     )
   })
 
   it('按关键词搜索名称、省市与标签', () => {
     const store = useSitesStore()
     store.setQuery('池州市')
-    expect(store.filteredSites.map((site) => site.id)).toEqual(['jiuhuashan'])
+    expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
+      ['jiuhuashan', 'xinghuacun'].sort(),
+    )
 
     store.setQuery('古城')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
@@ -63,7 +76,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     const sum = Object.values(store.categoryCounts).reduce((total, count) => total + count, 0)
     expect(sum).toBe(store.sites.length)
-    expect(store.categoryCounts['古镇']).toBe(3)
+    expect(store.categoryCounts['古镇']).toBe(5)
   })
 
   it('getSiteById 找不到时返回 null', () => {
@@ -110,9 +123,12 @@ describe('useSitesStore', () => {
     expect(store.filteredSites.map((site) => site.id)).toEqual(['hongcun'])
   })
 
-  it('没有项目的城市筛出空列表，不回退到全量', () => {
+  it('城市与分类组合没有结果时筛出空列表，不回退到全量', () => {
     const store = useSitesStore()
-    store.setCity('铜陵市')
+    // 16 个市现在都至少有 1 条数据，所以「空结果」要靠组合条件造出来：
+    // 亳州市只有花戏楼（非遗），没有自然类项目
+    store.setCity('亳州市')
+    store.setCategory('自然')
 
     expect(store.filteredSites).toHaveLength(0)
   })
@@ -124,7 +140,7 @@ describe('useSitesStore', () => {
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
     expect(store.cityCounts['黄山市']).toBe(3)
-    expect(store.cityCounts['铜陵市']).toBe(0)
+    expect(store.cityCounts['铜陵市']).toBe(1)
   })
 
   it('城市筛选把当前选中项排除后，选中状态被清空', () => {
