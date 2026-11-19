@@ -60,7 +60,6 @@ const emit = defineEmits<{ close: [] }>()
 
 <style scoped>
 .panel {
-  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -70,22 +69,31 @@ const emit = defineEmits<{ close: [] }>()
   box-shadow: var(--shadow-panel);
 }
 
+/* 关闭按钮压在封面上：白底 + 细线，任何封面下都看得见，也不会像深色圆点那样抢眼 */
 .panel__close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.6rem;
-  width: 1.8rem;
-  height: 1.8rem;
-  line-height: 1;
-  color: var(--ink-inverse);
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--ink);
   cursor: pointer;
-  background: rgb(var(--overlay-rgb) / 45%);
-  border: 0;
+  background: rgb(var(--surface-rgb) / 92%);
+  border: 1px solid var(--line);
   border-radius: var(--radius-pill);
+  transition: background-color 0.15s ease;
 }
 
 .panel__close:hover {
-  background: rgb(var(--overlay-rgb) / 70%);
+  background: var(--surface-muted);
+}
+
+.panel {
+  position: relative;
 }
 
 .panel__cover {
@@ -94,59 +102,66 @@ const emit = defineEmits<{ close: [] }>()
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: var(--surface-muted);
+  border-bottom: 1px solid var(--line);
 }
 
 .panel__body {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.95rem 1.05rem 1.15rem;
+  gap: var(--space-2);
+  padding: var(--space-4);
 }
 
 .panel__meta {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   align-items: center;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   color: var(--ink-soft);
 }
 
 .panel__category {
-  padding: 0.1rem 0.45rem;
-  font-size: 0.72rem;
-  color: var(--accent);
-  border: 1px solid currentcolor;
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  font-size: var(--text-2xs);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-pill);
 }
 
 .panel__title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--text-lg);
+  font-weight: 650;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
   color: var(--ink);
 }
 
 .panel__summary {
   margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.65;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
   color: var(--ink-soft);
 }
 
 .panel__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.3rem;
   padding: 0;
-  margin: 0.1rem 0 0;
+  margin: 0;
   list-style: none;
 }
 
 .panel__tags li {
   padding: 0.1rem 0.45rem;
-  font-size: 0.72rem;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
   background: var(--surface-muted);
   border-radius: var(--radius-xs);
@@ -154,50 +169,45 @@ const emit = defineEmits<{ close: [] }>()
 
 .panel__facts {
   display: grid;
-  grid-template-columns: auto;
   gap: 0.15rem;
-  margin: 0.2rem 0 0;
-  font-size: 0.8rem;
+  padding-top: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  border-top: 1px solid var(--line);
 }
 
-.panel__facts dt {
-  color: var(--ink-soft);
-}
-
-.panel__facts dd {
-  margin: 0 0 0.35rem;
-  line-height: 1.55;
-  color: var(--ink);
-}
-
-.panel__link {
-  align-self: flex-start;
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px solid currentcolor;
-}
-
-.panel__link:hover {
-  color: var(--ink);
-}
-.panel__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.panel__category,
 .panel__facts dt {
   display: inline-flex;
   gap: 0.28rem;
   align-items: center;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
 }
 
+.panel__facts dd {
+  margin: 0 0 0.45rem;
+  line-height: var(--leading-snug);
+  color: var(--ink);
+}
+
+/* 主操作做成黑底按钮：面板里只有一个动作，让它明确是按钮而不是一行链接 */
 .panel__link {
   display: inline-flex;
   gap: 0.3rem;
   align-items: center;
+  align-self: flex-start;
+  padding: 0.42rem 0.9rem;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--accent-ink);
+  text-decoration: none;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  transition: opacity 0.15s ease;
+}
+
+.panel__link:hover {
+  opacity: 0.85;
 }
 </style>
