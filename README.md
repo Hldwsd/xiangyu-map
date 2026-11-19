@@ -1,6 +1,8 @@
-# 乡遇地图 · Xiangyu Map
+# 乡遇安徽 · Xiangyu Map
 
 一张安徽省地图，标记值得专程一去的文旅项目。点击地标，展开这个项目的来龙去脉。
+
+> 项目中文名于 2026-11-19 由「乡遇地图」定为「**乡遇安徽**」，与范围收窄到安徽省（[ADR 0002](docs/adr/0002-scope-anhui.md)）同步；仓库名与技术标识仍为 `xiangyu-map`，未随改名迁移，避免打死链。
 
 - 产品与项目规划：[docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)
 - 两人协作规范：[docs/COLLABORATION.md](docs/COLLABORATION.md)

@@ -6,7 +6,7 @@ import { RouterLink, RouterView } from 'vue-router'
   <div class="app">
     <header class="app__header">
       <RouterLink class="app__brand" :to="{ name: 'home' }">
-        <span class="app__brand-name">乡遇地图</span>
+        <span class="app__brand-name">乡遇安徽</span>
         <span class="app__brand-tag">在地图上遇见一个文旅项目</span>
       </RouterLink>
 
