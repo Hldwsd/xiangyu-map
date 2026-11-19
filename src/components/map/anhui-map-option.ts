@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts'
 
-import { categoryMapSymbol } from '@/components/icons/category-paths'
+import { categoryMarkerSymbol } from '@/components/icons/category-paths'
 import type { MarkerGroup } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
 import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
@@ -14,19 +14,19 @@ import type { Site, SiteCategory } from '@/types/site'
 export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
 
 /**
- * 分类形状：六类地标各配一个象形图标（屋檐 / 剪纸 / 旗帜 / 山峰 / 音符 / 树冠）。
+ * 分类形状：白底圆钉 + 墨色线条图标（屋檐 / 印章 / 旗帜 / 山峰 / 音符 / 树冠）。
  *
- * 黑白界面里颜色不再承载分类信息，形状是唯一编码，所以这里不能用「圆/三角/方块」这类
- * 抽象几何——18px 的三角形和方块只能读出「不一样」，读不出「什么类别」。
- * 图标路径与界面里 CategoryIcon 共用同一份数据（category-paths.ts），地图与列表不会走形。
+ * 早先用的是实心黑剪影，远看是一堆黑点、像脏东西；现在改成「白圆钉 + 细圈 + 内部线条」，
+ * 黑白语言不变，但在浅灰底图上有层次。选中态反转成墨底白线（见 toSiteDatum）。
+ * 线条与界面里的 CategoryIcon 共用同一份定义（category-paths.ts），地图与列表不会走形。
  */
 export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
-  古镇: categoryMapSymbol('古镇'),
-  非遗: categoryMapSymbol('非遗'),
-  红色: categoryMapSymbol('红色'),
-  自然: categoryMapSymbol('自然'),
-  演艺: categoryMapSymbol('演艺'),
-  乡村: categoryMapSymbol('乡村'),
+  古镇: categoryMarkerSymbol('古镇'),
+  非遗: categoryMarkerSymbol('非遗'),
+  红色: categoryMarkerSymbol('红色'),
+  自然: categoryMarkerSymbol('自然'),
+  演艺: categoryMarkerSymbol('演艺'),
+  乡村: categoryMarkerSymbol('乡村'),
 }
 
 export interface SiteScatterDatum {
@@ -82,12 +82,13 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-const SELECTED_SYMBOL_SIZE = 26
+const SELECTED_SYMBOL_SIZE = 34
 /**
  * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
- * 象形图标比几何块「碎」，19px 才认得出是屋檐还是山峰；同时实心剪影保证了命中面积。
+ * 圆钉内部是线条图标，28px 才认得出是屋檐还是山峰；图片符号的命中区就是整个方框，
+ * 比早先的实心剪影更好点中（剪影只命中填充像素）。
  */
-const DEFAULT_SYMBOL_SIZE = 19
+const DEFAULT_SYMBOL_SIZE = 28
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
@@ -165,14 +166,16 @@ function toSiteDatum(
     siteId: site.id,
     category: site.category,
     summary: site.summary,
-    symbol: CATEGORY_SYMBOLS[site.category],
+    // 选中态是另一张图（墨底白线），所以符号要按状态取，不能共用一张
+    symbol: categoryMarkerSymbol(site.category, selected),
     symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
     itemStyle: {
+      // 圆钉本身已经带了白底与描边（SVG 里），这里只留一点投影做层次
       color,
-      borderColor: '#ffffff',
-      borderWidth: selected ? 2.5 : 1.4,
-      shadowBlur: selected ? 12 : 4,
-      shadowColor: 'rgba(52, 40, 24, 0.35)',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      shadowBlur: selected ? 10 : 6,
+      shadowColor: 'rgba(17, 17, 17, 0.18)',
     },
     label: { show: selected },
   }

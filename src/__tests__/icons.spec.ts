@@ -3,38 +3,48 @@ import { mount } from '@vue/test-utils'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
-import { CATEGORY_ICON_PATHS, categoryMapSymbol } from '@/components/icons/category-paths'
+import { CATEGORY_GLYPHS, categoryMarkerSymbol } from '@/components/icons/category-paths'
 import { UI_ICON_PATHS, type UiIconName } from '@/components/icons/ui-icon-paths'
 import { SITE_CATEGORIES } from '@/types/site'
 
-describe('地标图标', () => {
-  it('六个分类各有一个路径，且互不相同', () => {
-    const paths = SITE_CATEGORIES.map((category) => CATEGORY_ICON_PATHS[category])
+describe('地标圆钉', () => {
+  it('六类各有自己的线条图标，且互不相同', () => {
+    const glyphs = SITE_CATEGORIES.map((category) => CATEGORY_GLYPHS[category].join('|'))
 
-    expect(paths).toHaveLength(6)
-    for (const path of paths) {
-      expect(path.startsWith('M')).toBe(true)
-      expect(path.length).toBeGreaterThan(30)
+    expect(glyphs).toHaveLength(6)
+    expect(new Set(glyphs).size).toBe(6)
+    for (const paths of SITE_CATEGORIES.map((c) => CATEGORY_GLYPHS[c])) {
+      expect(paths.length).toBeGreaterThan(0)
+      for (const path of paths) expect(path.startsWith('M')).toBe(true)
     }
-    expect(new Set(paths).size).toBe(6)
   })
 
-  it('地图 symbol 用 path:// 前缀，与 ECharts 约定一致', () => {
-    expect(categoryMapSymbol('古镇')).toBe(`path://${CATEGORY_ICON_PATHS['古镇']}`)
-    expect(categoryMapSymbol('乡村').startsWith('path://M')).toBe(true)
+  it('生成 data URI 形式的图片符号，选中态与未选中态不是同一张', () => {
+    const normal = categoryMarkerSymbol('古镇')
+    const selected = categoryMarkerSymbol('古镇', true)
+
+    expect(normal.startsWith('image://data:image/svg+xml')).toBe(true)
+    expect(selected.startsWith('image://data:image/svg+xml')).toBe(true)
+    expect(normal).not.toBe(selected)
+    // 未选中是白底墨圈，选中是墨底
+    expect(decodeURIComponent(normal)).toContain('fill="#ffffff"')
+    expect(decodeURIComponent(selected)).toContain('fill="#111111"')
   })
 
-  it('渲染成实心 svg，并带 aria-hidden（读屏通过文字标签理解分类）', () => {
-    const wrapper = mount(CategoryIcon, { props: { category: '自然', size: 18 } })
-    const svg = wrapper.get('svg')
+  it('六个分类的符号互不相同', () => {
+    const symbols = SITE_CATEGORIES.map((category) => categoryMarkerSymbol(category))
 
-    expect(svg.attributes('viewBox')).toBe('0 0 24 24')
-    expect(svg.attributes('fill')).toBe('currentColor')
-    expect(svg.attributes('width')).toBe('18')
-    expect(svg.attributes('aria-hidden')).toBe('true')
-    // 用 currentColor 才能跟随父级反色，避免「黑底 chip 上出现黑色图标」
-    expect(svg.attributes('style')).toBeUndefined()
-    expect(svg.get('path').attributes('d')).toBe(CATEGORY_ICON_PATHS['自然'])
+    expect(new Set(symbols).size).toBe(6)
+  })
+
+  it('界面图标与地图圆钉共用同一套线条', () => {
+    const wrapper = mount(CategoryIcon, { props: { category: '自然', size: 16 } })
+    const paths = wrapper.findAll('path').map((node) => node.attributes('d'))
+
+    expect(paths).toEqual([...CATEGORY_GLYPHS['自然']])
+    expect(wrapper.get('svg').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.get('svg').attributes('stroke')).toBe('currentColor')
+    expect(wrapper.get('svg').attributes('fill')).toBe('none')
   })
 })
 
@@ -43,8 +53,10 @@ describe('界面图标', () => {
 
   it('覆盖菜单、筛选、操作与实用信息', () => {
     for (const name of [
+      'menu',
       'map',
       'filter',
+      'all',
       'search',
       'pin',
       'close',

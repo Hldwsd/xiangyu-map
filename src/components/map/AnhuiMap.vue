@@ -24,7 +24,7 @@ echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
  * 取值略大于基础地标直径（13px）：再小就会把「视觉上明显分开」的两颗也叠起来。
  */
-const CLUSTER_MIN_GAP = 21
+const CLUSTER_MIN_GAP = 26
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 

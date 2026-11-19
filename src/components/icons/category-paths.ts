@@ -1,31 +1,73 @@
 import type { SiteCategory } from '@/types/site'
 
 /**
- * 六类地标的象形图标：24×24、实心剪影。
+ * 六类地标的线性图标：24×24、描边、不填充。
  *
- * 为什么用「实心剪影」而不是线性图标：
- * 1. ECharts 的 `symbol: 'path://...'` 直接吃这套路径，地图与界面共用同一份形状；
- * 2. 实心块的有效命中面积大，缩到 19px 仍然点得中（线性图标的细线只有 1–2px 宽）；
- * 3. 黑白界面里实心剪影的辨识度最高，线稿会在浅灰底图上糊成一片。
- *
- * 每个形状都按「不看图例也能猜出是什么」来选：屋檐、窗花、旗帜、山峰、音符、麦穗。
+ * 为什么从「实心黑块」改成「白底圆钉 + 黑线图标」：
+ * 实心剪影在整张浅底地图上是一堆黑点，远看像脏东西；圆钉有白色底、墨色细圈和内部线条，
+ * 既保留黑白语言，又在浅灰底图上分得出层次。选中态反转成墨底白线，仍然是同一套语言。
  */
-export const CATEGORY_ICON_PATHS: Record<SiteCategory, string> = {
-  // 古镇：带屋脊的坡屋顶民居
-  古镇: 'M12 3 L21.5 10.6 H18.2 V20 H5.8 V10.6 H2.5 Z',
-  // 非遗：八瓣窗花（剪纸），四向加斜向的对称花纹
-  非遗: 'M12 1.6 L14.1 7 L19.4 5 L17.4 10.4 L22.4 12 L17.4 13.6 L19.4 19 L14.1 17 L12 22.4 L9.9 17 L4.6 19 L6.6 13.6 L1.6 12 L6.6 10.4 L4.6 5 L9.9 7 Z',
-  // 红色：旗杆 + 飘起的旗面
-  红色: 'M5 2 H7 V22 H5 Z M7 4 H19.5 L16.4 8.6 L19.5 13.2 H7 Z',
-  // 自然：双峰山体
-  自然: 'M2 20 L8.8 6.5 L12.8 13.2 L16.2 8 L22 20 Z',
+export const CATEGORY_GLYPHS: Record<SiteCategory, string[]> = {
+  // 古镇：坡屋顶 + 墙体 + 门
+  古镇: ['M4 12 12 5 20 12', 'M6 11.5V20h12v-8.5', 'M10 20v-4.5h4V20'],
+  // 非遗：印章（方形印面 + 印钮）
+  非遗: ['M7 10h10v10H7Z', 'M10 10V6h4v4', 'M10.5 15h3'],
+  // 红色：旗杆 + 旗面
+  红色: ['M7 4v16', 'M7 5h10l-2.6 3.6L17 12H7'],
+  // 自然：双峰山
+  自然: ['M3 19 9 8l3.6 6L15.2 9 21 19Z'],
   // 演艺：音符（符头 + 符干 + 符尾）
-  演艺: 'M9 3.2 L19.5 1.2 V5.4 L11.6 7 V16.4 A3.6 3.6 0 1 1 8 12.8 V3.2 Z',
-  // 乡村：麦穗（中间麦秆 + 四组麦粒）
-  乡村: 'M11.2 10.6 H12.8 V22 H11.2 Z M11 11 C8 11 6 9 6 6 C9 6 11 8 11 11 Z M13 11 C16 11 18 9 18 6 C15 6 13 8 13 11 Z M11 15.4 C8.4 15.4 6.8 13.8 6.8 11.4 C9.4 11.4 11 13 11 15.4 Z M13 15.4 C15.6 15.4 17.2 13.8 17.2 11.4 C14.6 11.4 13 13 13 15.4 Z',
+  演艺: [
+    'M10 17.5a2.4 2.4 0 1 0-2.4-2.4',
+    'M10 17.5V6',
+    'M10 6l8-2v9',
+    'M18 13a2.4 2.4 0 1 0-2.4-2.4',
+  ],
+  // 乡村：树冠 + 树干
+  乡村: ['M12 21v-6', 'M12 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z'],
 }
 
-/** ECharts 的 symbol 写法：`path://` + 24×24 路径，渲染时会按 symbolSize 缩放 */
-export function categoryMapSymbol(category: SiteCategory): string {
-  return `path://${CATEGORY_ICON_PATHS[category]}`
+/** 圆钉直径与内圈半径（48 单位画布） */
+const SIZE = 48
+const RING_RADIUS = 21
+
+const INK = '#111111'
+const PAPER = '#ffffff'
+
+function glyphMarkup(category: SiteCategory, stroke: string): string {
+  // 图标占圆钉直径的 ~63%：再小认不出是屋檐还是山峰，再大会顶到细圈
+  const scale = 0.86
+  const offset = (SIZE - 24 * scale) / 2
+  const paths = CATEGORY_GLYPHS[category].map((path) => `<path d="${path}"/>`).join('')
+  return (
+    `<g transform="translate(${offset} ${offset}) scale(${scale})" fill="none" stroke="${stroke}"` +
+    ` stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${paths}</g>`
+  )
+}
+
+/**
+ * 生成 ECharts 可用的图片符号：`image://data:image/svg+xml,...`
+ *
+ * 用图片而不是 `path://`：`path://` 只能填充一个轮廓，画不出「白底 + 细圈 + 内部线条」这三层；
+ * 图片还能保留命中面积——图片符号的命中区就是整个方框，比只覆盖填充像素更稳。
+ */
+export function categoryMarkerSymbol(category: SiteCategory, selected = false): string {
+  const body = selected
+    ? `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${INK}"/>`
+    : `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${PAPER}" stroke="${INK}" stroke-width="2"/>`
+  const glyph = glyphMarkup(category, selected ? PAPER : INK)
+  // 极轻的投影：白钉压在白色省份上时，只靠 2px 细圈会「粘」在底图上
+  const shadow =
+    '<defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%">' +
+    '<feDropShadow dx="0" dy="1" stdDeviation="1.3" flood-color="#111111" flood-opacity="0.22"/>' +
+    '</filter></defs>'
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}">` +
+    shadow +
+    '<g filter="url(#s)">' +
+    body +
+    glyph +
+    '</g>' +
+    '</svg>'
+  return `image://data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
