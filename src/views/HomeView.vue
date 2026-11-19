@@ -171,30 +171,34 @@ const empty = computed(() => filteredSites.value.length === 0)
 .home__list ul {
   padding: 0;
   margin: 0;
+  overflow: hidden;
   list-style: none;
+  background: rgb(var(--surface-rgb) / 78%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
 }
 
 .home__item {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.15rem;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.55rem;
   width: 100%;
-  padding: 0.6rem 0.7rem;
+  padding: 0.62rem 0.8rem;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  background: rgb(var(--surface-rgb) / 78%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  transition: border-color 0.15s ease;
+  background: transparent;
+  border: 0;
+  transition: background-color 0.15s ease;
 }
 
-.home__list li + li {
-  margin-top: 0.45rem;
+/* 行与行之间用细线，而不是每行一张卡片：一叠卡片看起来像清单，一张卡才像版式 */
+.home__list li + li .home__item {
+  border-top: 1px solid var(--line);
 }
 
 .home__item:hover {
-  border-color: var(--accent);
+  background: var(--surface-muted);
 }
 
 .home__item-name {
