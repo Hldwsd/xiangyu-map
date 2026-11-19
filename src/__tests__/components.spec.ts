@@ -16,9 +16,9 @@ const counts: Record<SiteCategory, number> = {
   古镇: 5,
   非遗: 2,
   红色: 2,
-  自然: 7,
+  自然: 10,
   演艺: 0,
-  乡村: 2,
+  乡村: 3,
 }
 
 function findSite(id: string): Site {
@@ -54,18 +54,18 @@ describe('SitePanel', () => {
 describe('CategoryFilter', () => {
   it('渲染「全部」加 6 个分类，并显示数量', () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 18 },
+      props: { category: '全部', query: '', counts, total: 22 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
     expect(chips).toHaveLength(7)
     expect(chips[0]?.text()).toContain('全部')
-    expect(chips[0]?.text()).toContain('18')
+    expect(chips[0]?.text()).toContain('22')
   })
 
   it('点击分类时更新 v-model', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 18 },
+      props: { category: '全部', query: '', counts, total: 22 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
@@ -76,7 +76,7 @@ describe('CategoryFilter', () => {
 
   it('输入关键词时更新 query', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 18 },
+      props: { category: '全部', query: '', counts, total: 22 },
     })
 
     await wrapper.get('input').setValue('宏村')

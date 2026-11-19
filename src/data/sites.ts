@@ -1,12 +1,12 @@
 import type { Site } from '@/types/site'
 
 /**
- * 地标数据（18 条，全部在安徽省内，覆盖 16 个地级市）。
+ * 地标数据（22 条，全部在安徽省内，覆盖 16 个地级市）。
  *
  * 两组来源，别混着看：
  * - 前 10 条为 M0 示例数据：`sources` 是 example.com 占位、`tags` 首位带「示例数据」、
  *   文案为编辑示例，用于跑通链路，正式上线前必须逐条替换。
- * - 后 8 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网，已逐条验证可访问；
+ * - 后 12 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网，已逐条 curl 验证可访问；
  *   图片仍是占位，待授权素材到位后补。
  *
  * 通用约定：坐标是 GCJ-02 粗略值（千米级误差），不作为导航依据；`summary` ≤ 60 字。
@@ -334,6 +334,78 @@ export const sites: Site[] = [
     bestSeason: '全年',
     transport: '金寨站打车约 20 分钟',
     sources: ['https://www.luan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'langyashan',
+    name: '琅琊山',
+    category: '自然',
+    province: '安徽省',
+    city: '滁州市',
+    location: { lng: 118.3, lat: 32.28 },
+    summary: '滁州城西的山林，醉翁亭在山脚，欧阳修那句「环滁皆山也」写的就是这里。',
+    description:
+      '琅琊山在滁州城西南，山不算高但林木深，醉翁亭、琅琊寺沿山道分布。\n\n山脚到醉翁亭步行即可，再往上走到琅琊寺约半小时；秋季的红叶与山雾是这里常被拍到的两个题材。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['醉翁亭', '山林', '人文'],
+    bestSeason: '4-5 月、10-11 月',
+    transport: '滁州站打车约 20 分钟',
+    sources: ['http://www.langyashan.com/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'tiantangzhai',
+    name: '天堂寨',
+    category: '自然',
+    province: '安徽省',
+    city: '六安市',
+    location: { lng: 115.98, lat: 31.13 },
+    summary: '大别山主峰之一，瀑布群与原始林连着走，夏天是皖西的避暑去处。',
+    description:
+      '天堂寨在大别山腹地，皖鄂交界，主峰海拔一千七百多米，山北是金寨、山南是湖北罗田。\n\n景区以瀑布群与林间步道为主，徒步路线较长，建议留一整天；山上气温比县城低不少，早晚要加衣。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['大别山', '瀑布', '避暑'],
+    bestSeason: '5-10 月',
+    transport: '金寨站转乘至景区约 1.5 小时',
+    sources: ['http://www.ttz.com.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'bagongshan',
+    name: '八公山',
+    category: '自然',
+    province: '安徽省',
+    city: '淮南市',
+    location: { lng: 116.83, lat: 32.63 },
+    summary: '淮南城边的低山，豆腐的传说与汉淮南王墓都在这一带，登顶能望到淮河平原。',
+    description:
+      '八公山在淮南市西，山势低缓，因八公与豆腐的传说得名，山上有汉淮南王墓等旧迹。\n\n登顶不难，视野开阔，能望到淮河与平原；山下的豆腐宴是当地招牌，值得留在午饭。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['豆腐', '淮河', '低山'],
+    bestSeason: '4-5 月、9-10 月',
+    transport: '淮南站打车约 30 分钟',
+    sources: ['https://www.huainan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'xinghuacun',
+    name: '杏花村',
+    category: '乡村',
+    province: '安徽省',
+    city: '池州市',
+    location: { lng: 117.49, lat: 30.66 },
+    summary: '池州城西的杏花村，杜牧「牧童遥指杏花村」让这里成了一个文化地标。',
+    description:
+      '杏花村在池州城西，因杜牧《清明》诗得名，村内有与杏花、酒文化相关的园子与旧迹。\n\n春季杏花开时最好看；村子离城区不远，适合与池州城内的齐山、平天湖串成半日。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['杏花', '诗酒', '春游'],
+    bestSeason: '3-4 月',
+    transport: '池州站打车约 20 分钟',
+    sources: ['https://www.chizhou.gov.cn/'],
     updatedAt: '2026-11-19',
   },
 ]

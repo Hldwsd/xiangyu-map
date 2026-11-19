@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(18)
-    expect(store.filteredSites).toHaveLength(18)
+    expect(store.sites).toHaveLength(22)
+    expect(store.filteredSites).toHaveLength(22)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -29,6 +29,9 @@ describe('useSitesStore', () => {
         'caishiji',
         'balihe',
         'huangcangyu',
+        'langyashan',
+        'tiantangzhai',
+        'bagongshan',
       ].sort(),
     )
   })
@@ -36,7 +39,9 @@ describe('useSitesStore', () => {
   it('按关键词搜索名称、省市与标签', () => {
     const store = useSitesStore()
     store.setQuery('池州市')
-    expect(store.filteredSites.map((site) => site.id)).toEqual(['jiuhuashan'])
+    expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
+      ['jiuhuashan', 'xinghuacun'].sort(),
+    )
 
     store.setQuery('古城')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
