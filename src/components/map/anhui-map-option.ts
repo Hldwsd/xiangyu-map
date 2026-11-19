@@ -300,7 +300,8 @@ export function buildAnhuiMapOption(
         id: 'rivers',
         type: 'lines',
         coordinateSystem: 'geo',
-        zlevel: 1,
+        // 与 geo/散点同处 zlevel 0：分层画布在缩放时会出现「地标与地图不同步」
+        zlevel: 0,
         z: 2,
         silent: true,
         // polyline：把每条河的折线整体画出来，而不是首尾相连的「飞线」
@@ -316,7 +317,7 @@ export function buildAnhuiMapOption(
         name: '文旅项目',
         type: 'scatter',
         coordinateSystem: 'geo',
-        zlevel: 2,
+        zlevel: 0,
         z: 3,
         data,
         cursor: 'pointer',

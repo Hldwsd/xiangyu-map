@@ -39,7 +39,7 @@ export const DEFAULT_PALETTE: ThemePalette = {
   waterFill: '#dbeafe',
   waterBorder: '#bfdbfe',
   districtLine: '#eeeeee',
-  riverLine: '#93c5fd',
+  riverLine: '#bfdbfe',
 }
 
 const CATEGORY_VARS: Record<SiteCategory, string> = {
