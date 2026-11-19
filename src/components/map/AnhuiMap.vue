@@ -39,8 +39,6 @@ const CLUSTER_MIN_GAP = 34
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
 const CLUSTER_TWEEN_MS = 320
-/** 滚轮/缩放条的单步缓动：要跟手，所以比点簇短 */
-const WHEEL_TWEEN_MS = 140
 const ZOOM_MIN = 0.9
 const ZOOM_MAX = 8
 /** 越过这个倍数后，可交互的从「市域」切成「区县」，避免两层同时高亮 */
@@ -70,9 +68,9 @@ let disposed = false
 /** 当前画在图上的一批点（单点或簇），键盘高亮要按它找下标 */
 let currentData: MapScatterDatum[] = []
 let refreshHandle: number | null = null
+/** 夹取中心的防抖定时器 */
+let centerClampTimer: number | null = null
 let zoomTween: number | null = null
-/** 双指缩放的起点距离与起点 zoom；null 表示当前没有手势 */
-let pinchStart: { distance: number; zoom: number } | null = null
 /** 自己发起的缩放动画进行中：期间不重算聚合（地图在动，算出来也是中间态） */
 let tweening = false
 /** 合并底图的要素列表，用来按缩放级别重建 regions（市 / 区县） */
@@ -128,12 +126,21 @@ function handleGeoRoam(): void {
   const instance = chart.value
   if (instance === null || tweening) return
 
-  const { center } = geoState()
-  const [clampedX, clampedY] = clampCenter(center)
-  if (clampedX !== center[0] || clampedY !== center[1]) {
-    instance.setOption({ geo: { center: [clampedX, clampedY] } })
-  }
+  const { zoom } = geoState()
+  zoomLevel.value = Number(zoom.toFixed(2))
+  syncLayerMode()
   scheduleRefresh()
+
+  // 夹取放到手势停顿之后：拖动过程中反复 setOption 会打断 ECharts 的惯性
+  if (centerClampTimer !== null) window.clearTimeout(centerClampTimer)
+  centerClampTimer = window.setTimeout(() => {
+    centerClampTimer = null
+    const current = geoState()
+    const [clampedX, clampedY] = clampCenter(current.center)
+    if (clampedX !== current.center[0] || clampedY !== current.center[1]) {
+      instance.setOption({ geo: { center: [clampedX, clampedY] } })
+    }
+  }, 180)
 }
 
 function handleChartClick(params: unknown): void {
@@ -183,7 +190,7 @@ function zoomIntoCluster(clusterIds: string[], value: unknown): void {
  * 滚轮会是「一格一跳」、点簇会「瞬移」。这里用 rAF 插值，滚轮 140ms、点簇 320ms；
  * 动画期间不重算聚合，结束再算一次，避免中途把簇算成中间态。
  */
-function animateGeoTo(center: [number, number], zoom: number, duration = WHEEL_TWEEN_MS): void {
+function animateGeoTo(center: [number, number], zoom: number, duration = CLUSTER_TWEEN_MS): void {
   const instance = chart.value
   if (instance === null) return
 
@@ -235,42 +242,23 @@ function syncLayerMode(): void {
 }
 
 /**
- * 滚轮缩放：以鼠标位置为锚点。
+ * 缩放条 / 加减按钮：一次性设置 zoom，不做补间。
  *
- * 锚定公式：放大 k 倍时，要让光标下的地理点保持不动，中心要按 c' = g + (c − g)/k 移动
- * （g 是光标下的经纬度，c 是当前中心）。缩放本身交给 animateGeoTo 做缓动，所以是一次连续变化。
+ * 缩放条的输入本身就是连续的（拖动时逐帧触发），再叠一层动画只会延迟生效；
+ * 滚轮与双指已交给 ECharts 原生 roam，这里也不需要再插动画。
  */
-function handleWheel(event: WheelEvent): void {
-  if (chart.value === null || container.value === null) return
-  event.preventDefault()
-
-  const rect = container.value.getBoundingClientRect()
-  const point: [number, number] = [event.clientX - rect.left, event.clientY - rect.top]
-  const anchor = chart.value.convertFromPixel({ geoIndex: 0 }, point)
-  const { center, zoom } = geoState()
-
-  const factor = Math.exp(-event.deltaY * 0.0015)
-  const targetZoom = clampZoom(zoom * factor)
-  if (Math.abs(targetZoom - zoom) < 0.001) return
-
-  const k = targetZoom / zoom
-  const geoAnchor: [number, number] =
-    Array.isArray(anchor) && anchor.length === 2
-      ? ([anchor[0] as number, anchor[1] as number] as [number, number])
-      : center
-
-  animateGeoTo(
-    [geoAnchor[0] + (center[0] - geoAnchor[0]) / k, geoAnchor[1] + (center[1] - geoAnchor[1]) / k],
-    targetZoom,
-  )
-}
-
-/** 缩放条 / 加减按钮：锚定在画布中心 */
 function zoomTo(target: number): void {
+  const instance = chart.value
+  if (instance === null) return
+
   const { center, zoom } = geoState()
   const next = clampZoom(target)
   if (Math.abs(next - zoom) < 0.001) return
-  animateGeoTo(center, next)
+
+  instance.setOption({ geo: { center: clampCenter(center), zoom: next } })
+  zoomLevel.value = Number(next.toFixed(2))
+  syncLayerMode()
+  refreshMarkers()
 }
 
 function zoomBy(factor: number): void {
@@ -470,81 +458,6 @@ function blurMarker(index: number): void {
   instance.dispatchAction({ type: 'hideTip' })
 }
 
-function touchDistance(touches: TouchList): number {
-  const first = touches[0]
-  const second = touches[1]
-  if (first === undefined || second === undefined) return 0
-  return Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY)
-}
-
-/**
- * 手机双指缩放：跟手，不做缓动。
- *
- * 单指拖动保持禁用（与桌面一致：外层不能拖着跑）；
- * 双指按两指中点为锚点缩放，公式与滚轮一致，避免「一捏就往左上跑」。
- */
-function handleTouchStart(event: TouchEvent): void {
-  if (event.touches.length !== 2 || chart.value === null) return
-  event.preventDefault()
-  pinchStart = { distance: touchDistance(event.touches), zoom: geoState().zoom }
-}
-
-function handleTouchMove(event: TouchEvent): void {
-  const instance = chart.value
-  if (instance === null || pinchStart === null || event.touches.length !== 2) return
-  event.preventDefault()
-
-  const distance = touchDistance(event.touches)
-  if (distance <= 0 || pinchStart.distance <= 0) return
-
-  const first = event.touches[0]
-  const second = event.touches[1]
-  if (first === undefined || second === undefined || container.value === null) return
-
-  const rect = container.value.getBoundingClientRect()
-  const midpoint: [number, number] = [
-    (first.clientX + second.clientX) / 2 - rect.left,
-    (first.clientY + second.clientY) / 2 - rect.top,
-  ]
-  const anchor = instance.convertFromPixel({ geoIndex: 0 }, midpoint)
-  const { center } = geoState()
-
-  const targetZoom = clampZoom(pinchStart.zoom * (distance / pinchStart.distance))
-  const k = targetZoom / pinchStart.zoom
-  const geoAnchor: [number, number] =
-    Array.isArray(anchor) && anchor.length === 2
-      ? ([anchor[0] as number, anchor[1] as number] as [number, number])
-      : center
-
-  if (zoomTween !== null) {
-    window.cancelAnimationFrame(zoomTween)
-    zoomTween = null
-  }
-  tweening = true
-  instance.setOption(
-    {
-      geo: {
-        center: [
-          geoAnchor[0] + (center[0] - geoAnchor[0]) / k,
-          geoAnchor[1] + (center[1] - geoAnchor[1]) / k,
-        ],
-        zoom: targetZoom,
-      },
-    },
-    { lazyUpdate: true },
-  )
-  zoomLevel.value = Number(targetZoom.toFixed(2))
-}
-
-function handleTouchEnd(event: TouchEvent): void {
-  if (pinchStart === null) return
-  if (event.touches.length >= 2) return
-  pinchStart = null
-  tweening = false
-  syncLayerMode()
-  refreshMarkers()
-}
-
 async function render(): Promise<void> {
   status.value = 'loading'
   errorMessage.value = ''
@@ -609,23 +522,15 @@ onMounted(() => {
   if (container.value === null) return
   resizeObserver = new ResizeObserver(handleResize)
   resizeObserver.observe(container.value)
-  // passive: false 才能 preventDefault：页面本身不滚动，滚轮只用来缩放地图
-  container.value.addEventListener('wheel', handleWheel, { passive: false })
-  container.value.addEventListener('touchstart', handleTouchStart, { passive: false })
-  container.value.addEventListener('touchmove', handleTouchMove, { passive: false })
-  container.value.addEventListener('touchend', handleTouchEnd)
   handleResize()
 })
 
 onBeforeUnmount(() => {
   disposed = true
-  container.value?.removeEventListener('wheel', handleWheel)
-  container.value?.removeEventListener('touchstart', handleTouchStart)
-  container.value?.removeEventListener('touchmove', handleTouchMove)
-  container.value?.removeEventListener('touchend', handleTouchEnd)
   resizeObserver?.disconnect()
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
+  if (centerClampTimer !== null) window.clearTimeout(centerClampTimer)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   chart.value?.off('georoam', handleGeoRoam)
   chart.value?.dispose()
