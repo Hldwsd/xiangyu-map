@@ -14,6 +14,8 @@ export interface ThemePalette {
   waterBorder: string
   /** 区县界：只做纹理，比市界更浅 */
   districtLine: string
+  /** 河道线：比湖泊描边略深，线才看得见 */
+  riverLine: string
 }
 
 /**
@@ -37,6 +39,7 @@ export const DEFAULT_PALETTE: ThemePalette = {
   waterFill: '#dbeafe',
   waterBorder: '#bfdbfe',
   districtLine: '#eeeeee',
+  riverLine: '#93c5fd',
 }
 
 const CATEGORY_VARS: Record<SiteCategory, string> = {
@@ -79,5 +82,6 @@ export function readThemePalette(): ThemePalette {
     waterFill: read('--water-fill', DEFAULT_PALETTE.waterFill),
     waterBorder: read('--water-border', DEFAULT_PALETTE.waterBorder),
     districtLine: read('--district-line', DEFAULT_PALETTE.districtLine),
+    riverLine: read('--river-line', DEFAULT_PALETTE.riverLine),
   }
 }

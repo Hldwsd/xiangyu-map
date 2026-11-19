@@ -21,7 +21,8 @@
     "format:check": "prettier --check .",
     "data:anhui-map": "node scripts/fetch-anhui-map.mjs",
     "data:anhui-districts": "node scripts/fetch-anhui-districts.mjs",
-    "data:anhui-water": "node scripts/fetch-anhui-water.mjs"
+    "data:anhui-water": "node scripts/fetch-anhui-water.mjs",
+    "data:anhui-rivers": "node scripts/fetch-anhui-rivers.mjs"
   },
   "dependencies": {
     "echarts": "^6.1.0",

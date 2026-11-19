@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import * as echarts from 'echarts/core'
-import { ScatterChart } from 'echarts/charts'
+import { LinesChart, ScatterChart } from 'echarts/charts'
 import { GeoComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsType } from 'echarts/core'
@@ -13,6 +13,7 @@ import {
   type ClusterScatterDatum,
   type MapRegionStyle,
   type MapScatterDatum,
+  type RiverLine,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
@@ -20,13 +21,14 @@ import {
   ANHUI_MAP_NAME,
   loadAnhuiDistricts,
   loadAnhuiMap,
+  loadAnhuiRivers,
   loadAnhuiWater,
 } from '@/services/anhui-map-loader'
 import { readThemePalette, type ThemePalette } from '@/theme/theme'
 import type { Site } from '@/types/site'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
-echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
+echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRenderer])
 
 /**
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
@@ -66,12 +68,16 @@ let disposed = false
 let currentData: MapScatterDatum[] = []
 let refreshHandle: number | null = null
 let zoomTween: number | null = null
+/** 双指缩放的起点距离与起点 zoom；null 表示当前没有手势 */
+let pinchStart: { distance: number; zoom: number } | null = null
 /** 自己发起的缩放动画进行中：期间不重算聚合（地图在动，算出来也是中间态） */
 let tweening = false
 /** 合并底图的要素列表，用来按缩放级别重建 regions（市 / 区县） */
 let mapFeatures: TaggedFeature[] = []
 /** 合并底图里去掉市域之后的逐要素样式（区县界、水域） */
 let layerRegions: MapRegionStyle[] = []
+/** 长江/淮河的折线段，画成 lines 系列 */
+let riverLines: RiverLine[] = []
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
@@ -300,7 +306,45 @@ function datumIndexOfSite(siteId: string): number {
 }
 
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
-  return buildAnhuiMapOption(props.sites, props.selectedId, undefined, themePalette(), layerRegions)
+  return buildAnhuiMapOption(
+    props.sites,
+    props.selectedId,
+    undefined,
+    themePalette(),
+    layerRegions,
+    riverLines,
+  )
+}
+
+/** 把河道 GeoJSON 转成 lines 系列需要的折线数据 */
+function buildRiverLines(collection: { features: unknown[] } | null): RiverLine[] {
+  if (collection === null) return []
+  const lines: RiverLine[] = []
+
+  for (const feature of collection.features) {
+    const candidate = feature as {
+      properties?: { name?: unknown; width?: unknown }
+      geometry?: { type?: string; coordinates?: unknown }
+    }
+    const name = candidate.properties?.name
+    const coordinates = candidate.geometry?.coordinates
+    if (typeof name !== 'string' || candidate.geometry?.type !== 'LineString') continue
+    if (!Array.isArray(coordinates) || coordinates.length < 2) continue
+
+    const coords: [number, number][] = []
+    for (const point of coordinates) {
+      if (!Array.isArray(point) || point.length !== 2) continue
+      const [lng, lat] = point as [unknown, unknown]
+      if (typeof lng !== 'number' || typeof lat !== 'number') continue
+      coords.push([lng, lat])
+    }
+    if (coords.length < 2) continue
+
+    const width = typeof candidate.properties?.width === 'number' ? candidate.properties.width : 1.6
+    lines.push({ name, width, coords })
+  }
+
+  return lines
 }
 
 /**
@@ -397,16 +441,92 @@ function blurMarker(index: number): void {
   instance.dispatchAction({ type: 'hideTip' })
 }
 
+function touchDistance(touches: TouchList): number {
+  const first = touches[0]
+  const second = touches[1]
+  if (first === undefined || second === undefined) return 0
+  return Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY)
+}
+
+/**
+ * 手机双指缩放：跟手，不做缓动。
+ *
+ * 单指拖动保持禁用（与桌面一致：外层不能拖着跑）；
+ * 双指按两指中点为锚点缩放，公式与滚轮一致，避免「一捏就往左上跑」。
+ */
+function handleTouchStart(event: TouchEvent): void {
+  if (event.touches.length !== 2 || chart.value === null) return
+  event.preventDefault()
+  pinchStart = { distance: touchDistance(event.touches), zoom: geoState().zoom }
+}
+
+function handleTouchMove(event: TouchEvent): void {
+  const instance = chart.value
+  if (instance === null || pinchStart === null || event.touches.length !== 2) return
+  event.preventDefault()
+
+  const distance = touchDistance(event.touches)
+  if (distance <= 0 || pinchStart.distance <= 0) return
+
+  const first = event.touches[0]
+  const second = event.touches[1]
+  if (first === undefined || second === undefined || container.value === null) return
+
+  const rect = container.value.getBoundingClientRect()
+  const midpoint: [number, number] = [
+    (first.clientX + second.clientX) / 2 - rect.left,
+    (first.clientY + second.clientY) / 2 - rect.top,
+  ]
+  const anchor = instance.convertFromPixel({ geoIndex: 0 }, midpoint)
+  const { center } = geoState()
+
+  const targetZoom = clampZoom(pinchStart.zoom * (distance / pinchStart.distance))
+  const k = targetZoom / pinchStart.zoom
+  const geoAnchor: [number, number] =
+    Array.isArray(anchor) && anchor.length === 2
+      ? ([anchor[0] as number, anchor[1] as number] as [number, number])
+      : center
+
+  if (zoomTween !== null) {
+    window.cancelAnimationFrame(zoomTween)
+    zoomTween = null
+  }
+  tweening = true
+  instance.setOption(
+    {
+      geo: {
+        center: [
+          geoAnchor[0] + (center[0] - geoAnchor[0]) / k,
+          geoAnchor[1] + (center[1] - geoAnchor[1]) / k,
+        ],
+        zoom: targetZoom,
+      },
+    },
+    { lazyUpdate: true },
+  )
+  zoomLevel.value = Number(targetZoom.toFixed(2))
+}
+
+function handleTouchEnd(event: TouchEvent): void {
+  if (pinchStart === null) return
+  if (event.touches.length >= 2) return
+  pinchStart = null
+  tweening = false
+  syncLayerMode()
+  refreshMarkers()
+}
+
 async function render(): Promise<void> {
   status.value = 'loading'
   errorMessage.value = ''
 
   try {
     // 区县界与水域是装饰层：失败就少一层纹理，不应该让整张地图报错
-    const [city, districts, water] = await Promise.all([
+    const [city, districts, water, rivers] = await Promise.all([
       loadAnhuiMap(),
       loadAnhuiDistricts().catch(() => null),
       loadAnhuiWater().catch(() => null),
+      loadAnhuiRivers().catch(() => null),
     ])
     if (disposed || container.value === null) return
     // 容器尺寸为 0 时不要 setOption：geo 投影拿不到绘图区，ECharts 会抛
@@ -415,6 +535,7 @@ async function render(): Promise<void> {
 
     const merged = mergeMapLayers(city, districts, water)
     mapFeatures = merged.features
+    riverLines = buildRiverLines(rivers)
     layerMode = 'city'
     layerRegions = buildLayerRegions(mapFeatures, layerMode)
     echarts.registerMap(ANHUI_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
@@ -459,12 +580,18 @@ onMounted(() => {
   resizeObserver.observe(container.value)
   // passive: false 才能 preventDefault：页面本身不滚动，滚轮只用来缩放地图
   container.value.addEventListener('wheel', handleWheel, { passive: false })
+  container.value.addEventListener('touchstart', handleTouchStart, { passive: false })
+  container.value.addEventListener('touchmove', handleTouchMove, { passive: false })
+  container.value.addEventListener('touchend', handleTouchEnd)
   handleResize()
 })
 
 onBeforeUnmount(() => {
   disposed = true
   container.value?.removeEventListener('wheel', handleWheel)
+  container.value?.removeEventListener('touchstart', handleTouchStart)
+  container.value?.removeEventListener('touchmove', handleTouchMove)
+  container.value?.removeEventListener('touchend', handleTouchEnd)
   resizeObserver?.disconnect()
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
