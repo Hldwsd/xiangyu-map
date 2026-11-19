@@ -52,6 +52,7 @@ for (const city of cities) {
   for (const district of districts) {
     features.push({
       type: 'Feature',
+      city: city.name,
       properties: {
         name: district.properties.name,
         adcode: district.properties.adcode,
@@ -69,56 +70,40 @@ if (features.length < MIN_FEATURES) {
 }
 
 /**
- * 几何处理：只做「坐标量化」，不做逐多边形抽稀。
+ * 几何处理：**保留 DataV 的原始拓扑，只做每顶点四舍五入到 4 位小数（约 11 米）**。
  *
- * 为什么不能 DP 抽稀：相邻区县各自简化，共享的那条边界会简成两条不同的折线——
- * 画出来就是「几何切割」感，还会互相压线。量化到 3 位小数（约 110 米）不改变拓扑，
- * 相邻区县共用顶点仍然完全一致，体积也能压下来。
+ * 之前为了省体积做过「按多边形抽稀」，相邻区县共享的边界会各简一次、落点不一致，
+ * 画出来既有缝隙又有压线——这就是用户说的「几何切割感」。
+ * 逐顶点四舍五入是确定性的：共享顶点在两边得到完全相同的值，边界依然严丝合缝。
+ *
+ * 属性只留 name 与 layer（adcode、city 在渲染里用不到）。
  */
-function quantizeGeometry(geometry) {
-  const round = (point) => [Number(point[0].toFixed(3)), Number(point[1].toFixed(3))]
-  const roundRing = (ring) => {
-    const rounded = ring.map(round)
-    // 量化后可能出现连续重复点，去掉重复但保留闭环
-    const deduped = rounded.filter(
-      (point, index) =>
-        index === 0 || point[0] !== rounded[index - 1][0] || point[1] !== rounded[index - 1][1],
-    )
-    // 顶点抽稀：按「顶点坐标的哈希」决定去留，而不是按位置下标。
-    // 相邻区县共享的边界顶点坐标完全相同，因此两边会去掉同一批点，边界仍然严丝合缝；
-    // 如果按下标间隔抽，接缝处就会错开，又回到「几何切割 + 压线」的老问题。
-    const keepEvery = 3
-    const kept = deduped.filter((point, index) => {
-      if (index === 0) return true
-      const key = Math.round(point[0] * 1000) * 31 + Math.round(point[1] * 1000) * 17
-      return key % keepEvery === 0
-    })
-    const thinned = kept.length >= 4 ? kept : deduped
-    if (thinned.length > 0) {
-      const first = thinned[0]
-      const last = thinned[thinned.length - 1]
-      if (first[0] !== last[0] || first[1] !== last[1]) thinned.push([...first])
-    }
-    return thinned
-  }
+const PRECISION = 4
+const SCALE = 10 ** PRECISION
 
-  if (geometry.type === 'Polygon') {
-    return { type: 'Polygon', coordinates: geometry.coordinates.map(roundRing) }
-  }
-  if (geometry.type === 'MultiPolygon') {
-    return {
-      type: 'MultiPolygon',
-      coordinates: geometry.coordinates.map((polygon) => polygon.map(roundRing)),
-    }
-  }
-  return geometry
+function roundCoord(value) {
+  return Math.round(value * SCALE) / SCALE
 }
 
-for (const feature of features) {
-  feature.geometry = quantizeGeometry(feature.geometry)
+function roundCoords(coords) {
+  if (typeof coords[0] === 'number') return [roundCoord(coords[0]), roundCoord(coords[1])]
+  return coords.map(roundCoords)
 }
 
-const collection = { type: 'FeatureCollection', features }
+function stripFeature(feature) {
+  const geometry = feature.geometry
+    ? { type: feature.geometry.type, coordinates: roundCoords(feature.geometry.coordinates) }
+    : null
+  return {
+    type: 'Feature',
+    properties: { name: feature.properties?.name, level: 'district' },
+    geometry,
+  }
+}
+
+const tagged = features.map((feature) => stripFeature(feature))
+
+const collection = { type: 'FeatureCollection', features: tagged }
 const payload = JSON.stringify(collection)
 await mkdir(dirname(TARGET), { recursive: true })
 await writeFile(TARGET, payload, 'utf8')
@@ -132,6 +117,6 @@ console.log(`  区县要素 ${features.length}：${perCity.join(' / ')}`)
 console.log(`  原始 ${(bytes / 1024).toFixed(1)} KB / gzip ${(gzipped / 1024).toFixed(1)} KB`)
 console.log(`  sha256 ${sha256}`)
 
-if (gzipped / 1024 > 200) {
-  console.warn('⚠ gzip 后超过 200KB 预算，考虑降低量化精度或改用 TopoJSON 共享边界')
+if (gzipped / 1024 > 300) {
+  console.warn('⚠ gzip 后超过 300KB，考虑改为 TopoJSON 或按缩放级别懒加载')
 }
