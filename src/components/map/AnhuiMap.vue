@@ -301,7 +301,10 @@ watch(
       aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置；双击可还原视野。键盘用户可用下方地标列表逐项浏览"
     />
 
-    <p v-if="status === 'loading'" class="anhui-map__hint">底图加载中…</p>
+    <p v-if="status === 'loading'" class="anhui-map__hint">
+      <span class="anhui-map__spinner" aria-hidden="true" />
+      底图加载中…
+    </p>
 
     <div v-else-if="status === 'error'" class="anhui-map__hint anhui-map__hint--error">
       <span>{{ errorMessage }}</span>
@@ -351,6 +354,29 @@ watch(
 
 .anhui-map__hint--error {
   color: var(--danger);
+}
+
+/* 加载指示器：黑白界面里不用彩色 spinner，用一圈细弧 + 旋转 */
+.anhui-map__spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1.5px solid var(--line-strong);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: anhui-spin 0.8s linear infinite;
+}
+
+@keyframes anhui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anhui-map__spinner {
+    animation: none;
+    border-top-color: var(--line-strong);
+  }
 }
 
 .anhui-map__retry {

@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
+import { useFocusTrap } from '@/composables/use-focus-trap'
 
 const props = defineProps<{ open: boolean; siteCount: number }>()
 const emit = defineEmits<{ close: []; 'open-list': [] }>()
+
+const panel = ref<HTMLElement | null>(null)
+useFocusTrap(
+  computed(() => props.open),
+  panel,
+)
 
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape' && props.open) emit('close')
@@ -27,7 +34,14 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
   <div v-if="open" class="drawer">
     <button type="button" class="drawer__backdrop" aria-label="关闭菜单" @click="emit('close')" />
 
-    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-label="菜单">
+    <aside
+      ref="panel"
+      class="drawer__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="菜单"
+      tabindex="-1"
+    >
       <header class="drawer__header">
         <span class="drawer__brand">乡遇安徽</span>
         <span class="drawer__tag">在地图上遇见一个文旅项目</span>
