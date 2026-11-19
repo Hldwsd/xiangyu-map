@@ -1,12 +1,13 @@
 import type { Site } from '@/types/site'
 
 /**
- * 地标数据（22 条，全部在安徽省内，覆盖 16 个地级市）。
+ * 地标数据（26 条，全部在安徽省内，覆盖 16 个地级市）。
  *
  * 两组来源，别混着看：
  * - 前 10 条为 M0 示例数据：文案是编辑示例、`tags` 首位带「示例数据」、图片为占位；
  *   来源已换成可核验的景区官网或区县政府门户，但正文内容仍待逐条替换。
- * - 后 12 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网，已逐条 curl 验证可访问；
+ * - 后 16 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网；
+ *   其中黄山市政府、安庆市政府对脚本请求返回 412/403（反爬），已在 PR 里说明。
  *   图片仍是占位，待授权素材到位后补。
  *
  * 通用约定：坐标是 GCJ-02 粗略值（千米级误差），不作为导航依据；`summary` ≤ 60 字。
@@ -406,6 +407,78 @@ export const sites: Site[] = [
     bestSeason: '3-4 月',
     transport: '池州站打车约 20 分钟',
     sources: ['https://www.chizhou.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'xidi',
+    name: '西递',
+    category: '乡村',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 117.94, lat: 29.9 },
+    summary: '黟县山坳里的徽派古村，牌坊、祠堂与巷弄保存完整，比宏村安静一些。',
+    description:
+      '西递与宏村同为皖南古村落的代表，村口的胡文光牌坊是最醒目的地标，村内街巷依山势铺开。\n\n相比宏村的水系，西递更强调宗族与宅第的格局；游客密度低一些，适合慢慢看门楼上的砖雕。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['徽派', '古村落', '世界遗产'],
+    bestSeason: '3-4 月、10-11 月',
+    transport: '黄山北站转乘至黟县，再换乘至西递',
+    sources: ['http://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'tunxi-old-street',
+    name: '屯溪老街',
+    category: '古镇',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 118.31, lat: 29.71 },
+    summary: '黄山市区的老街，徽派店面夹着石板路，是进山前后歇脚与采买的地方。',
+    description:
+      '屯溪老街沿新安江铺开，两侧是徽派店面与百年老字号，卖文房、茶叶与徽州小吃。\n\n它更像一条仍在生活的商业街，而不是圈起来的景区：不收门票，早晚各有各的样子。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['老街', '徽派', '市井'],
+    bestSeason: '全年',
+    transport: '黄山站打车约 10 分钟',
+    sources: ['http://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'huangmeixi-zaiyfen',
+    name: '黄梅戏·再芬黄梅公馆',
+    category: '演艺',
+    province: '安徽省',
+    city: '安庆市',
+    location: { lng: 117.05, lat: 30.52 },
+    summary: '安庆城里的黄梅戏驻场演出，唱腔与身段都在小剧场里，听着不隔。',
+    description:
+      '黄梅戏发源于安庆一带，再芬黄梅公馆是当地的驻场演出场所，常演《天仙配》《女驸马》等折子。\n\n小剧场的距离近，唱腔与乐队都在眼前；演出安排随季节调整，去之前先确认场次。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['黄梅戏', '戏曲', '驻场演出'],
+    bestSeason: '全年',
+    transport: '安庆站打车约 20 分钟',
+    sources: ['https://www.anqing.gov.cn/'],
+    updatedAt: '2026-11-19',
+  },
+  {
+    id: 'wanfohu',
+    name: '万佛湖',
+    category: '自然',
+    province: '安徽省',
+    city: '六安市',
+    location: { lng: 116.79, lat: 31.35 },
+    summary: '舒城境内的大型水库，湖湾多、水质清，环湖公路适合骑车慢慢绕。',
+    description:
+      '万佛湖是龙河口水库形成的湖面，湖岸曲折，岛屿散落其间，周边是大别山的余脉。\n\n环湖公路路况好、车少，适合骑行；湖区也有游船与露营点，夏天人多，春秋更自在。',
+    cover: '/images/placeholder.svg',
+    gallery: [],
+    tags: ['水库', '骑行', '湖湾'],
+    bestSeason: '4-6 月、9-10 月',
+    transport: '舒城东站打车约 40 分钟',
+    sources: ['https://www.luan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
 ]
