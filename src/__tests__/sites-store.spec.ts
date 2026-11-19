@@ -8,10 +8,10 @@ describe('useSitesStore', () => {
     setActivePinia(createPinia())
   })
 
-  it('启动时加载全部示例数据', () => {
+  it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(10)
-    expect(store.filteredSites).toHaveLength(10)
+    expect(store.sites).toHaveLength(18)
+    expect(store.filteredSites).toHaveLength(18)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -21,7 +21,15 @@ describe('useSitesStore', () => {
     store.setCategory('自然')
 
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['huangshan-scenic', 'jiuhuashan', 'tianzhushan'].sort(),
+      [
+        'huangshan-scenic',
+        'jiuhuashan',
+        'tianzhushan',
+        'longzihu',
+        'caishiji',
+        'balihe',
+        'huangcangyu',
+      ].sort(),
     )
   })
 
@@ -63,7 +71,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     const sum = Object.values(store.categoryCounts).reduce((total, count) => total + count, 0)
     expect(sum).toBe(store.sites.length)
-    expect(store.categoryCounts['古镇']).toBe(3)
+    expect(store.categoryCounts['古镇']).toBe(5)
   })
 
   it('getSiteById 找不到时返回 null', () => {

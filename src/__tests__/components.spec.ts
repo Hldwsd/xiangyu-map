@@ -13,12 +13,12 @@ import SiteDetailView from '@/views/SiteDetailView.vue'
 const routerLinkStub = { props: ['to'], template: '<a class="link-stub"><slot /></a>' }
 
 const counts: Record<SiteCategory, number> = {
-  古镇: 3,
+  古镇: 5,
   非遗: 2,
-  红色: 1,
-  自然: 3,
+  红色: 2,
+  自然: 7,
   演艺: 0,
-  乡村: 1,
+  乡村: 2,
 }
 
 function findSite(id: string): Site {
@@ -54,18 +54,18 @@ describe('SitePanel', () => {
 describe('CategoryFilter', () => {
   it('渲染「全部」加 6 个分类，并显示数量', () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 10 },
+      props: { category: '全部', query: '', counts, total: 18 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
     expect(chips).toHaveLength(7)
     expect(chips[0]?.text()).toContain('全部')
-    expect(chips[0]?.text()).toContain('10')
+    expect(chips[0]?.text()).toContain('18')
   })
 
   it('点击分类时更新 v-model', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 10 },
+      props: { category: '全部', query: '', counts, total: 18 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
@@ -76,7 +76,7 @@ describe('CategoryFilter', () => {
 
   it('输入关键词时更新 query', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 10 },
+      props: { category: '全部', query: '', counts, total: 18 },
     })
 
     await wrapper.get('input').setValue('宏村')
