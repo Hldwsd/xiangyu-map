@@ -91,7 +91,10 @@ export interface MapRegionStyle {
     borderColor: string
     borderWidth: number
   }
-  emphasis?: { itemStyle?: { areaColor?: string; borderColor?: string }; disabled?: boolean }
+  emphasis?: {
+    itemStyle?: { areaColor?: string; borderColor?: string; borderWidth?: number }
+    disabled?: boolean
+  }
   /** 该要素是否响应鼠标：低倍只让市域可选中，高倍只让区县可选中 */
   silent?: boolean
   label?: { show: boolean }
@@ -297,7 +300,12 @@ export function buildAnhuiMapOption(
       // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
       regions,
       emphasis: {
-        itemStyle: { areaColor: palette.mapAreaHover },
+        // 只加深描边、不铺灰底：灰底会把底下的河道盖住（用户实测到的问题）
+        itemStyle: {
+          areaColor: palette.mapArea,
+          borderColor: palette.mapLabel,
+          borderWidth: 1.4,
+        },
         label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
       },
     },

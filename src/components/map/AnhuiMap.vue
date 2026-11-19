@@ -390,7 +390,14 @@ function buildLayerRegions(
           borderColor: paletteNow.mapBorder,
           borderWidth: 0.9,
         },
-        emphasis: { itemStyle: { areaColor: paletteNow.mapAreaHover } },
+        // hover 只加深描边：铺灰底会把压在上面的河道盖成一片灰
+        emphasis: {
+          itemStyle: {
+            areaColor: paletteNow.mapArea,
+            borderColor: paletteNow.mapLabel,
+            borderWidth: 1.4,
+          },
+        },
         silent: interactive !== 'city',
         label: { show: true },
       })
@@ -419,7 +426,11 @@ function buildLayerRegions(
         borderWidth: 0.6,
       },
       emphasis: {
-        itemStyle: { areaColor: paletteNow.mapAreaHover, borderColor: paletteNow.mapBorder },
+        itemStyle: {
+          areaColor: 'transparent',
+          borderColor: paletteNow.mapLabel,
+          borderWidth: 1.2,
+        },
       },
       silent: interactive !== 'district',
       label: { show: false },
