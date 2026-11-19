@@ -35,4 +35,4 @@
 | [0001](0001-tech-stack.md)      | 技术栈：Vue 3 + Vite + TS + ECharts  | 已接受 | 2026-11-18 |
 | [0002](0002-scope-anhui.md)     | 范围收窄：只做安徽省，按 16 市划分   | 已接受 | 2026-11-19 |
 | [0003](0003-deployment.md)      | 部署：GitHub Pages + 子目录 PR 预览  | 已接受 | 2026-11-19 |
-| [0004](0004-visual-language.md) | 视觉语言基线：token 化与三个候选方向 | 提议   | 2026-11-19 |
+| [0004](0004-visual-language.md) | 视觉语言：黑白 / 现代简约 + token 化 | 已接受 | 2026-11-19 |

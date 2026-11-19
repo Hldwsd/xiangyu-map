@@ -169,12 +169,12 @@ function markBroken(url: string): void {
   display: inline-block;
   margin: 1.25rem 0 1rem;
   font-size: 0.85rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
   text-decoration: none;
 }
 
 .detail__back:hover {
-  color: var(--accent, #b45309);
+  color: var(--accent);
 }
 
 .detail__meta {
@@ -184,12 +184,12 @@ function markBroken(url: string): void {
   align-items: center;
   margin: 0 0 0.5rem;
   font-size: 0.8rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .detail__category {
   padding: 0.1rem 0.5rem;
-  color: var(--accent, #b45309);
+  color: var(--accent);
   border: 1px solid currentcolor;
   border-radius: var(--radius-pill);
 }
@@ -205,14 +205,14 @@ function markBroken(url: string): void {
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   line-height: 1.25;
   letter-spacing: var(--tracking-display);
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .detail__summary {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.7;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .detail__cover {
@@ -221,7 +221,7 @@ function markBroken(url: string): void {
   margin: 1.4rem 0 0.5rem;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: var(--paper-2, #efe7d8);
+  background: var(--surface-muted);
   border-radius: var(--radius-lg);
 }
 
@@ -233,14 +233,14 @@ function markBroken(url: string): void {
   margin: 0 0 0.6rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .detail__section p {
   margin: 0 0 0.7rem;
   font-size: 0.92rem;
   line-height: 1.85;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .detail__gallery {
@@ -263,7 +263,7 @@ function markBroken(url: string): void {
 }
 
 .detail__facts dt {
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .detail__facts dd {
@@ -279,7 +279,7 @@ function markBroken(url: string): void {
 }
 
 .detail__sources a {
-  color: var(--accent, #b45309);
+  color: var(--accent);
   word-break: break-all;
 }
 
@@ -288,8 +288,8 @@ function markBroken(url: string): void {
   padding: 0.6rem 0.75rem;
   font-size: 0.78rem !important;
   line-height: 1.6 !important;
-  color: var(--ink-soft, #6b6154) !important;
-  background: var(--paper-2, #efe7d8);
+  color: var(--ink-soft) !important;
+  background: var(--surface-muted);
   border-radius: var(--radius-sm);
 }
 
@@ -303,7 +303,7 @@ function markBroken(url: string): void {
   gap: 0.6rem;
   padding-top: 1.2rem;
   margin-top: 2rem;
-  border-top: 1px solid var(--line, #ddd2bd);
+  border-top: 1px solid var(--line);
 }
 
 .detail__pager-item {
@@ -311,10 +311,10 @@ function markBroken(url: string): void {
   flex-direction: column;
   gap: 0.2rem;
   padding: 0.6rem 0.75rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
   text-decoration: none;
   background: rgb(var(--surface-rgb) / 78%);
-  border: 1px solid var(--line, #ddd2bd);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
 }
 
@@ -323,14 +323,14 @@ function markBroken(url: string): void {
 }
 
 .detail__pager-item--empty {
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
   background: transparent;
   border-style: dashed;
 }
 
 .detail__pager-dir {
   font-size: 0.72rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .detail__pager-name {

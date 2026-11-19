@@ -78,12 +78,12 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-const SELECTED_SYMBOL_SIZE = 20
+const SELECTED_SYMBOL_SIZE = 22
 /**
  * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
- * 所以把基础尺寸定在 13：小于 13 时贴边与密集区经常点不中（M1 要求命中率 100%）。
+ * 黑白色块在浅底上本来就不显眼，定在 15 才够「一眼看见」；小于 13 时贴边与密集区经常点不中。
  */
-const DEFAULT_SYMBOL_SIZE = 13
+const DEFAULT_SYMBOL_SIZE = 15
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
@@ -129,7 +129,7 @@ export function toScatterData(
       symbolSize: Math.min(CLUSTER_MAX_SIZE, CLUSTER_BASE_SIZE + Math.log2(count) * 4),
       itemStyle: {
         color: palette.cluster,
-        borderColor: '#fffdf8',
+        borderColor: '#ffffff',
         borderWidth: 2,
         shadowBlur: 10,
         shadowColor: 'rgba(52, 40, 24, 0.4)',
@@ -137,7 +137,7 @@ export function toScatterData(
       label: {
         show: true,
         formatter: String(count),
-        color: '#fffdf8',
+        color: '#ffffff',
         fontSize: 11,
         fontWeight: 'bold',
       },
@@ -165,7 +165,7 @@ function toSiteDatum(
     symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
     itemStyle: {
       color,
-      borderColor: '#fffdf8',
+      borderColor: '#ffffff',
       borderWidth: selected ? 2.5 : 1.4,
       shadowBlur: selected ? 12 : 4,
       shadowColor: 'rgba(52, 40, 24, 0.35)',

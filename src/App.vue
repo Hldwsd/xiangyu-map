@@ -42,6 +42,7 @@ import { RouterLink, RouterView } from 'vue-router'
   max-width: 1400px;
   padding: 1.15rem 1.25rem 0.9rem;
   margin: 0 auto;
+  border-bottom: 1px solid var(--line);
 }
 
 .app__brand {
@@ -56,12 +57,12 @@ import { RouterLink, RouterView } from 'vue-router'
   font-size: 1.22rem;
   font-weight: 600;
   letter-spacing: var(--tracking-brand);
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .app__brand-tag {
   font-size: 0.78rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .app__nav {
@@ -71,13 +72,13 @@ import { RouterLink, RouterView } from 'vue-router'
 
 .app__nav-link {
   font-size: 0.85rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
   text-decoration: none;
 }
 
 .app__nav-link:hover,
 .app__nav-link.router-link-active {
-  color: var(--accent, #b45309);
+  color: var(--accent);
 }
 
 .app__main {
@@ -88,7 +89,7 @@ import { RouterLink, RouterView } from 'vue-router'
 .app__footer {
   padding: 0.9rem 1.25rem 1.4rem;
   font-size: 0.74rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
   text-align: center;
 }
 </style>

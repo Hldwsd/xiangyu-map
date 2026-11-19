@@ -1,37 +1,34 @@
 import type { SiteCategory } from '@/types/site'
 
-export const THEME_IDS = ['a', 'b', 'c'] as const
-export type ThemeId = (typeof THEME_IDS)[number]
-
-/** 组件里用到的一套主题色：分类色 + 地图配色 */
+/** 组件里用到的一套配色：分类色 + 地图配色（单色方向下分类同色，靠形状区分） */
 export interface ThemePalette {
   category: Record<SiteCategory, string>
   mapArea: string
   mapBorder: string
   mapLabel: string
   mapAreaHover: string
-  /** 聚合点颜色：中性强调色，不与任何分类色混用 */
+  /** 聚合点颜色：与地标同色，靠白色数字与尺寸区分 */
   cluster: string
 }
 
 /**
- * 方向 A 的值，与 tokens.css 的默认值保持一致。
- * 组件在没有 DOM（单测）或变量缺失时用它兜底，保证渲染结果可预期。
+ * 黑白 / 现代简约方向的兜底值，与 tokens.css 的默认值保持一致。
+ * 组件在没有 DOM（单测）或变量缺失时用它，保证渲染结果可预期。
  */
 export const DEFAULT_PALETTE: ThemePalette = {
   category: {
-    古镇: '#b45309',
-    非遗: '#7c3aed',
-    红色: '#c53030',
-    自然: '#0f766e',
-    演艺: '#be185d',
-    乡村: '#4d7c0f',
+    古镇: '#111111',
+    非遗: '#111111',
+    红色: '#111111',
+    自然: '#111111',
+    演艺: '#111111',
+    乡村: '#111111',
   },
-  mapArea: '#efe7d8',
-  mapBorder: '#cbbfa8',
-  mapLabel: '#8a7a63',
-  mapAreaHover: '#e3d8c2',
-  cluster: '#b45309',
+  mapArea: '#f2f2f2',
+  mapBorder: '#dedede',
+  mapLabel: '#8c8c8c',
+  mapAreaHover: '#e8e8e8',
+  cluster: '#111111',
 }
 
 const CATEGORY_VARS: Record<SiteCategory, string> = {
@@ -44,25 +41,11 @@ const CATEGORY_VARS: Record<SiteCategory, string> = {
 }
 
 /**
- * 主题对比用入口：`?theme=b` 之类的查询参数会把方向写到 `<html data-theme>`，
- * 由 tokens.css 里对应的 `[data-theme='b']` 块覆盖变量。
+ * 从 CSS 变量读当前配色；拿不到（单测/无 DOM）时返回默认值。
  *
- * 只在能拿到 DOM 时执行；非法值静默忽略，回落到默认方向。
+ * 为什么绕这一层：地图配色归 tokens.css 管，组件不该各自再存一份颜色，
+ * 否则「改主色」要改两个地方，迟早不一致。
  */
-export function applyThemeFromQuery(search: string = window.location.search): ThemeId | null {
-  if (typeof document === 'undefined') return null
-
-  const requested = new URLSearchParams(search).get('theme')
-  if (requested === null) return null
-
-  const theme = THEME_IDS.find((id) => id === requested)
-  if (theme === undefined) return null
-
-  document.documentElement.dataset.theme = theme
-  return theme
-}
-
-/** 从 CSS 变量读当前主题的配色；拿不到（SSR/单测）时返回默认方向 */
 export function readThemePalette(): ThemePalette {
   if (typeof window === 'undefined' || typeof document === 'undefined') return DEFAULT_PALETTE
 

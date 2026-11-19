@@ -57,7 +57,7 @@ const emit = defineEmits<{ close: [] }>()
   flex-direction: column;
   overflow: hidden;
   background: rgb(var(--surface-rgb) / 96%);
-  border: 1px solid var(--line, #ddd2bd);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
 }
@@ -86,7 +86,7 @@ const emit = defineEmits<{ close: [] }>()
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: var(--paper-2, #efe7d8);
+  background: var(--surface-muted);
 }
 
 .panel__body {
@@ -102,13 +102,13 @@ const emit = defineEmits<{ close: [] }>()
   align-items: center;
   margin: 0;
   font-size: 0.78rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .panel__category {
   padding: 0.1rem 0.45rem;
   font-size: 0.72rem;
-  color: var(--accent, #b45309);
+  color: var(--accent);
   border: 1px solid currentcolor;
   border-radius: var(--radius-pill);
 }
@@ -118,14 +118,14 @@ const emit = defineEmits<{ close: [] }>()
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.3;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .panel__summary {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.65;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .panel__tags {
@@ -140,8 +140,8 @@ const emit = defineEmits<{ close: [] }>()
 .panel__tags li {
   padding: 0.1rem 0.45rem;
   font-size: 0.72rem;
-  color: var(--ink-soft, #6b6154);
-  background: var(--paper-2, #efe7d8);
+  color: var(--ink-soft);
+  background: var(--surface-muted);
   border-radius: var(--radius-xs);
 }
 
@@ -154,25 +154,25 @@ const emit = defineEmits<{ close: [] }>()
 }
 
 .panel__facts dt {
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .panel__facts dd {
   margin: 0 0 0.35rem;
   line-height: 1.55;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 
 .panel__link {
   align-self: flex-start;
   margin-top: 0.35rem;
   font-size: 0.85rem;
-  color: var(--accent, #b45309);
+  color: var(--accent);
   text-decoration: none;
   border-bottom: 1px solid currentcolor;
 }
 
 .panel__link:hover {
-  color: var(--ink, #2a2620);
+  color: var(--ink);
 }
 </style>

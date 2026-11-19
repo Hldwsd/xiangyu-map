@@ -1,37 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { DEFAULT_PALETTE, applyThemeFromQuery, readThemePalette } from '@/theme/theme'
+import { DEFAULT_PALETTE, readThemePalette } from '@/theme/theme'
 
 afterEach(() => {
-  delete document.documentElement.dataset.theme
   document.documentElement.removeAttribute('style')
 })
 
-describe('applyThemeFromQuery', () => {
-  it('把 ?theme=b 写到 <html data-theme>', () => {
-    expect(applyThemeFromQuery('?theme=b')).toBe('b')
-    expect(document.documentElement.dataset.theme).toBe('b')
-  })
-
-  it('没有参数时不动 DOM', () => {
-    expect(applyThemeFromQuery('')).toBeNull()
-    expect(document.documentElement.dataset.theme).toBeUndefined()
-  })
-
-  it('非法值被忽略，回落到默认方向', () => {
-    expect(applyThemeFromQuery('?theme=neon')).toBeNull()
-    expect(document.documentElement.dataset.theme).toBeUndefined()
-  })
-
-  it('只有 a/b/c 三个方向', () => {
-    for (const id of ['a', 'b', 'c'] as const) {
-      expect(applyThemeFromQuery(`?theme=${id}`)).toBe(id)
-    }
-  })
-})
-
 describe('readThemePalette', () => {
-  it('CSS 变量缺失时回落到默认方向，且六个分类都有颜色', () => {
+  it('CSS 变量缺失时回落到默认值，且六个分类都有颜色', () => {
     const palette = readThemePalette()
 
     expect(palette.mapArea).toBe(DEFAULT_PALETTE.mapArea)
@@ -41,7 +17,13 @@ describe('readThemePalette', () => {
     }
   })
 
-  it('读的是 CSS 变量，换主题就换色（组件不需要改代码）', () => {
+  it('单色方向下六类同色——分类靠形状而不是颜色区分', () => {
+    const colors = new Set(Object.values(DEFAULT_PALETTE.category))
+
+    expect(colors.size).toBe(1)
+  })
+
+  it('读的是 CSS 变量，改 tokens.css 就改配色（组件不用动）', () => {
     document.documentElement.style.setProperty('--map-area', '#123456')
     document.documentElement.style.setProperty('--cat-nature', '#abcdef')
 
@@ -53,9 +35,10 @@ describe('readThemePalette', () => {
     expect(palette.mapBorder).toBe(DEFAULT_PALETTE.mapBorder)
   })
 
-  it('聚合点是单独的颜色，不借用任何分类色', () => {
-    document.documentElement.style.setProperty('--cluster', '#0f0f0f')
+  it('聚合点单独取色：与地标默认同色，但可以单独调整', () => {
+    expect(readThemePalette().cluster).toBe(DEFAULT_PALETTE.cluster)
 
+    document.documentElement.style.setProperty('--cluster', '#0f0f0f')
     expect(readThemePalette().cluster).toBe('#0f0f0f')
   })
 })

@@ -24,7 +24,7 @@ echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
  * 取值略大于基础地标直径（13px）：再小就会把「视觉上明显分开」的两颗也叠起来。
  */
-const CLUSTER_MIN_GAP = 15
+const CLUSTER_MIN_GAP = 17
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 
@@ -346,11 +346,11 @@ watch(
   justify-content: center;
   margin: 0;
   font-size: 0.85rem;
-  color: var(--ink-soft, #6b6154);
+  color: var(--ink-soft);
 }
 
 .anhui-map__hint--error {
-  color: var(--danger, #b3261e);
+  color: var(--danger);
 }
 
 .anhui-map__retry {
@@ -379,7 +379,7 @@ watch(
   overflow: auto;
   list-style: none;
   background: rgb(var(--surface-rgb) / 96%);
-  border: 1px solid var(--line, #ddd2bd);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   clip-path: inset(50%);
@@ -396,7 +396,7 @@ watch(
   padding: 0.28rem 0.45rem;
   font: inherit;
   font-size: 0.78rem;
-  color: var(--ink, #2a2620);
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
   background: transparent;
@@ -406,8 +406,8 @@ watch(
 
 .anhui-map__a11y-item:focus-visible {
   color: var(--accent-ink);
-  background: var(--accent, #b45309);
-  outline: 2px solid var(--accent, #b45309);
+  background: var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 </style>
