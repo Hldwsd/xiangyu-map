@@ -66,6 +66,31 @@
   --tracking-display: -0.01em;
   --tracking-brand: 0.14em;
 
+  /* ---- 字号阶梯（只放常用的七档，避免出现 0.73rem 这种随手值） ---- */
+  --text-2xs: 0.7rem;
+  --text-xs: 0.78rem;
+  --text-sm: 0.85rem;
+  --text-base: 0.92rem;
+  --text-md: 1rem;
+  --text-lg: 1.2rem;
+  --text-xl: clamp(1.5rem, 3.2vw, 1.95rem);
+  --text-2xl: clamp(1.7rem, 4vw, 2.3rem);
+
+  /* ---- 行高与字距 ---- */
+  --leading-tight: 1.25;
+  --leading-snug: 1.5;
+  --leading-relaxed: 1.8;
+  --tracking-label: 0.16em;
+
+  /* ---- 间距刻度（4px 基准） ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.75rem;
+
   /* ---- 圆角 ---- */
   --radius-xs: 2px;
   --radius-sm: 4px;
