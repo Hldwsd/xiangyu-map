@@ -116,8 +116,14 @@ describe('buildAnhuiMapOption', () => {
   it('使用已注册的 anhui 地图与 scatter 系列', () => {
     const option = buildAnhuiMapOption(sites, null)
 
-    expect(option.geo).toMatchObject({ map: 'anhui', roam: true })
+    expect(option.geo).toMatchObject({ map: 'anhui', roam: false })
     expect(scatterDataOf(option)).toHaveLength(sites.length)
+  })
+
+  it('不允许拖动：滚轮与缩放条由组件自己接管', () => {
+    const geo = buildAnhuiMapOption(sites, null).geo as { roam?: boolean }
+
+    expect(geo.roam).toBe(false)
   })
 
   it('打开 geo 标签，市级划分才看得见', () => {

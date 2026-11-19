@@ -34,8 +34,8 @@ export const DEFAULT_PALETTE: ThemePalette = {
   mapLabel: '#8c8c8c',
   mapAreaHover: '#e8e8e8',
   cluster: '#111111',
-  waterFill: '#ececec',
-  waterBorder: '#e0e0e0',
+  waterFill: '#dbeafe',
+  waterBorder: '#bfdbfe',
   districtLine: '#eeeeee',
 }
 

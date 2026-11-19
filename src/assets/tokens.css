@@ -46,8 +46,9 @@
   --map-area-hover: #f2f2f2;
   --cluster: #111111;
   /* 水域与区县界：都比市界浅，形成「省 > 市 > 区县 > 水」的层次 */
-  --water-fill: #ececec;
-  --water-border: #e0e0e0;
+  /* 水是黑白地图上唯一保留的彩色：浅蓝，和白色陆地一眼区分 */
+  --water-fill: #dbeafe;
+  --water-border: #bfdbfe;
   --district-line: #eeeeee;
 
   /*

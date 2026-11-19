@@ -69,69 +69,43 @@ if (features.length < MIN_FEATURES) {
 }
 
 /**
- * Douglas–Peucker 抽稀：区县界只是底图纹理，保留 400 米以内的形状差别就够。
- * 不抽稀的话 104 个区县原始 800KB、gzip 230KB，为了几条装饰线不划算。
+ * 几何处理：只做「坐标量化」，不做逐多边形抽稀。
+ *
+ * 为什么不能 DP 抽稀：相邻区县各自简化，共享的那条边界会简成两条不同的折线——
+ * 画出来就是「几何切割」感，还会互相压线。量化到 3 位小数（约 110 米）不改变拓扑，
+ * 相邻区县共用顶点仍然完全一致，体积也能压下来。
  */
-function perpendicularDistance(point, start, end) {
-  const [x, y] = point
-  const [x1, y1] = start
-  const [x2, y2] = end
-  const dx = x2 - x1
-  const dy = y2 - y1
-  if (dx === 0 && dy === 0) return Math.hypot(x - x1, y - y1)
-  const t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy)
-  const clamped = Math.max(0, Math.min(1, t))
-  return Math.hypot(x - (x1 + clamped * dx), y - (y1 + clamped * dy))
-}
-
-function simplifyRing(points, tolerance) {
-  if (points.length <= 4) return points
-  const closed = points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1]
-  const ring = closed ? points.slice(0, -1) : points
-
-  const keep = new Set([0, ring.length - 1])
-  const stack = [[0, ring.length - 1]]
-  while (stack.length > 0) {
-    const [first, last] = stack.pop()
-    let maxDistance = 0
-    let index = -1
-    for (let i = first + 1; i < last; i += 1) {
-      const distance = perpendicularDistance(ring[i], ring[first], ring[last])
-      if (distance > maxDistance) {
-        maxDistance = distance
-        index = i
-      }
+function quantizeGeometry(geometry) {
+  const round = (point) => [Number(point[0].toFixed(3)), Number(point[1].toFixed(3))]
+  const roundRing = (ring) => {
+    const rounded = ring.map(round)
+    // 量化后可能出现连续重复点，去掉重复但保留闭环
+    const deduped = rounded.filter(
+      (point, index) =>
+        index === 0 || point[0] !== rounded[index - 1][0] || point[1] !== rounded[index - 1][1],
+    )
+    if (deduped.length > 0) {
+      const first = deduped[0]
+      const last = deduped[deduped.length - 1]
+      if (first[0] !== last[0] || first[1] !== last[1]) deduped.push([...first])
     }
-    if (maxDistance > tolerance && index !== -1) {
-      keep.add(index)
-      stack.push([first, index], [index, last])
-    }
+    return deduped
   }
 
-  const simplified = [...keep].sort((a, b) => a - b).map((i) => ring[i])
-  if (simplified.length < 4) return points
-  return closed ? [...simplified, simplified[0]] : simplified
-}
-
-function simplifyGeometry(geometry, tolerance) {
-  const { type, coordinates } = geometry
-  if (type === 'Polygon') {
-    return { type, coordinates: coordinates.map((ring) => simplifyRing(ring, tolerance)) }
+  if (geometry.type === 'Polygon') {
+    return { type: 'Polygon', coordinates: geometry.coordinates.map(roundRing) }
   }
-  if (type === 'MultiPolygon') {
+  if (geometry.type === 'MultiPolygon') {
     return {
-      type,
-      coordinates: coordinates.map((polygon) =>
-        polygon.map((ring) => simplifyRing(ring, tolerance)),
-      ),
+      type: 'MultiPolygon',
+      coordinates: geometry.coordinates.map((polygon) => polygon.map(roundRing)),
     }
   }
   return geometry
 }
 
-const TOLERANCE = 0.004
 for (const feature of features) {
-  feature.geometry = simplifyGeometry(feature.geometry, TOLERANCE)
+  feature.geometry = quantizeGeometry(feature.geometry)
 }
 
 const collection = { type: 'FeatureCollection', features }
@@ -149,5 +123,5 @@ console.log(`  原始 ${(bytes / 1024).toFixed(1)} KB / gzip ${(gzipped / 1024).
 console.log(`  sha256 ${sha256}`)
 
 if (gzipped / 1024 > 200) {
-  console.warn('⚠ gzip 后超过 200KB 预算，需要抽稀坐标（每 N 个点取一个）')
+  console.warn('⚠ gzip 后超过 200KB 预算，考虑降低量化精度或改用 TopoJSON 共享边界')
 }

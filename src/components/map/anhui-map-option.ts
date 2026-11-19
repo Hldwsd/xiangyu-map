@@ -76,7 +76,7 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-/** 逐要素样式：区县界只画线、水域填浅灰、市域保持默认 */
+/** 逐要素样式：区县界只画线、水域填浅蓝、市域保持默认 */
 export interface MapRegionStyle {
   name: string
   itemStyle: {
@@ -84,6 +84,9 @@ export interface MapRegionStyle {
     borderColor: string
     borderWidth: number
   }
+  emphasis?: { itemStyle?: { areaColor?: string; borderColor?: string }; disabled?: boolean }
+  /** 该要素是否响应鼠标：低倍只让市域可选中，高倍只让区县可选中 */
+  silent?: boolean
   label?: { show: boolean }
 }
 
@@ -254,7 +257,9 @@ export function buildAnhuiMapOption(
     },
     geo: {
       map: ANHUI_MAP_NAME,
-      roam: true,
+      // 拖动会让人误以为整张图可以随便拖走，而且省域在视野里本来就固定；
+      // 缩放交给组件自己的滚轮/缩放条（带动画），所以这里既不开拖动也不开滚轮。
+      roam: false,
       // 默认按底图完整范围自适应：16 个市必须全部在视野内，
       // 否则「某个市没有项目」会被误读成「那个市不存在」。
       scaleLimit: { min: 0.9, max: 8 },

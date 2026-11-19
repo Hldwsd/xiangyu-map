@@ -6,6 +6,7 @@ import { GeoComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsType } from 'echarts/core'
 
+import AppIcon from '@/components/icons/AppIcon.vue'
 import {
   buildAnhuiMapOption,
   toScatterData,
@@ -35,7 +36,15 @@ const CLUSTER_MIN_GAP = 34
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
-const ZOOM_TWEEN_MS = 320
+const CLUSTER_TWEEN_MS = 320
+/** 滚轮/缩放条的单步缓动：要跟手，所以比点簇短 */
+const WHEEL_TWEEN_MS = 140
+const ZOOM_MIN = 0.9
+const ZOOM_MAX = 8
+/** 越过这个倍数后，可交互的从「市域」切成「区县」，避免两层同时高亮 */
+const LAYER_SWITCH_ZOOM = 1.9
+/** 没有拖拽、没有漫游时的兜底中心（安徽省几何中心附近） */
+const FALLBACK_CENTER: [number, number] = [117.3, 31.8]
 
 const props = defineProps<{
   sites: Site[]
@@ -48,6 +57,8 @@ const container = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<EChartsType | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
 const errorMessage = ref('')
+/** 给缩放条用的当前倍数 */
+const zoomLevel = ref(1)
 
 let resizeObserver: ResizeObserver | null = null
 let disposed = false
@@ -57,14 +68,38 @@ let refreshHandle: number | null = null
 let zoomTween: number | null = null
 /** 自己发起的缩放动画进行中：期间不重算聚合（地图在动，算出来也是中间态） */
 let tweening = false
+/** 合并底图的要素列表，用来按缩放级别重建 regions（市 / 区县） */
+let mapFeatures: TaggedFeature[] = []
 /** 合并底图里去掉市域之后的逐要素样式（区县界、水域） */
 let layerRegions: MapRegionStyle[] = []
+/** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
+let layerMode: 'city' | 'district' = 'city'
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
 let palette: ThemePalette | null = null
 
 function themePalette(): ThemePalette {
   palette ??= readThemePalette()
   return palette
+}
+
+function clampZoom(value: number): number {
+  return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, value))
+}
+
+function geoState(): { center: [number, number]; zoom: number } {
+  const instance = chart.value
+  if (instance === null) return { center: FALLBACK_CENTER, zoom: 1 }
+  const option = instance.getOption() as {
+    geo?: Array<{ center?: number[]; zoom?: number }>
+  }
+  const center = option.geo?.[0]?.center
+  return {
+    center:
+      Array.isArray(center) && center.length === 2
+        ? ([center[0] as number, center[1] as number] as [number, number])
+        : FALLBACK_CENTER,
+    zoom: option.geo?.[0]?.zoom ?? 1,
+  }
 }
 
 function handleChartClick(params: unknown): void {
@@ -96,66 +131,119 @@ function zoomIntoCluster(clusterIds: string[], value: unknown): void {
   if (instance === null || !Array.isArray(value)) return
 
   const [lng, lat] = value as [number, number]
-  const option = instance.getOption() as {
-    geo?: Array<{ zoom?: number; scaleLimit?: { max?: number } }>
-  }
-  const zoom = option.geo?.[0]?.zoom ?? 1
-  const maxZoom = option.geo?.[0]?.scaleLimit?.max ?? 8
+  const { zoom } = geoState()
 
-  if (zoom >= maxZoom - 0.05) {
+  if (zoom >= ZOOM_MAX - 0.05) {
     const firstId = clusterIds[0]
     if (firstId !== undefined) emit('select', firstId)
     return
   }
 
-  animateGeoTo([lng, lat], Math.min(maxZoom, zoom * CLUSTER_ZOOM_FACTOR))
+  animateGeoTo([lng, lat], clampZoom(zoom * CLUSTER_ZOOM_FACTOR), CLUSTER_TWEEN_MS)
 }
 
 /**
  * 缓动到目标中心/缩放。
  *
  * 为什么自己写：`geo` 的 center/zoom 用 setOption 是一次性写入，没有过渡，
- * 点簇会「瞬移」。这里用 rAF 插值 300ms，视觉上顺滑；期间不重算聚合，
- * 动画结束再算一次，避免中途把簇算成中间态。
+ * 滚轮会是「一格一跳」、点簇会「瞬移」。这里用 rAF 插值，滚轮 140ms、点簇 320ms；
+ * 动画期间不重算聚合，结束再算一次，避免中途把簇算成中间态。
  */
-function animateGeoTo(center: [number, number], zoom: number): void {
+function animateGeoTo(center: [number, number], zoom: number, duration = WHEEL_TWEEN_MS): void {
   const instance = chart.value
   if (instance === null) return
 
-  const option = instance.getOption() as { geo?: Array<{ center?: number[]; zoom?: number }> }
-  const fromCenter = (option.geo?.[0]?.center ?? [center[0], center[1]]) as [number, number]
-  const fromZoom = option.geo?.[0]?.zoom ?? 1
-
+  const from = geoState()
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   tweening = true
+
   const started = performance.now()
   const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3
 
   const step = (now: number): void => {
-    const progress = Math.min(1, (now - started) / ZOOM_TWEEN_MS)
+    const progress = duration === 0 ? 1 : Math.min(1, (now - started) / duration)
     const k = easeOutCubic(progress)
+    const nextZoom = from.zoom + (zoom - from.zoom) * k
     instance.setOption(
       {
         geo: {
           center: [
-            fromCenter[0] + (center[0] - fromCenter[0]) * k,
-            fromCenter[1] + (center[1] - fromCenter[1]) * k,
+            from.center[0] + (center[0] - from.center[0]) * k,
+            from.center[1] + (center[1] - from.center[1]) * k,
           ],
-          zoom: fromZoom + (zoom - fromZoom) * k,
+          zoom: nextZoom,
         },
       },
       { lazyUpdate: true },
     )
+    zoomLevel.value = Number(nextZoom.toFixed(2))
     if (progress < 1) {
       zoomTween = window.requestAnimationFrame(step)
       return
     }
     zoomTween = null
     tweening = false
+    syncLayerMode()
     refreshMarkers()
   }
 
   zoomTween = window.requestAnimationFrame(step)
+}
+
+/** 按缩放级别切换可交互层级：低倍市域、高倍区县 */
+function syncLayerMode(): void {
+  const next: 'city' | 'district' = zoomLevel.value >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
+  if (next === layerMode) return
+  layerMode = next
+  layerRegions = buildLayerRegions(mapFeatures, layerMode)
+  chart.value?.setOption({ geo: { regions: layerRegions } })
+}
+
+/**
+ * 滚轮缩放：以鼠标位置为锚点。
+ *
+ * 锚定公式：放大 k 倍时，要让光标下的地理点保持不动，中心要按 c' = g + (c − g)/k 移动
+ * （g 是光标下的经纬度，c 是当前中心）。缩放本身交给 animateGeoTo 做缓动，所以是一次连续变化。
+ */
+function handleWheel(event: WheelEvent): void {
+  if (chart.value === null || container.value === null) return
+  event.preventDefault()
+
+  const rect = container.value.getBoundingClientRect()
+  const point: [number, number] = [event.clientX - rect.left, event.clientY - rect.top]
+  const anchor = chart.value.convertFromPixel({ geoIndex: 0 }, point)
+  const { center, zoom } = geoState()
+
+  const factor = Math.exp(-event.deltaY * 0.0015)
+  const targetZoom = clampZoom(zoom * factor)
+  if (Math.abs(targetZoom - zoom) < 0.001) return
+
+  const k = targetZoom / zoom
+  const geoAnchor: [number, number] =
+    Array.isArray(anchor) && anchor.length === 2
+      ? ([anchor[0] as number, anchor[1] as number] as [number, number])
+      : center
+
+  animateGeoTo(
+    [geoAnchor[0] + (center[0] - geoAnchor[0]) / k, geoAnchor[1] + (center[1] - geoAnchor[1]) / k],
+    targetZoom,
+  )
+}
+
+/** 缩放条 / 加减按钮：锚定在画布中心 */
+function zoomTo(target: number): void {
+  const { center, zoom } = geoState()
+  const next = clampZoom(target)
+  if (Math.abs(next - zoom) < 0.001) return
+  animateGeoTo(center, next)
+}
+
+function zoomBy(factor: number): void {
+  zoomTo(geoState().zoom * factor)
+}
+
+function onZoomInput(event: Event): void {
+  zoomTo(Number((event.target as HTMLInputElement).value))
 }
 
 /** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
@@ -216,42 +304,65 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
 }
 
 /**
- * 区县界与水域的逐要素样式。
+ * 逐要素样式。
  *
- * 三层数据合并成一张地图（见 merge-map-layers.ts），geo 里用 `regions` 按 name 覆盖样式：
- * 市域保留默认白底与市名，区县只画更浅的线，水域填浅灰。
+ * 三个层级同时画在一张图里，如果都响应鼠标，悬停时市域与区县会一起高亮。
+ * 所以按缩放级别只让一层可交互：低倍看市、高倍看区县（syncLayerMode 负责切换）。
  */
-function buildLayerRegions(features: TaggedFeature[]): MapRegionStyle[] {
+function buildLayerRegions(
+  features: TaggedFeature[],
+  interactive: 'city' | 'district',
+): MapRegionStyle[] {
   const paletteNow = themePalette()
   const regions: MapRegionStyle[] = []
 
   for (const feature of features) {
-    const layer = feature.properties.layer
-    if (layer === 'city') continue
     const name = featureName(feature)
     if (name === null) continue
+    const layer = feature.properties.layer
 
-    regions.push(
-      layer === 'water'
-        ? {
-            name,
-            itemStyle: {
-              areaColor: paletteNow.waterFill,
-              borderColor: paletteNow.waterBorder,
-              borderWidth: 0.6,
-            },
-            label: { show: false },
-          }
-        : {
-            name,
-            itemStyle: {
-              areaColor: 'transparent',
-              borderColor: paletteNow.districtLine,
-              borderWidth: 0.5,
-            },
-            label: { show: false },
-          },
-    )
+    if (layer === 'city') {
+      regions.push({
+        name,
+        itemStyle: {
+          areaColor: paletteNow.mapArea,
+          borderColor: paletteNow.mapBorder,
+          borderWidth: 0.9,
+        },
+        emphasis: { itemStyle: { areaColor: paletteNow.mapAreaHover } },
+        silent: interactive !== 'city',
+        label: { show: true },
+      })
+      continue
+    }
+
+    if (layer === 'water') {
+      regions.push({
+        name,
+        itemStyle: {
+          areaColor: paletteNow.waterFill,
+          borderColor: paletteNow.waterBorder,
+          borderWidth: 0.6,
+        },
+        silent: true,
+        label: { show: false },
+      })
+      continue
+    }
+
+    regions.push({
+      name,
+      itemStyle: {
+        areaColor: 'transparent',
+        borderColor: paletteNow.districtLine,
+        borderWidth: 0.6,
+      },
+      emphasis: {
+        itemStyle: { areaColor: paletteNow.mapAreaHover, borderColor: paletteNow.mapBorder },
+      },
+      silent: interactive !== 'district',
+      label: { show: false },
+    })
   }
 
   return regions
@@ -303,20 +414,22 @@ async function render(): Promise<void> {
     if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
 
     const merged = mergeMapLayers(city, districts, water)
-    layerRegions = buildLayerRegions(merged.features)
+    mapFeatures = merged.features
+    layerMode = 'city'
+    layerRegions = buildLayerRegions(mapFeatures, layerMode)
     echarts.registerMap(ANHUI_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
 
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
       instance.on('click', handleChartClick)
-      // 缩放/拖拽之后像素距离变了，聚合结果要跟着重算（双击不再重置视野）
-      instance.on('georoam', scheduleRefresh)
       chart.value = instance
     }
 
     chart.value.setOption(currentOption(), { notMerge: true })
     chart.value.resize()
     status.value = 'ready'
+    const { zoom } = geoState()
+    zoomLevel.value = Number(zoom.toFixed(2))
     currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
     refreshMarkers()
   } catch (error: unknown) {
@@ -339,20 +452,23 @@ function handleResize(): void {
   }
   if (sized && status.value !== 'error') void render()
 }
+
 onMounted(() => {
   if (container.value === null) return
   resizeObserver = new ResizeObserver(handleResize)
   resizeObserver.observe(container.value)
+  // passive: false 才能 preventDefault：页面本身不滚动，滚轮只用来缩放地图
+  container.value.addEventListener('wheel', handleWheel, { passive: false })
   handleResize()
 })
 
 onBeforeUnmount(() => {
   disposed = true
+  container.value?.removeEventListener('wheel', handleWheel)
   resizeObserver?.disconnect()
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
-  chart.value?.off('georoam', scheduleRefresh)
   chart.value?.dispose()
   chart.value = null
 })
@@ -373,7 +489,7 @@ watch(
       ref="container"
       class="anhui-map__canvas"
       role="img"
-      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置。键盘用户可用下方地标列表逐项浏览"
+      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置。可用右侧缩放条缩放；键盘用户可用下方地标列表逐项浏览"
     />
 
     <p v-if="status === 'loading'" class="anhui-map__hint">
@@ -399,6 +515,30 @@ watch(
         </button>
       </li>
     </ul>
+
+    <div class="anhui-map__zoom" role="group" aria-label="地图缩放">
+      <button type="button" class="anhui-map__zoom-button" aria-label="放大" @click="zoomBy(1.4)">
+        <AppIcon name="plus" :size="13" />
+      </button>
+      <input
+        class="anhui-map__zoom-range"
+        type="range"
+        :min="ZOOM_MIN"
+        :max="ZOOM_MAX"
+        step="0.1"
+        :value="zoomLevel"
+        aria-label="缩放级别"
+        @input="onZoomInput"
+      />
+      <button
+        type="button"
+        class="anhui-map__zoom-button"
+        aria-label="缩小"
+        @click="zoomBy(1 / 1.4)"
+      >
+        <AppIcon name="minus" :size="13" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -510,5 +650,86 @@ watch(
   background: var(--accent);
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+.anhui-map__zoom {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.4rem 0.3rem;
+  background: rgb(var(--surface-rgb) / 92%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-50%);
+}
+
+.anhui-map__zoom-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--ink);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+}
+
+.anhui-map__zoom-button:hover {
+  background: var(--surface-muted);
+}
+
+/* 竖向滑块：writing-mode 让 range 竖起来，纯 CSS 方案，不用额外依赖 */
+.anhui-map__zoom-range {
+  width: 1.1rem;
+  height: 7rem;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  background: transparent;
+  writing-mode: vertical-lr;
+  direction: rtl;
+}
+
+.anhui-map__zoom-range::-webkit-slider-runnable-track {
+  width: 2px;
+  background: var(--line-strong);
+  border-radius: 1px;
+}
+
+.anhui-map__zoom-range::-webkit-slider-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-left: -0.35rem;
+  background: var(--ink);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  appearance: none;
+}
+
+.anhui-map__zoom-range::-moz-range-track {
+  width: 2px;
+  background: var(--line-strong);
+}
+
+.anhui-map__zoom-range::-moz-range-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  background: var(--ink);
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+@media (width <= 900px) {
+  .anhui-map__zoom {
+    right: var(--space-1);
+  }
 }
 </style>
