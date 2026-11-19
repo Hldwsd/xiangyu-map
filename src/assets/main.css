@@ -33,6 +33,11 @@ img {
   max-width: 100%;
 }
 
+/* 浮层（菜单/列表）打开时锁住页面滚动 */
+body.has-overlay {
+  overflow: hidden;
+}
+
 button,
 input {
   font-family: inherit;
