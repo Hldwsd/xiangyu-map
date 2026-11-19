@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
+import TopBar from '@/components/layout/TopBar.vue'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { sites } from '@/data/sites'
@@ -54,7 +55,7 @@ describe('SitePanel', () => {
 describe('CategoryFilter', () => {
   it('渲染「全部」加 6 个分类，并显示数量', () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 22 },
+      props: { category: '全部', counts, total: 22 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
@@ -65,7 +66,7 @@ describe('CategoryFilter', () => {
 
   it('点击分类时更新 v-model', async () => {
     const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 22 },
+      props: { category: '全部', counts, total: 22 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
@@ -73,14 +74,36 @@ describe('CategoryFilter', () => {
 
     expect(wrapper.emitted('update:category')?.[0]).toEqual(['古镇'])
   })
+})
 
-  it('输入关键词时更新 query', async () => {
-    const wrapper = mount(CategoryFilter, {
-      props: { category: '全部', query: '', counts, total: 22 },
+describe('TopBar', () => {
+  it('搜索栏输入时抛出 update:query，点清除按钮清空', async () => {
+    const wrapper = mount(TopBar, {
+      props: { query: '', activeFilters: 0, filterOpen: false },
     })
 
     await wrapper.get('input').setValue('宏村')
     expect(wrapper.emitted('update:query')?.[0]).toEqual(['宏村'])
+
+    await wrapper.setProps({ query: '宏村' })
+    await wrapper.get('.topbar__clear').trigger('click')
+    expect(wrapper.emitted('update:query')?.[1]).toEqual([''])
+  })
+
+  it('菜单与筛选按钮各自抛事件，筛选项多于 0 时显示角标', async () => {
+    const wrapper = mount(TopBar, {
+      props: { query: '', activeFilters: 0, filterOpen: false },
+    })
+
+    expect(wrapper.find('.topbar__badge').exists()).toBe(false)
+
+    await wrapper.get('[aria-label="打开菜单"]').trigger('click')
+    await wrapper.get('[aria-label="筛选"]').trigger('click')
+    expect(wrapper.emitted('menu')).toHaveLength(1)
+    expect(wrapper.emitted('filter')).toHaveLength(1)
+
+    await wrapper.setProps({ activeFilters: 2 })
+    expect(wrapper.get('.topbar__badge').text()).toBe('2')
   })
 })
 

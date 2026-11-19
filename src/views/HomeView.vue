@@ -1,338 +1,283 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
-import CategoryIcon from '@/components/icons/CategoryIcon.vue'
+import FilterPopover from '@/components/layout/FilterPopover.vue'
+import MenuDrawer from '@/components/layout/MenuDrawer.vue'
+import SiteListSheet from '@/components/layout/SiteListSheet.vue'
+import TopBar from '@/components/layout/TopBar.vue'
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
-import CategoryFilter from '@/components/site/CategoryFilter.vue'
-import CityFilter from '@/components/site/CityFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
-import { useSitesStore } from '@/stores/sites'
+import { ALL_CITIES, ALL_CATEGORIES, useSitesStore } from '@/stores/sites'
 
 const store = useSitesStore()
 const { filteredSites, selectedSite, selectedId, categoryCounts, cityCounts, hasActiveFilter } =
   storeToRefs(store)
 
 const total = computed(() => store.sites.length)
-const empty = computed(() => filteredSites.value.length === 0)
+const activeFilters = computed(
+  () => (store.category === ALL_CATEGORIES ? 0 : 1) + (store.city === ALL_CITIES ? 0 : 1),
+)
+
+const menuOpen = ref(false)
+const filterOpen = ref(false)
+const listOpen = ref(false)
+
+function closeOverlays(): void {
+  menuOpen.value = false
+  filterOpen.value = false
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeOverlays()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+
+// 打开菜单时收起筛选，避免两个浮层叠在一起
+watch(menuOpen, (open) => {
+  if (open) filterOpen.value = false
+})
+
+watch(filterOpen, (open) => {
+  if (open) menuOpen.value = false
+})
+
+function selectFromList(id: string): void {
+  store.selectSite(id)
+  listOpen.value = false
+}
 </script>
 
 <template>
-  <div class="home">
-    <section class="home__map-area">
-      <!-- 筛选条占一行、不叠在地图上：叠放时它会盖住地图北侧（宿州/亳州一带）的地标，
-           那些地标就在视觉上「看得见、点不着」，命中率也就不再等于 100%。 -->
-      <div class="home__filters">
-        <CategoryFilter
+  <div class="map-shell">
+    <!-- 打开即全屏地图：地图铺满视口，其余内容都是浮在上面的 -->
+    <div class="map-shell__map">
+      <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
+    </div>
+
+    <TopBar
+      :query="store.query"
+      :active-filters="activeFilters"
+      :filter-open="filterOpen"
+      @update:query="store.setQuery"
+      @menu="menuOpen = true"
+      @filter="filterOpen = !filterOpen"
+    />
+
+    <!-- 筛选浮层挂在筛选按钮下方，右侧对齐 -->
+    <Transition name="pop">
+      <div v-if="filterOpen" class="map-shell__filter">
+        <FilterPopover
           :category="store.category"
-          :query="store.query"
+          :city="store.city"
           :counts="categoryCounts"
+          :city-counts="cityCounts"
           :total="total"
+          :matched="filteredSites.length"
           @update:category="store.setCategory"
-          @update:query="store.setQuery"
-        >
-          <!-- 城市选择放进搜索那一行的右侧：筛选卡从三行压到两行 -->
-          <template #aside>
-            <CityFilter :city="store.city" :counts="cityCounts" @update:city="store.setCity" />
-          </template>
-        </CategoryFilter>
+          @update:city="store.setCity"
+          @reset="store.resetFilters()"
+        />
       </div>
+    </Transition>
 
-      <div class="home__stage">
-        <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
-      </div>
+    <!-- 底部状态条：这张图画的是什么、当前筛出多少 -->
+    <div class="map-shell__meta">
+      <span class="map-shell__scope">
+        <AppIcon name="map" :size="13" />
+        安徽省 · 16 个地级市
+      </span>
+      <button type="button" class="map-shell__list-toggle" @click="listOpen = true">
+        <AppIcon name="all" :size="13" />
+        列表
+        <span class="map-shell__count">{{ filteredSites.length }}</span>
+      </button>
+    </div>
 
-      <!-- 地图页脚：左侧说明这张图画的是什么，右侧是数量与清空动作。
-           原来这段文字浮在地图右下角，既挡住地标，也说不清它是页脚还是浮层。 -->
-      <div class="home__map-meta">
-        <span class="home__scope">
-          <AppIcon name="map" :size="13" />
-          安徽省 · 16 个地级市
-        </span>
-        <p class="home__counter">
-          地图上 {{ filteredSites.length }} / {{ total }} 个项目
-          <button
-            v-if="hasActiveFilter"
-            type="button"
-            class="home__reset"
-            @click="store.resetFilters()"
-          >
-            <AppIcon name="reset" :size="13" />清空筛选
-          </button>
-        </p>
-      </div>
-    </section>
+    <button
+      v-if="hasActiveFilter"
+      type="button"
+      class="map-shell__reset"
+      @click="store.resetFilters()"
+    >
+      <AppIcon name="reset" :size="13" />清空筛选
+    </button>
 
-    <aside class="home__aside">
-      <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
+    <!-- 选中项目：桌面为右下角浮卡，窄屏为底部抽屉 -->
+    <SitePanel
+      v-if="selectedSite"
+      class="map-shell__panel"
+      :site="selectedSite"
+      @close="store.selectSite(null)"
+    />
 
-      <div v-else-if="empty" class="home__empty">
-        <span class="home__empty-icon"><AppIcon name="search" :size="20" /></span>
-        <p class="home__empty-title">没有匹配的项目</p>
-        <p class="home__empty-text">换一个关键词，或者清空筛选条件再试。</p>
-        <button type="button" class="home__reset home__reset--solid" @click="store.resetFilters()">
-          <AppIcon name="reset" :size="13" />清空筛选
-        </button>
-      </div>
+    <SiteListSheet
+      v-if="listOpen"
+      class="map-shell__sheet"
+      :sites="filteredSites"
+      :selected-id="selectedId"
+      @select="selectFromList"
+      @close="listOpen = false"
+    />
 
-      <div v-else class="home__list">
-        <p class="home__list-title">
-          <AppIcon name="filter" :size="12" />
-          当前 {{ filteredSites.length }} 个项目
-        </p>
-        <ul>
-          <li v-for="site in filteredSites" :key="site.id">
-            <button type="button" class="home__item" @click="store.selectSite(site.id)">
-              <span class="home__item-icon">
-                <CategoryIcon :category="site.category" :size="14" />
-              </span>
-              <span class="home__item-name">{{ site.name }}</span>
-              <span class="home__item-meta">{{ site.category }} · {{ site.city }}</span>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </aside>
+    <MenuDrawer
+      :open="menuOpen"
+      :site-count="total"
+      @close="menuOpen = false"
+      @open-list="
+        () => {
+          menuOpen = false
+          listOpen = true
+        }
+      "
+    />
   </div>
 </template>
 
 <style scoped>
-.home {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: var(--space-4);
-  width: 100%;
-  max-width: 1440px;
-  height: calc(100vh - 8.5rem);
-  min-height: 520px;
-  margin: 0 auto;
-  padding: 0 var(--space-5) var(--space-5);
-}
-
-/* ---- 地图区 ---- */
-
-.home__map-area {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3);
+.map-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
 }
 
-.home__filters {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: rgb(var(--surface-rgb) / 88%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+.map-shell__map {
+  position: absolute;
+  inset: 0;
 }
 
-/* 地图直接铺在灰色卡面上，不再套一层白卡片：卡里套卡会让四道边框互相打架 */
-.home__stage {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+.map-shell__filter {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 4.4rem);
+  right: var(--space-3);
+  left: var(--space-3);
+  z-index: 25;
+  max-width: 26rem;
+  margin-left: auto;
 }
 
-.home__map-meta {
-  display: flex;
-  flex: 0 0 auto;
-  gap: var(--space-3);
-  align-items: baseline;
-  justify-content: space-between;
-  padding-top: var(--space-1);
+.map-shell__meta {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-3));
+  left: var(--space-3);
+  z-index: 15;
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
 }
 
-.home__scope {
+.map-shell__scope,
+.map-shell__list-toggle {
   display: inline-flex;
   gap: 0.3rem;
   align-items: center;
-  font-size: var(--text-xs);
-  letter-spacing: 0.04em;
+  height: 2rem;
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.03em;
   color: var(--ink-soft);
+  background: rgb(var(--surface-rgb) / 92%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-soft);
 }
 
-.home__counter {
-  display: inline-flex;
-  gap: 0.4rem;
-  align-items: center;
-  margin: 0;
-  font-size: var(--text-xs);
+.map-shell__list-toggle {
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.map-shell__list-toggle:hover {
+  background: #fff;
+  border-color: var(--line-strong);
+}
+
+.map-shell__count {
   font-variant-numeric: tabular-nums;
   color: var(--ink-soft);
 }
 
-/* ---- 按钮 ---- */
-
-.home__reset {
+.map-shell__reset {
+  position: absolute;
+  right: var(--space-3);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-3));
+  z-index: 15;
   display: inline-flex;
   gap: 0.3rem;
   align-items: center;
-  padding: 0.22rem 0.7rem;
+  height: 2rem;
+  padding: 0 var(--space-3);
   font: inherit;
   font-size: var(--text-2xs);
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
-  background: transparent;
-  border: 1px solid var(--line-strong);
+  background: var(--accent);
+  border: 1px solid var(--accent);
   border-radius: var(--radius-pill);
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  box-shadow: var(--shadow-card);
 }
 
-.home__reset:hover {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.home__reset--solid {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.home__reset--solid:hover {
-  background: var(--accent);
-}
-
-/* ---- 右侧列表 ---- */
-
-.home__aside {
-  min-height: 0;
+/* 选中卡片：桌面右下、窄屏贴底 */
+.map-shell__panel {
+  position: absolute;
+  right: var(--space-3);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-3) + 3rem);
+  z-index: 16;
+  width: min(22rem, calc(100vw - 2 * var(--space-3)));
+  max-height: min(70vh, 34rem);
   overflow-y: auto;
 }
 
-.home__list-title {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-  margin: 0 0 var(--space-2);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-label);
-  color: var(--ink-soft);
+.map-shell__sheet {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 4.4rem);
+  right: var(--space-3);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-3) + 2.6rem);
+  left: var(--space-3);
+  z-index: 22;
+  max-width: 26rem;
+  margin-left: auto;
 }
 
-.home__list ul {
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
-  list-style: none;
-  background: rgb(var(--surface-rgb) / 88%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+/* 筛选浮层进出：轻微上浮 + 淡入，键盘/读屏不受影响 */
+.pop-enter-active,
+.pop-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
 }
 
-.home__item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: var(--space-2);
-  align-items: center;
-  width: 100%;
-  padding: 0.62rem 0.8rem;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  transition: background-color 0.15s ease;
+.pop-enter-from,
+.pop-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
-
-/* 行与行之间用细线，而不是每行一张卡片：一叠卡片读起来像清单，一张卡加细线才像版式 */
-.home__list li + li .home__item {
-  border-top: 1px solid var(--line);
-}
-
-.home__item:hover {
-  background: var(--surface-muted);
-}
-
-.home__item-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.55rem;
-  height: 1.55rem;
-  color: var(--ink);
-  background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xs);
-}
-
-.home__item-name {
-  font-size: var(--text-base);
-  line-height: var(--leading-snug);
-  color: var(--ink);
-}
-
-.home__item-meta {
-  grid-column: 2;
-  margin-top: 0.1rem;
-  font-size: var(--text-2xs);
-  letter-spacing: 0.03em;
-  color: var(--ink-soft);
-}
-
-/* ---- 空态 ---- */
-
-.home__empty {
-  padding: var(--space-5);
-  text-align: left;
-  background: rgb(var(--surface-rgb) / 88%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-}
-
-.home__empty-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  margin-bottom: var(--space-3);
-  color: var(--ink-soft);
-  background: var(--surface-muted);
-  border-radius: 50%;
-}
-
-.home__empty-title {
-  margin: 0 0 0.35rem;
-  font-size: var(--text-md);
-  color: var(--ink);
-}
-
-.home__empty-text {
-  margin: 0 0 var(--space-4);
-  font-size: var(--text-sm);
-  line-height: var(--leading-relaxed);
-  color: var(--ink-soft);
-}
-
-/* ---- 窄屏 ---- */
 
 @media (width <= 900px) {
-  .home {
-    grid-template-columns: minmax(0, 1fr);
-    height: auto;
-    gap: var(--space-3);
-    padding: 0 var(--space-3) var(--space-4);
+  .map-shell__filter,
+  .map-shell__sheet {
+    right: var(--space-2);
+    left: var(--space-2);
   }
 
-  .home__map-area {
-    height: 66vh;
-    min-height: 420px;
+  .map-shell__panel {
+    right: var(--space-2);
+    left: var(--space-2);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-2) + 2.6rem);
+    width: auto;
+    max-height: 62vh;
   }
+}
 
-  .home__aside {
-    overflow: visible;
+@media (prefers-reduced-motion: reduce) {
+  .pop-enter-active,
+  .pop-leave-active {
+    transition: none;
   }
 }
 </style>

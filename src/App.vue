@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
+
+const route = useRoute()
+/** 首页是全屏地图，导航与页脚都收进菜单；其余页面保留常规头部与页脚 */
+const chromeHidden = computed(() => route.name === 'home')
 </script>
 
 <template>
   <div class="app">
-    <header class="app__header">
+    <header v-if="!chromeHidden" class="app__header">
       <RouterLink class="app__brand" :to="{ name: 'home' }">
         <span class="app__brand-name">乡遇安徽</span>
         <span class="app__brand-tag">在地图上遇见一个文旅项目</span>
@@ -23,7 +28,7 @@ import AppIcon from '@/components/icons/AppIcon.vue'
       <RouterView />
     </main>
 
-    <footer class="app__footer">
+    <footer v-if="!chromeHidden" class="app__footer">
       <span>示例数据，仅供演示 · 底图数据来源见 public/maps/README.md</span>
     </footer>
   </div>
@@ -69,12 +74,11 @@ import AppIcon from '@/components/icons/AppIcon.vue'
   color: var(--ink-soft);
 }
 
-.app__nav {
-  display: flex;
-  gap: 1rem;
-}
-
+/* 导航：图标与文字同一行对齐 */
 .app__nav-link {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
   font-size: 0.85rem;
   color: var(--ink-soft);
   text-decoration: none;
@@ -95,11 +99,5 @@ import AppIcon from '@/components/icons/AppIcon.vue'
   font-size: 0.74rem;
   color: var(--ink-soft);
   text-align: center;
-}
-/* 导航：图标与文字同一行对齐 */
-.app__nav-link {
-  display: inline-flex;
-  gap: 0.3rem;
-  align-items: center;
 }
 </style>
