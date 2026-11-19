@@ -47,6 +47,9 @@ const ZOOM_MAX = 8
 const LAYER_SWITCH_ZOOM = 1.9
 /** 没有拖拽、没有漫游时的兜底中心（安徽省几何中心附近） */
 const FALLBACK_CENTER: [number, number] = [117.3, 31.8]
+/** 拖动时允许的中心范围：省域外接框略收一点，避免把地图拖出视野只剩空白 */
+const CENTER_MIN: [number, number] = [115.4, 30.2]
+const CENTER_MAX: [number, number] = [119.1, 33.9]
 
 const props = defineProps<{
   sites: Site[]
@@ -108,6 +111,31 @@ function geoState(): { center: [number, number]; zoom: number } {
   }
 }
 
+function clampCenter(center: [number, number]): [number, number] {
+  return [
+    Math.min(CENTER_MAX[0], Math.max(CENTER_MIN[0], center[0])),
+    Math.min(CENTER_MAX[1], Math.max(CENTER_MIN[1], center[1])),
+  ]
+}
+
+/**
+ * 拖动结束/过程中夹住中心。
+ *
+ * `roam: 'move'` 交给 ECharts 做平移手感（惯性、指针捕获都是现成的），
+ * 但默认可以把地图拖到视野外只剩空白；这里在 georoam 里做范围夹取。
+ */
+function handleGeoRoam(): void {
+  const instance = chart.value
+  if (instance === null || tweening) return
+
+  const { center } = geoState()
+  const [clampedX, clampedY] = clampCenter(center)
+  if (clampedX !== center[0] || clampedY !== center[1]) {
+    instance.setOption({ geo: { center: [clampedX, clampedY] } })
+  }
+  scheduleRefresh()
+}
+
 function handleChartClick(params: unknown): void {
   const payload = params as {
     seriesType?: string
@@ -160,6 +188,7 @@ function animateGeoTo(center: [number, number], zoom: number, duration = WHEEL_T
   if (instance === null) return
 
   const from = geoState()
+  const target = clampCenter(center)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   tweening = true
 
@@ -174,8 +203,8 @@ function animateGeoTo(center: [number, number], zoom: number, duration = WHEEL_T
       {
         geo: {
           center: [
-            from.center[0] + (center[0] - from.center[0]) * k,
-            from.center[1] + (center[1] - from.center[1]) * k,
+            from.center[0] + (target[0] - from.center[0]) * k,
+            from.center[1] + (target[1] - from.center[1]) * k,
           ],
           zoom: nextZoom,
         },
@@ -543,6 +572,8 @@ async function render(): Promise<void> {
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
       instance.on('click', handleChartClick)
+      // 拖动平移由 ECharts 负责（roam: 'move'），这里只做范围夹取与聚合重算
+      instance.on('georoam', handleGeoRoam)
       chart.value = instance
     }
 
@@ -596,6 +627,7 @@ onBeforeUnmount(() => {
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
+  chart.value?.off('georoam', handleGeoRoam)
   chart.value?.dispose()
   chart.value = null
 })
