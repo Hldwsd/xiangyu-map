@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import * as echarts from 'echarts/core'
-import { ScatterChart } from 'echarts/charts'
+import { MapChart, ScatterChart } from 'echarts/charts'
 import { GeoComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsType } from 'echarts/core'
@@ -14,17 +14,24 @@ import {
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { readThemePalette, type ThemePalette } from '@/theme/theme'
-import { ANHUI_MAP_NAME, loadAnhuiMap } from '@/services/anhui-map-loader'
+import {
+  ANHUI_DISTRICTS_MAP_NAME,
+  ANHUI_MAP_NAME,
+  ANHUI_WATER_MAP_NAME,
+  loadAnhuiDistricts,
+  loadAnhuiMap,
+  loadAnhuiWater,
+} from '@/services/anhui-map-loader'
 import type { Site } from '@/types/site'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
-echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
+echarts.use([ScatterChart, MapChart, GeoComponent, TooltipComponent, CanvasRenderer])
 
 /**
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
  * 取值略大于基础地标直径（13px）：再小就会把「视觉上明显分开」的两颗也叠起来。
  */
-const CLUSTER_MIN_GAP = 26
+const CLUSTER_MIN_GAP = 36
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 
@@ -47,6 +54,9 @@ let currentData: MapScatterDatum[] = []
 /** 缩放动画的尾巴上补算几次：ECharts 的投影矩阵在渲染帧里才更新 */
 let settleTimers: number[] = []
 let refreshHandle: number | null = null
+/** 已注册成功的叠加层；渲染 option 时按这个决定画不画 */
+const registeredLayers = { districts: false, water: false }
+let layersRequested = false
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
 let palette: ThemePalette | null = null
 
@@ -149,6 +159,39 @@ function refreshMarkers(): void {
   instance.setOption({ series: [{ id: 'sites', data: currentData }] })
 }
 
+/**
+ * 加载区县界与水域，成功后补一层 map 系列。
+ *
+ * 不阻塞首屏：市级底图先渲染，纹理层在后台补上——它们只是「地图不单调」的装饰，
+ * 200KB 的区县数据不该拖慢第一次看到地图。哪层失败就少哪层，不报错。
+ */
+async function attachLayers(): Promise<void> {
+  if (layersRequested) return
+  layersRequested = true
+
+  type MapInput = Parameters<typeof echarts.registerMap>[1]
+  const [districtsGeoJson, waterGeoJson] = await Promise.all([
+    loadAnhuiDistricts().catch(() => null),
+    loadAnhuiWater().catch(() => null),
+  ])
+  if (disposed || chart.value === null) return
+
+  if (districtsGeoJson !== null) {
+    echarts.registerMap(ANHUI_DISTRICTS_MAP_NAME, districtsGeoJson as MapInput)
+    registeredLayers.districts = true
+  }
+  if (waterGeoJson !== null) {
+    echarts.registerMap(ANHUI_WATER_MAP_NAME, waterGeoJson as MapInput)
+    registeredLayers.water = true
+  }
+  if (!registeredLayers.districts && !registeredLayers.water) return
+
+  // 只补 series，不动 geo：避免把用户当前缩放重置掉
+  const option = currentOption()
+  chart.value.setOption({ series: option.series })
+  refreshMarkers()
+}
+
 function scheduleRefresh(): void {
   if (refreshHandle !== null) return
   refreshHandle = window.requestAnimationFrame(() => {
@@ -165,7 +208,10 @@ function datumIndexOfSite(siteId: string): number {
 }
 
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
-  return buildAnhuiMapOption(props.sites, props.selectedId, undefined, themePalette())
+  return buildAnhuiMapOption(props.sites, props.selectedId, undefined, themePalette(), {
+    districts: registeredLayers.districts ? ANHUI_DISTRICTS_MAP_NAME : undefined,
+    water: registeredLayers.water ? ANHUI_WATER_MAP_NAME : undefined,
+  })
 }
 
 /**
@@ -237,6 +283,7 @@ async function render(): Promise<void> {
     status.value = 'ready'
     currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
     refreshMarkers()
+    void attachLayers()
   } catch (error: unknown) {
     status.value = 'error'
     errorMessage.value = error instanceof Error ? error.message : '底图加载失败'

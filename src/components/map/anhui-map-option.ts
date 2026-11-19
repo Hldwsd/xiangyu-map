@@ -82,13 +82,13 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-const SELECTED_SYMBOL_SIZE = 34
+const SELECTED_SYMBOL_SIZE = 44
 /**
  * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
  * 圆钉内部是线条图标，28px 才认得出是屋檐还是山峰；图片符号的命中区就是整个方框，
  * 比早先的实心剪影更好点中（剪影只命中填充像素）。
  */
-const DEFAULT_SYMBOL_SIZE = 28
+const DEFAULT_SYMBOL_SIZE = 36
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
@@ -228,13 +228,60 @@ export function formatSiteTooltip(params: unknown): string {
  * 市级划分靠 geo 的默认行为：底图是 16 个地级市要素，每个要素自带边界与名称，
  * 所以「划线 + 标市名」不需要额外画图层；这里只调样式与层级。
  */
+/** 底图叠加层：区县界与水域。没有对应地图时就不画，缺层不影响主图 */
+export interface MapLayers {
+  districts?: string
+  water?: string
+}
+
 export function buildAnhuiMapOption(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
   palette: ThemePalette = DEFAULT_PALETTE,
+  layers: MapLayers = {},
 ): EChartsOption {
   const data = toScatterData(sites, selectedId, groups, palette)
+
+  /**
+   * 叠加层用 map 系列绑定到同一个 geo（geoIndex: 0），而不是再开 geo 组件：
+   * 多个 geo 各自 roam，缩放时水域和区县界会与市界错位；绑定 geo 后它们共用一套投影。
+   */
+  const overlaySeries: NonNullable<EChartsOption['series']> = []
+  if (layers.water !== undefined) {
+    overlaySeries.push({
+      id: 'water',
+      type: 'map',
+      map: layers.water,
+      geoIndex: 0,
+      silent: true,
+      z: 1,
+      label: { show: false },
+      itemStyle: {
+        areaColor: palette.waterFill,
+        borderColor: palette.waterBorder,
+        borderWidth: 0.6,
+      },
+      emphasis: { disabled: true },
+    })
+  }
+  if (layers.districts !== undefined) {
+    overlaySeries.push({
+      id: 'districts',
+      type: 'map',
+      map: layers.districts,
+      geoIndex: 0,
+      silent: true,
+      z: 2,
+      label: { show: false },
+      itemStyle: {
+        areaColor: 'transparent',
+        borderColor: palette.districtLine,
+        borderWidth: 0.5,
+      },
+      emphasis: { disabled: true },
+    })
+  }
 
   return {
     backgroundColor: 'transparent',
@@ -277,12 +324,14 @@ export function buildAnhuiMapOption(
       },
     },
     series: [
+      ...overlaySeries,
       {
         id: 'sites',
         name: '文旅项目',
         type: 'scatter',
         coordinateSystem: 'geo',
         zlevel: 2,
+        z: 3,
         data,
         cursor: 'pointer',
         emphasis: {

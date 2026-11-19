@@ -93,28 +93,30 @@ function selectFromList(id: string): void {
       </button>
     </div>
 
-    <!-- 底部状态条：这张图画的是什么、当前筛出多少 -->
+    <!-- 左下：这张图画的是什么 -->
     <div class="map-shell__meta">
       <span class="map-shell__scope">
         <AppIcon name="map" :size="13" />
         安徽省 · 16 个地级市
       </span>
+    </div>
+
+    <!-- 右下：动作区（列表 + 清空筛选）。空结果时由中间提示卡提供「清空筛选」 -->
+    <div class="map-shell__actions">
+      <button
+        v-if="hasActiveFilter && filteredSites.length > 0"
+        type="button"
+        class="map-shell__reset"
+        @click="store.resetFilters()"
+      >
+        <AppIcon name="reset" :size="13" />清空筛选
+      </button>
       <button type="button" class="map-shell__list-toggle" @click="listOpen = true">
         <AppIcon name="all" :size="13" />
         列表
         <span class="map-shell__count">{{ filteredSites.length }}</span>
       </button>
     </div>
-
-    <!-- 空结果时由中间的提示卡提供「清空筛选」，底部不再重复一个按钮 -->
-    <button
-      v-if="hasActiveFilter && filteredSites.length > 0"
-      type="button"
-      class="map-shell__reset"
-      @click="store.resetFilters()"
-    >
-      <AppIcon name="reset" :size="13" />清空筛选
-    </button>
 
     <!-- 选中项目：桌面为右下角浮卡，窄屏为底部抽屉 -->
     <SitePanel
@@ -212,11 +214,18 @@ function selectFromList(id: string): void {
   color: var(--ink-soft);
 }
 
-.map-shell__reset {
+/* 右下动作区：列表按钮常驻，清空筛选在筛选生效时出现在它左边 */
+.map-shell__actions {
   position: absolute;
   right: var(--space-3);
   bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-3));
   z-index: 15;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.map-shell__reset {
   display: inline-flex;
   gap: 0.3rem;
   align-items: center;
