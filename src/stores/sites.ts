@@ -15,12 +15,36 @@ export const ALL_CITIES = '全部' as const
 
 export type CityFilter = typeof ALL_CITIES | AnhuiCity
 
-function matchesQuery(site: Site, query: string): boolean {
-  if (query === '') return true
-  const haystack = [site.name, site.province, site.city, site.summary, ...site.tags]
-    .join(' ')
-    .toLowerCase()
-  return haystack.includes(query)
+/**
+ * 命中权重。名称命中比标签、省市、简介更像「用户正在找这个项目」，
+ * 排序时按权重降序；同分保持数据文件里的原始顺序。
+ */
+const MATCH_WEIGHT = { name: 4, tag: 3, region: 2, summary: 1 } as const
+
+/**
+ * 计算一条数据的相关度。
+ *
+ * 多个关键词是 **AND** 关系：任一关键词没命中就返回 null，整条被排除。
+ * 用 AND 而不是 OR，是因为「黄山 云海」这类输入里两个词都是用户的约束条件，
+ * 取并集只会把结果摊大。
+ */
+function scoreSite(site: Site, tokens: readonly string[]): number | null {
+  if (tokens.length === 0) return 0
+
+  const name = site.name.toLowerCase()
+  const tags = site.tags.join(' ').toLowerCase()
+  const region = `${site.province} ${site.city}`.toLowerCase()
+  const summary = site.summary.toLowerCase()
+
+  let score = 0
+  for (const token of tokens) {
+    if (name.includes(token)) score += MATCH_WEIGHT.name
+    else if (tags.includes(token)) score += MATCH_WEIGHT.tag
+    else if (region.includes(token)) score += MATCH_WEIGHT.region
+    else if (summary.includes(token)) score += MATCH_WEIGHT.summary
+    else return null
+  }
+  return score
 }
 
 /**
@@ -39,14 +63,25 @@ export const useSitesStore = defineStore('sites', () => {
 
   const normalizedQuery = computed(() => query.value.trim().toLowerCase())
 
-  const filteredSites = computed<Site[]>(() =>
-    sites.value.filter(
+  const filteredSites = computed<Site[]>(() => {
+    const tokens = normalizedQuery.value.split(/\s+/).filter(Boolean)
+
+    const candidates = sites.value.filter(
       (site) =>
         (category.value === ALL_CATEGORIES || site.category === category.value) &&
-        (city.value === ALL_CITIES || site.city === city.value) &&
-        matchesQuery(site, normalizedQuery.value),
-    ),
-  )
+        (city.value === ALL_CITIES || site.city === city.value),
+    )
+
+    const scored: Array<{ site: Site; score: number }> = []
+    for (const site of candidates) {
+      const score = scoreSite(site, tokens)
+      if (score !== null) scored.push({ site, score })
+    }
+
+    // Array.prototype.sort 是稳定的，同分时保持上面的原始顺序
+    scored.sort((a, b) => b.score - a.score)
+    return scored.map((entry) => entry.site)
+  })
 
   const selectedSite = computed<Site | null>(
     () => sites.value.find((site) => site.id === selectedId.value) ?? null,

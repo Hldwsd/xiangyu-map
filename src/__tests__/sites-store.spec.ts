@@ -143,4 +143,32 @@ describe('useSitesStore', () => {
     store.setCity('合肥市')
     expect(store.hasActiveFilter).toBe(true)
   })
+
+  it('多个关键词必须同时命中', () => {
+    const store = useSitesStore()
+    store.setQuery('黄山 云海')
+
+    // 「黄山」能命中黄山风景区的名称，也能命中另两条的所在城市；
+    // 但「云海」只在黄山风景区的标签里
+    expect(store.filteredSites.map((site) => site.id)).toEqual(['huangshan-scenic'])
+  })
+
+  it('名称命中排在城市命中之前', () => {
+    const store = useSitesStore()
+    store.setQuery('黄山')
+
+    // 黄山风景区命中名称（权重 4）；徽州古城与宏村只命中所在城市（权重 2），保持原始顺序
+    expect(store.filteredSites.map((site) => site.id)).toEqual([
+      'huangshan-scenic',
+      'huizhou-ancient-city',
+      'hongcun',
+    ])
+  })
+
+  it('没有关键词时保持数据文件顺序', () => {
+    const store = useSitesStore()
+
+    expect(store.filteredSites.map((site) => site.id)).toEqual(store.sites.map((site) => site.id))
+    expect(store.sites[0]?.id).toBe('sanhe-ancient-town')
+  })
 })
