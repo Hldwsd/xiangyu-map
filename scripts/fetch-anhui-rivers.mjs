@@ -10,14 +10,15 @@
  * 许可证：OSM 数据是 ODbL，发布时需要署名 OpenStreetMap contributors（见 public/maps/README.md）。
  */
 import { createHash } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 
 const TARGET = join(import.meta.dirname, '..', 'public', 'maps', 'anhui-rivers.json')
 const ENDPOINT = 'https://overpass-api.de/api/interpreter'
 const BBOX = '29.2,114.6,35.0,119.9'
-const RIVERS = { 长江: 2.2, 淮河: 1.8 }
+const RIVERS = { 长江: 2.6, 淮河: 2.2 }
+const CITY_MAP = join(import.meta.dirname, '..', 'public', 'maps', 'anhui.json')
 
 function fail(message) {
   console.error(`✗ ${message}`)
@@ -91,6 +92,55 @@ function simplify(points, tolerance) {
   return [...keep].sort((a, b) => a - b).map((i) => points[i])
 }
 
+/**
+ * 只保留落在安徽省内的河段。
+ *
+ * 长江、淮河在 OSM 里是横贯数省的长线，直接画会把湖北、江西、江苏的河道一起画进来。
+ * 这里用「点在 16 个市域多边形内」的射线法逐顶点判断，保留连续的内点段；
+ * 跨省界的段会被切成若干小段，视觉上停在省界上。
+ */
+const cityMap = JSON.parse(await readFile(CITY_MAP, 'utf8'))
+
+function ringsOf(geometry) {
+  if (geometry.type === 'Polygon') return geometry.coordinates
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates.flat()
+  return []
+}
+
+const cityRings = cityMap.features.flatMap((feature) =>
+  ringsOf(feature.geometry).map((ring) => ring.map(([lng, lat]) => [lng, lat])),
+)
+
+function pointInRing(point, ring) {
+  const [x, y] = point
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
+  }
+  return inside
+}
+
+function insideAnhui(point) {
+  return cityRings.some((ring) => pointInRing(point, ring))
+}
+
+function clipToAnhui(coordinates) {
+  const runs = []
+  let current = []
+  for (const point of coordinates) {
+    if (insideAnhui(point)) {
+      current.push(point)
+      continue
+    }
+    if (current.length >= 2) runs.push(current)
+    current = []
+  }
+  if (current.length >= 2) runs.push(current)
+  return runs
+}
+
 const TOLERANCE = 0.002
 const features = []
 let segmentCount = 0
@@ -115,12 +165,15 @@ for (const element of elements) {
       TOLERANCE,
     )
     if (coordinates.length < 2) continue
-    segmentCount += 1
-    features.push({
-      type: 'Feature',
-      properties: { name, width: RIVERS[name], source: 'OpenStreetMap' },
-      geometry: { type: 'LineString', coordinates },
-    })
+
+    for (const run of clipToAnhui(coordinates)) {
+      segmentCount += 1
+      features.push({
+        type: 'Feature',
+        properties: { name, width: RIVERS[name], source: 'OpenStreetMap' },
+        geometry: { type: 'LineString', coordinates: run },
+      })
+    }
   }
 }
 
