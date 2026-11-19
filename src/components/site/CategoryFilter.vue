@@ -43,19 +43,25 @@ defineProps<{
       </button>
     </div>
 
-    <label class="filter__search">
-      <span class="filter__search-label">搜索</span>
-      <span class="filter__input-wrap">
-        <AppIcon class="filter__search-icon" name="search" :size="14" />
-        <input
-          v-model="query"
-          type="search"
-          class="filter__input"
-          placeholder="地名、城市或标签，如「古城」"
-          autocomplete="off"
-        />
-      </span>
-    </label>
+    <!-- 搜索与右侧控件同处一行：筛选卡少一行，地图就能多一行高度 -->
+    <div class="filter__row">
+      <label class="filter__search">
+        <span class="filter__search-label">搜索</span>
+        <span class="filter__input-wrap">
+          <AppIcon class="filter__search-icon" name="search" :size="14" />
+          <input
+            v-model="query"
+            type="search"
+            class="filter__input"
+            placeholder="地名、城市或标签，如「古城」"
+            autocomplete="off"
+          />
+        </span>
+      </label>
+      <div class="filter__aside">
+        <slot name="aside" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -110,10 +116,25 @@ defineProps<{
   opacity: 0.72;
 }
 
+.filter__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.filter__aside {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
 .filter__search {
   display: flex;
+  flex: 1 1 16rem;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .filter__search-label {

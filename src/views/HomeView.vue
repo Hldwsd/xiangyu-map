@@ -31,9 +31,12 @@ const empty = computed(() => filteredSites.value.length === 0)
           :total="total"
           @update:category="store.setCategory"
           @update:query="store.setQuery"
-        />
-
-        <CityFilter :city="store.city" :counts="cityCounts" @update:city="store.setCity" />
+        >
+          <!-- 城市选择放进搜索那一行的右侧：筛选卡从三行压到两行 -->
+          <template #aside>
+            <CityFilter :city="store.city" :counts="cityCounts" @update:city="store.setCity" />
+          </template>
+        </CategoryFilter>
       </div>
 
       <div class="home__stage">
