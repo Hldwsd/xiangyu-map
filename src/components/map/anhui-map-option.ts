@@ -7,18 +7,14 @@ import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
 import type { Site, SiteCategory } from '@/types/site'
 
 /**
- * 分类配色。默认值与 tokens.css 里方向 A 的 `--cat-*` 一致；
- * 实际渲染时由组件从 CSS 变量读当前主题（见 theme.ts 的 readThemePalette），
- * 这样「换主题」不用改组件代码。
+ * 分类配色。单色方向下六类同色（分类靠形状区分）；
+ * 实际渲染时由组件从 CSS 变量读当前主题（见 services/theme 的 readThemePalette）。
  */
 export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
 
 /**
- * 分类形状：白底圆钉 + 墨色线条图标（屋檐 / 印章 / 旗帜 / 山峰 / 音符 / 树冠）。
- *
- * 早先用的是实心黑剪影，远看是一堆黑点、像脏东西；现在改成「白圆钉 + 细圈 + 内部线条」，
- * 黑白语言不变，但在浅灰底图上有层次。选中态反转成墨底白线（见 toSiteDatum）。
- * 线条与界面里的 CategoryIcon 共用同一份定义（category-paths.ts），地图与列表不会走形。
+ * 分类符号：白底圆钉 + 墨色线条图标（屋檐 / 印章 / 旗帜 / 山峰 / 音符 / 树冠）。
+ * 线条定义在 category-paths.ts，与界面里的 CategoryIcon 共用。
  */
 export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
   古镇: categoryMarkerSymbol('古镇'),
@@ -52,9 +48,7 @@ export interface SiteScatterDatum {
 
 /**
  * 聚合后的簇。屏幕距离太近的几个地标合成一颗带数字的点，点它放大到能分开为止。
- *
  * 这里没有 `category`：一个簇里可能混着不同分类，硬塞一个颜色等于撒谎。
- * 簇用中性色 + 数量，颜色只在单点时表达分类。
  */
 export interface ClusterScatterDatum {
   name: string
@@ -82,13 +76,22 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-const SELECTED_SYMBOL_SIZE = 34
+/** 逐要素样式：区县界只画线、水域填浅灰、市域保持默认 */
+export interface MapRegionStyle {
+  name: string
+  itemStyle: {
+    areaColor: string
+    borderColor: string
+    borderWidth: number
+  }
+  label?: { show: boolean }
+}
+
+const SELECTED_SYMBOL_SIZE = 44
 /**
- * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
- * 圆钉内部是线条图标，28px 才认得出是屋檐还是山峰；图片符号的命中区就是整个方框，
- * 比早先的实心剪影更好点中（剪影只命中填充像素）。
+ * 圆钉尺寸。28 太小（线条图标看不清），36 在省域视野下既能辨认图标、又不会糊成一片。
  */
-const DEFAULT_SYMBOL_SIZE = 28
+const DEFAULT_SYMBOL_SIZE = 36
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
@@ -225,14 +228,15 @@ export function formatSiteTooltip(params: unknown): string {
  * 只用了 geo + scatter 两种能力，没有引入 map 系列 / 地图漫游以外的组件，
  * 是为了守住首屏 JS ≤300KB 的预算（echarts 按需引入）。
  *
- * 市级划分靠 geo 的默认行为：底图是 16 个地级市要素，每个要素自带边界与名称，
- * 所以「划线 + 标市名」不需要额外画图层；这里只调样式与层级。
+ * 市级划分靠 geo 的默认行为：底图是合并后的 FeatureCollection（市域 + 水域 + 区县），
+ * 每个要素自带边界与名称，所以「划线 + 标市名」不需要额外画图层；区县与水域靠 regions 逐要素改样式。
  */
 export function buildAnhuiMapOption(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
   palette: ThemePalette = DEFAULT_PALETTE,
+  regions: MapRegionStyle[] = [],
 ): EChartsOption {
   const data = toScatterData(sites, selectedId, groups, palette)
 
@@ -271,6 +275,8 @@ export function buildAnhuiMapOption(
         borderColor: palette.mapBorder,
         borderWidth: 0.9,
       },
+      // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
+      regions,
       emphasis: {
         itemStyle: { areaColor: palette.mapAreaHover },
         label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
@@ -283,8 +289,11 @@ export function buildAnhuiMapOption(
         type: 'scatter',
         coordinateSystem: 'geo',
         zlevel: 2,
+        z: 3,
         data,
         cursor: 'pointer',
+        // 聚合/散开时数据项整体换位置，开动画会出现「两个合并点互换」的错觉
+        animation: false,
         emphasis: {
           scale: 1.6,
           itemStyle: { borderColor: '#ffffff', borderWidth: 2 },

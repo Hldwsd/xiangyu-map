@@ -9,6 +9,11 @@ export interface ThemePalette {
   mapAreaHover: string
   /** 聚合点颜色：与地标同色，靠白色数字与尺寸区分 */
   cluster: string
+  /** 水域填充与描边 */
+  waterFill: string
+  waterBorder: string
+  /** 区县界：只做纹理，比市界更浅 */
+  districtLine: string
 }
 
 /**
@@ -29,6 +34,9 @@ export const DEFAULT_PALETTE: ThemePalette = {
   mapLabel: '#8c8c8c',
   mapAreaHover: '#e8e8e8',
   cluster: '#111111',
+  waterFill: '#ececec',
+  waterBorder: '#e0e0e0',
+  districtLine: '#eeeeee',
 }
 
 const CATEGORY_VARS: Record<SiteCategory, string> = {
@@ -68,5 +76,8 @@ export function readThemePalette(): ThemePalette {
     mapLabel: read('--map-label', DEFAULT_PALETTE.mapLabel),
     mapAreaHover: read('--map-area-hover', DEFAULT_PALETTE.mapAreaHover),
     cluster: read('--cluster', DEFAULT_PALETTE.cluster),
+    waterFill: read('--water-fill', DEFAULT_PALETTE.waterFill),
+    waterBorder: read('--water-border', DEFAULT_PALETTE.waterBorder),
+    districtLine: read('--district-line', DEFAULT_PALETTE.districtLine),
   }
 }

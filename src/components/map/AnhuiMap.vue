@@ -10,11 +10,18 @@ import {
   buildAnhuiMapOption,
   toScatterData,
   type ClusterScatterDatum,
+  type MapRegionStyle,
   type MapScatterDatum,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
+import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
+import {
+  ANHUI_MAP_NAME,
+  loadAnhuiDistricts,
+  loadAnhuiMap,
+  loadAnhuiWater,
+} from '@/services/anhui-map-loader'
 import { readThemePalette, type ThemePalette } from '@/theme/theme'
-import { ANHUI_MAP_NAME, loadAnhuiMap } from '@/services/anhui-map-loader'
 import type { Site } from '@/types/site'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
@@ -22,11 +29,13 @@ echarts.use([ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
 
 /**
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
- * 取值略大于基础地标直径（13px）：再小就会把「视觉上明显分开」的两颗也叠起来。
+ * 略小于圆钉直径（36）：允许轻微重叠不合并，否则聚合会太激进。
  */
-const CLUSTER_MIN_GAP = 26
+const CLUSTER_MIN_GAP = 34
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
+/** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
+const ZOOM_TWEEN_MS = 320
 
 const props = defineProps<{
   sites: Site[]
@@ -44,9 +53,12 @@ let resizeObserver: ResizeObserver | null = null
 let disposed = false
 /** 当前画在图上的一批点（单点或簇），键盘高亮要按它找下标 */
 let currentData: MapScatterDatum[] = []
-/** 缩放动画的尾巴上补算几次：ECharts 的投影矩阵在渲染帧里才更新 */
-let settleTimers: number[] = []
 let refreshHandle: number | null = null
+let zoomTween: number | null = null
+/** 自己发起的缩放动画进行中：期间不重算聚合（地图在动，算出来也是中间态） */
+let tweening = false
+/** 合并底图里去掉市域之后的逐要素样式（区县界、水域） */
+let layerRegions: MapRegionStyle[] = []
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
 let palette: ThemePalette | null = null
 
@@ -96,23 +108,54 @@ function zoomIntoCluster(clusterIds: string[], value: unknown): void {
     return
   }
 
-  instance.setOption({
-    geo: { center: [lng, lat], zoom: Math.min(maxZoom, zoom * CLUSTER_ZOOM_FACTOR) },
-  })
-  // `setOption` 之后 geo 的投影矩阵要等渲染帧才更新，此刻 convertToPixel 还是旧值。
-  // 缩放在 ECharts 里是带缓动的动画，所以沿动画尾巴补算几次；每次都很轻（22 个点）。
-  scheduleRefresh()
-  scheduleSettledRefresh()
+  animateGeoTo([lng, lat], Math.min(maxZoom, zoom * CLUSTER_ZOOM_FACTOR))
 }
 
-function scheduleSettledRefresh(): void {
-  for (const delay of [90, 260, 520]) {
-    settleTimers.push(
-      window.setTimeout(() => {
-        refreshMarkers()
-      }, delay),
+/**
+ * 缓动到目标中心/缩放。
+ *
+ * 为什么自己写：`geo` 的 center/zoom 用 setOption 是一次性写入，没有过渡，
+ * 点簇会「瞬移」。这里用 rAF 插值 300ms，视觉上顺滑；期间不重算聚合，
+ * 动画结束再算一次，避免中途把簇算成中间态。
+ */
+function animateGeoTo(center: [number, number], zoom: number): void {
+  const instance = chart.value
+  if (instance === null) return
+
+  const option = instance.getOption() as { geo?: Array<{ center?: number[]; zoom?: number }> }
+  const fromCenter = (option.geo?.[0]?.center ?? [center[0], center[1]]) as [number, number]
+  const fromZoom = option.geo?.[0]?.zoom ?? 1
+
+  if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
+  tweening = true
+  const started = performance.now()
+  const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3
+
+  const step = (now: number): void => {
+    const progress = Math.min(1, (now - started) / ZOOM_TWEEN_MS)
+    const k = easeOutCubic(progress)
+    instance.setOption(
+      {
+        geo: {
+          center: [
+            fromCenter[0] + (center[0] - fromCenter[0]) * k,
+            fromCenter[1] + (center[1] - fromCenter[1]) * k,
+          ],
+          zoom: fromZoom + (zoom - fromZoom) * k,
+        },
+      },
+      { lazyUpdate: true },
     )
+    if (progress < 1) {
+      zoomTween = window.requestAnimationFrame(step)
+      return
+    }
+    zoomTween = null
+    tweening = false
+    refreshMarkers()
   }
+
+  zoomTween = window.requestAnimationFrame(step)
 }
 
 /** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
@@ -133,7 +176,10 @@ function computeGroups(instance: EChartsType): MarkerGroup[] | undefined {
     (site) => pixels.get(site.id) ?? null,
     CLUSTER_MIN_GAP,
   )
-  return groups.length === 0 ? undefined : groups
+  if (groups.length === 0) return undefined
+
+  // 按经纬度排序：数据下标稳定，缩放时不会因为顺序变化出现「两个点互换位置」
+  return [...groups].sort((a, b) => (a.lng === b.lng ? a.lat - b.lat : a.lng - b.lng))
 }
 
 /**
@@ -153,6 +199,7 @@ function scheduleRefresh(): void {
   if (refreshHandle !== null) return
   refreshHandle = window.requestAnimationFrame(() => {
     refreshHandle = null
+    if (tweening) return
     refreshMarkers()
   })
 }
@@ -165,19 +212,49 @@ function datumIndexOfSite(siteId: string): number {
 }
 
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
-  return buildAnhuiMapOption(props.sites, props.selectedId, undefined, themePalette())
+  return buildAnhuiMapOption(props.sites, props.selectedId, undefined, themePalette(), layerRegions)
 }
 
 /**
- * 双击还原视野。geo 的 roam 状态没有公开的「重置」动作，
- * 用 notMerge 重建一次 option 是最直接可靠的办法（默认中心/缩放来自底图范围）。
+ * 区县界与水域的逐要素样式。
+ *
+ * 三层数据合并成一张地图（见 merge-map-layers.ts），geo 里用 `regions` 按 name 覆盖样式：
+ * 市域保留默认白底与市名，区县只画更浅的线，水域填浅灰。
  */
-function resetRoam(): void {
-  if (chart.value === null || container.value === null) return
-  if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
-  chart.value.setOption(currentOption(), { notMerge: true })
-  currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
-  scheduleRefresh()
+function buildLayerRegions(features: TaggedFeature[]): MapRegionStyle[] {
+  const paletteNow = themePalette()
+  const regions: MapRegionStyle[] = []
+
+  for (const feature of features) {
+    const layer = feature.properties.layer
+    if (layer === 'city') continue
+    const name = featureName(feature)
+    if (name === null) continue
+
+    regions.push(
+      layer === 'water'
+        ? {
+            name,
+            itemStyle: {
+              areaColor: paletteNow.waterFill,
+              borderColor: paletteNow.waterBorder,
+              borderWidth: 0.6,
+            },
+            label: { show: false },
+          }
+        : {
+            name,
+            itemStyle: {
+              areaColor: 'transparent',
+              borderColor: paletteNow.districtLine,
+              borderWidth: 0.5,
+            },
+            label: { show: false },
+          },
+    )
+  }
+
+  return regions
 }
 
 /**
@@ -214,21 +291,26 @@ async function render(): Promise<void> {
   errorMessage.value = ''
 
   try {
-    const geoJson = await loadAnhuiMap()
+    // 区县界与水域是装饰层：失败就少一层纹理，不应该让整张地图报错
+    const [city, districts, water] = await Promise.all([
+      loadAnhuiMap(),
+      loadAnhuiDistricts().catch(() => null),
+      loadAnhuiWater().catch(() => null),
+    ])
     if (disposed || container.value === null) return
     // 容器尺寸为 0 时不要 setOption：geo 投影拿不到绘图区，ECharts 会抛
     // "Cannot read properties of null (reading '0')"。等 ResizeObserver 给出真实尺寸再画。
     if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
 
-    echarts.registerMap(ANHUI_MAP_NAME, geoJson as Parameters<typeof echarts.registerMap>[1])
+    const merged = mergeMapLayers(city, districts, water)
+    layerRegions = buildLayerRegions(merged.features)
+    echarts.registerMap(ANHUI_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
 
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
       instance.on('click', handleChartClick)
-      // 缩放/拖拽之后像素距离变了，聚合结果要跟着重算
+      // 缩放/拖拽之后像素距离变了，聚合结果要跟着重算（双击不再重置视野）
       instance.on('georoam', scheduleRefresh)
-      // zr 级别的事件才拿得到双击，ECharts 的 chart.on('dblclick') 只对图形元素生效
-      instance.getZr().on('dblclick', resetRoam)
       chart.value = instance
     }
 
@@ -257,7 +339,6 @@ function handleResize(): void {
   }
   if (sized && status.value !== 'error') void render()
 }
-
 onMounted(() => {
   if (container.value === null) return
   resizeObserver = new ResizeObserver(handleResize)
@@ -269,14 +350,9 @@ onBeforeUnmount(() => {
   disposed = true
   resizeObserver?.disconnect()
   resizeObserver = null
-  if (refreshHandle !== null) {
-    window.cancelAnimationFrame(refreshHandle)
-    refreshHandle = null
-  }
-  for (const timer of settleTimers) window.clearTimeout(timer)
-  settleTimers = []
+  if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
+  if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   chart.value?.off('georoam', scheduleRefresh)
-  chart.value?.getZr().off('dblclick', resetRoam)
   chart.value?.dispose()
   chart.value = null
 })
@@ -284,10 +360,9 @@ onBeforeUnmount(() => {
 watch(
   () => [props.sites, props.selectedId] as const,
   () => {
-    if (status.value === 'ready' && chart.value !== null) {
-      chart.value.setOption(currentOption())
-      refreshMarkers()
-    }
+    if (status.value !== 'ready' || chart.value === null) return
+    chart.value.setOption(currentOption())
+    refreshMarkers()
   },
 )
 </script>
@@ -298,7 +373,7 @@ watch(
       ref="container"
       class="anhui-map__canvas"
       role="img"
-      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置；双击可还原视野。键盘用户可用下方地标列表逐项浏览"
+      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置。键盘用户可用下方地标列表逐项浏览"
     />
 
     <p v-if="status === 'loading'" class="anhui-map__hint">
