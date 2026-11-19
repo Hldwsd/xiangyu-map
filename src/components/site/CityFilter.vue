@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import AppIcon from '@/components/icons/AppIcon.vue'
 import { ALL_CITIES, type CityFilter } from '@/stores/sites'
 import { ANHUI_CITIES, type AnhuiCity } from '@/types/site'
 
@@ -25,7 +26,7 @@ const options = computed(() =>
 
 <template>
   <label class="city">
-    <span class="city__label">城市</span>
+    <span class="city__label"><AppIcon name="pin" :size="13" />城市</span>
     <select v-model="city" class="city__select">
       <option :value="ALL_CITIES">全部城市</option>
       <option
@@ -48,6 +49,9 @@ const options = computed(() =>
 }
 
 .city__label {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
   font-size: 0.78rem;
   color: var(--ink-soft);
 }

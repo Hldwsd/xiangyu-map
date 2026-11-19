@@ -1,5 +1,6 @@
 import type { EChartsOption } from 'echarts'
 
+import { categoryMapSymbol } from '@/components/icons/category-paths'
 import type { MarkerGroup } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
 import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
@@ -13,16 +14,19 @@ import type { Site, SiteCategory } from '@/types/site'
 export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
 
 /**
- * 分类形状。只用颜色区分分类时，色觉障碍用户与黑白打印场景会丢失信息，
- * 所以再用形状做一层冗余编码（都是 ECharts 内置 symbol，不增加依赖与体积）。
+ * 分类形状：六类地标各配一个象形图标（屋檐 / 剪纸 / 旗帜 / 山峰 / 音符 / 树冠）。
+ *
+ * 黑白界面里颜色不再承载分类信息，形状是唯一编码，所以这里不能用「圆/三角/方块」这类
+ * 抽象几何——18px 的三角形和方块只能读出「不一样」，读不出「什么类别」。
+ * 图标路径与界面里 CategoryIcon 共用同一份数据（category-paths.ts），地图与列表不会走形。
  */
 export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
-  古镇: 'circle',
-  非遗: 'diamond',
-  红色: 'pin',
-  自然: 'triangle',
-  演艺: 'roundRect',
-  乡村: 'rect',
+  古镇: categoryMapSymbol('古镇'),
+  非遗: categoryMapSymbol('非遗'),
+  红色: categoryMapSymbol('红色'),
+  自然: categoryMapSymbol('自然'),
+  演艺: categoryMapSymbol('演艺'),
+  乡村: categoryMapSymbol('乡村'),
 }
 
 export interface SiteScatterDatum {
@@ -78,12 +82,12 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
-const SELECTED_SYMBOL_SIZE = 22
+const SELECTED_SYMBOL_SIZE = 26
 /**
  * 地标基础尺寸。点击命中判定用的是 symbol 自身的尺寸，没有「视觉小、命中大」的开关，
- * 黑白色块在浅底上本来就不显眼，定在 15 才够「一眼看见」；小于 13 时贴边与密集区经常点不中。
+ * 象形图标比几何块「碎」，19px 才认得出是屋檐还是山峰；同时实心剪影保证了命中面积。
  */
-const DEFAULT_SYMBOL_SIZE = 15
+const DEFAULT_SYMBOL_SIZE = 19
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18

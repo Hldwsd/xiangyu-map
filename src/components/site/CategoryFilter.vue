@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppIcon from '@/components/icons/AppIcon.vue'
+import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import { ALL_CATEGORIES, type CategoryFilter } from '@/stores/sites'
 import { SITE_CATEGORIES } from '@/types/site'
 import type { SiteCategory } from '@/types/site'
@@ -21,7 +23,9 @@ defineProps<{
         :class="{ 'filter__chip--active': category === ALL_CATEGORIES }"
         @click="category = ALL_CATEGORIES"
       >
-        全部<span class="filter__count">{{ total }}</span>
+        <AppIcon name="all" :size="13" />
+        <span>全部</span>
+        <span class="filter__count">{{ total }}</span>
       </button>
 
       <button
@@ -32,19 +36,25 @@ defineProps<{
         :class="{ 'filter__chip--active': category === item }"
         @click="category = item"
       >
-        {{ item }}<span class="filter__count">{{ counts[item] }}</span>
+        <!-- 每个分类配象形图标：黑白界面里文字 + 形状是唯一的分类线索 -->
+        <CategoryIcon :category="item" :size="13" />
+        <span>{{ item }}</span>
+        <span class="filter__count">{{ counts[item] }}</span>
       </button>
     </div>
 
     <label class="filter__search">
       <span class="filter__search-label">搜索</span>
-      <input
-        v-model="query"
-        type="search"
-        class="filter__input"
-        placeholder="地名、城市或标签，如「古城」"
-        autocomplete="off"
-      />
+      <span class="filter__input-wrap">
+        <AppIcon class="filter__search-icon" name="search" :size="14" />
+        <input
+          v-model="query"
+          type="search"
+          class="filter__input"
+          placeholder="地名、城市或标签，如「古城」"
+          autocomplete="off"
+        />
+      </span>
     </label>
   </div>
 </template>
@@ -64,9 +74,9 @@ defineProps<{
 
 .filter__chip {
   display: inline-flex;
-  gap: 0.35rem;
+  gap: 0.32rem;
   align-items: center;
-  padding: 0.35rem 0.7rem;
+  padding: 0.34rem 0.72rem;
   font: inherit;
   font-size: 0.82rem;
   color: var(--ink);
@@ -81,7 +91,7 @@ defineProps<{
 }
 
 .filter__chip:hover {
-  border-color: var(--accent);
+  background: var(--surface-muted);
 }
 
 .filter__chip--active {
@@ -90,8 +100,13 @@ defineProps<{
   border-color: var(--accent);
 }
 
+.filter__chip--active:hover {
+  background: var(--accent);
+}
+
 .filter__count {
   font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
   opacity: 0.72;
 }
 
@@ -106,10 +121,25 @@ defineProps<{
   color: var(--ink-soft);
 }
 
+.filter__input-wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.filter__search-icon {
+  position: absolute;
+  left: 0.62rem;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
 .filter__input {
   flex: 1;
   min-width: 0;
-  padding: 0.42rem 0.7rem;
+  padding: 0.42rem 0.7rem 0.42rem 2rem;
   font: inherit;
   font-size: 0.85rem;
   color: inherit;

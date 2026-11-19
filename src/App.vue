@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+
+import AppIcon from '@/components/icons/AppIcon.vue'
 </script>
 
 <template>
@@ -11,7 +13,9 @@ import { RouterLink, RouterView } from 'vue-router'
       </RouterLink>
 
       <nav class="app__nav">
-        <RouterLink class="app__nav-link" :to="{ name: 'home' }">地图</RouterLink>
+        <RouterLink class="app__nav-link" :to="{ name: 'home' }">
+          <AppIcon name="map" :size="14" />地图
+        </RouterLink>
       </nav>
     </header>
 
@@ -91,5 +95,11 @@ import { RouterLink, RouterView } from 'vue-router'
   font-size: 0.74rem;
   color: var(--ink-soft);
   text-align: center;
+}
+/* 导航：图标与文字同一行对齐 */
+.app__nav-link {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
 }
 </style>

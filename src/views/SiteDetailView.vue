@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useSitesStore } from '@/stores/sites'
+import AppIcon from '@/components/icons/AppIcon.vue'
+import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import { assetUrl } from '@/utils/asset-url'
 
 const FALLBACK_COVER = '/images/placeholder.svg'
@@ -47,11 +49,15 @@ function markBroken(url: string): void {
 
 <template>
   <article v-if="site" class="detail">
-    <RouterLink class="detail__back" :to="{ name: 'home' }">← 返回地图</RouterLink>
+    <RouterLink class="detail__back" :to="{ name: 'home' }">
+      <AppIcon name="back" :size="14" />返回地图
+    </RouterLink>
 
     <header class="detail__header">
       <p class="detail__meta">
-        <span class="detail__category">{{ site.category }}</span>
+        <span class="detail__category">
+          <CategoryIcon :category="site.category" :size="12" />{{ site.category }}
+        </span>
         <span>{{ site.province }} · {{ site.city }}</span>
         <span class="detail__updated">更新于 {{ site.updatedAt }}</span>
       </p>
@@ -88,18 +94,18 @@ function markBroken(url: string): void {
     <section class="detail__section">
       <h2>实用信息</h2>
       <dl class="detail__facts">
-        <dt>坐标</dt>
+        <dt><AppIcon name="pin" :size="12" />坐标</dt>
         <dd>{{ site.location.lng }}, {{ site.location.lat }}（GCJ-02）</dd>
         <template v-if="site.bestSeason">
-          <dt>最佳季节</dt>
+          <dt><AppIcon name="calendar" :size="12" />最佳季节</dt>
           <dd>{{ site.bestSeason }}</dd>
         </template>
         <template v-if="site.transport">
-          <dt>交通</dt>
+          <dt><AppIcon name="route" :size="12" />交通</dt>
           <dd>{{ site.transport }}</dd>
         </template>
         <template v-if="site.bookingUrl">
-          <dt>预约</dt>
+          <dt><AppIcon name="external" :size="12" />预约</dt>
           <dd>
             <a :href="site.bookingUrl" target="_blank" rel="noopener noreferrer">{{
               site.bookingUrl
@@ -230,10 +236,11 @@ function markBroken(url: string): void {
 }
 
 .detail__section h2 {
-  margin: 0 0 0.6rem;
-  font-size: 1rem;
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--ink);
+  letter-spacing: 0.16em;
+  color: var(--ink-soft);
 }
 
 .detail__section p {
@@ -339,5 +346,12 @@ function markBroken(url: string): void {
 
 .detail--missing {
   padding-top: 3rem;
+}
+.detail__back,
+.detail__category,
+.detail__facts dt {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
 }
 </style>

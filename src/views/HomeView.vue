@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 
+import AppIcon from '@/components/icons/AppIcon.vue'
+import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import CityFilter from '@/components/site/CityFilter.vue'
@@ -38,14 +40,14 @@ const empty = computed(() => filteredSites.value.length === 0)
         <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
 
         <p class="home__counter">
-          地图上 {{ filteredSites.length }} / {{ total }} 个项目
+          <AppIcon name="map" :size="13" />地图上 {{ filteredSites.length }} / {{ total }} 个项目
           <button
             v-if="hasActiveFilter"
             type="button"
             class="home__reset"
             @click="store.resetFilters()"
           >
-            清空筛选
+            <AppIcon name="reset" :size="13" />清空筛选
           </button>
         </p>
       </div>
@@ -55,10 +57,11 @@ const empty = computed(() => filteredSites.value.length === 0)
       <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
 
       <div v-else-if="empty" class="home__empty">
+        <span class="home__empty-icon"><AppIcon name="search" :size="20" /></span>
         <p class="home__empty-title">没有匹配的项目</p>
         <p class="home__empty-text">换一个关键词，或者清空筛选条件再试。</p>
         <button type="button" class="home__reset home__reset--solid" @click="store.resetFilters()">
-          清空筛选
+          <AppIcon name="reset" :size="13" />清空筛选
         </button>
       </div>
 
@@ -67,6 +70,9 @@ const empty = computed(() => filteredSites.value.length === 0)
         <ul>
           <li v-for="site in filteredSites" :key="site.id">
             <button type="button" class="home__item" @click="store.selectSite(site.id)">
+              <span class="home__item-icon">
+                <CategoryIcon :category="site.category" :size="14" />
+              </span>
               <span class="home__item-name">{{ site.name }}</span>
               <span class="home__item-meta">{{ site.category }} · {{ site.city }}</span>
             </button>
@@ -156,8 +162,9 @@ const empty = computed(() => filteredSites.value.length === 0)
 }
 
 .home__list-title {
-  margin: 0 0 0.5rem;
-  font-size: 0.78rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   color: var(--ink-soft);
 }
 
@@ -207,6 +214,18 @@ const empty = computed(() => filteredSites.value.length === 0)
   border-radius: var(--radius-lg);
 }
 
+.home__empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin-bottom: 0.8rem;
+  color: var(--ink-soft);
+  background: var(--surface-muted);
+  border-radius: 50%;
+}
+
 .home__empty-title {
   margin: 0 0 0.35rem;
   font-size: 0.95rem;
@@ -235,5 +254,38 @@ const empty = computed(() => filteredSites.value.length === 0)
   .home__aside {
     overflow: visible;
   }
+}
+/* 列表项：图标 + 名称一行，城市信息缩进到名称下方 */
+.home__item {
+  grid-template-columns: auto 1fr;
+  column-gap: 0.55rem;
+}
+
+.home__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border-radius: var(--radius-xs);
+}
+
+.home__item-meta {
+  grid-column: 2;
+}
+
+/* 计数条：图标不参与换行挤压 */
+.home__counter {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.home__reset {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
 }
 </style>
