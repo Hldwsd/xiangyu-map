@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { ALL_CATEGORIES, useSitesStore } from '@/stores/sites'
+import { ALL_CATEGORIES, ALL_CITIES, useSitesStore } from '@/stores/sites'
 
 describe('useSitesStore', () => {
   beforeEach(() => {
@@ -13,6 +13,7 @@ describe('useSitesStore', () => {
     expect(store.sites).toHaveLength(10)
     expect(store.filteredSites).toHaveLength(10)
     expect(store.category).toBe(ALL_CATEGORIES)
+    expect(store.city).toBe(ALL_CITIES)
   })
 
   it('按分类筛选', () => {
@@ -74,12 +75,72 @@ describe('useSitesStore', () => {
   it('resetFilters 清空筛选，但保留选中项', () => {
     const store = useSitesStore()
     store.setCategory('非遗')
+    store.setCity('亳州市')
     store.selectSite('huaxilou')
     store.resetFilters()
 
     expect(store.category).toBe(ALL_CATEGORIES)
+    expect(store.city).toBe(ALL_CITIES)
     expect(store.query).toBe('')
     expect(store.hasActiveFilter).toBe(false)
     expect(store.selectedId).toBe('huaxilou')
+  })
+
+  it('按城市筛选', () => {
+    const store = useSitesStore()
+    store.setCity('黄山市')
+
+    expect(store.filteredSites).toHaveLength(3)
+    expect(store.filteredSites.every((site) => site.city === '黄山市')).toBe(true)
+  })
+
+  it('分类与城市同时生效', () => {
+    const store = useSitesStore()
+    store.setCategory('自然')
+    store.setCity('黄山市')
+
+    expect(store.filteredSites.map((site) => site.id)).toEqual(['huangshan-scenic'])
+  })
+
+  it('关键词与城市同时生效', () => {
+    const store = useSitesStore()
+    store.setCity('黄山市')
+    store.setQuery('宏村')
+
+    expect(store.filteredSites.map((site) => site.id)).toEqual(['hongcun'])
+  })
+
+  it('没有项目的城市筛出空列表，不回退到全量', () => {
+    const store = useSitesStore()
+    store.setCity('铜陵市')
+
+    expect(store.filteredSites).toHaveLength(0)
+  })
+
+  it('城市计数覆盖 16 个市且之和等于项目总数', () => {
+    const store = useSitesStore()
+    const counts = Object.values(store.cityCounts)
+
+    expect(counts).toHaveLength(16)
+    expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
+    expect(store.cityCounts['黄山市']).toBe(3)
+    expect(store.cityCounts['铜陵市']).toBe(0)
+  })
+
+  it('城市筛选把当前选中项排除后，选中状态被清空', () => {
+    const store = useSitesStore()
+    store.selectSite('hongcun')
+    store.setCity('池州市')
+
+    expect(store.selectedId).toBeNull()
+    expect(store.selectedSite).toBeNull()
+  })
+
+  it('城市也计入 hasActiveFilter', () => {
+    const store = useSitesStore()
+    expect(store.hasActiveFilter).toBe(false)
+
+    store.setCity('合肥市')
+    expect(store.hasActiveFilter).toBe(true)
   })
 })

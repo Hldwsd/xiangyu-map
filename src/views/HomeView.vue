@@ -5,11 +5,12 @@ import { storeToRefs } from 'pinia'
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import { CATEGORY_COLORS } from '@/components/map/anhui-map-option'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
+import CityFilter from '@/components/site/CityFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { useSitesStore } from '@/stores/sites'
 
 const store = useSitesStore()
-const { filteredSites, selectedSite, selectedId, categoryCounts, hasActiveFilter } =
+const { filteredSites, selectedSite, selectedId, categoryCounts, cityCounts, hasActiveFilter } =
   storeToRefs(store)
 
 const total = computed(() => store.sites.length)
@@ -30,6 +31,8 @@ const empty = computed(() => filteredSites.value.length === 0)
           @update:category="store.setCategory"
           @update:query="store.setQuery"
         />
+
+        <CityFilter :city="store.city" :counts="cityCounts" @update:city="store.setCity" />
       </div>
 
       <p class="home__counter">
@@ -100,6 +103,9 @@ const empty = computed(() => filteredSites.value.length === 0)
   top: 0.9rem;
   left: 0.9rem;
   right: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
   padding: 0.7rem 0.8rem;
   background: rgb(255 253 248 / 82%);
   border: 1px solid var(--line, #ddd2bd);
