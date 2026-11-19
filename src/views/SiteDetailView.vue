@@ -238,6 +238,8 @@ function markBroken(url: string): void {
 .detail__cover {
   display: block;
   width: 100%;
+  /* 16:9 在 820px 栏宽下高 461px，会把「简介」整个推出首屏；限高后正文能露出来 */
+  max-height: 380px;
   margin: var(--space-5) 0 0;
   aspect-ratio: 16 / 9;
   object-fit: cover;
