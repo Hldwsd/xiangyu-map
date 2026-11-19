@@ -68,8 +68,8 @@ let disposed = false
 /** 当前画在图上的一批点（单点或簇），键盘高亮要按它找下标 */
 let currentData: MapScatterDatum[] = []
 let refreshHandle: number | null = null
-/** 夹取中心的防抖定时器 */
-let centerClampTimer: number | null = null
+/** 我们自己在 georoam 里写回中心时置 true，避免递归 */
+let clampingCenter = false
 let zoomTween: number | null = null
 /** 自己发起的缩放动画进行中：期间不重算聚合（地图在动，算出来也是中间态） */
 let tweening = false
@@ -124,23 +124,21 @@ function clampCenter(center: [number, number]): [number, number] {
  */
 function handleGeoRoam(): void {
   const instance = chart.value
-  if (instance === null || tweening) return
+  if (instance === null || tweening || clampingCenter) return
 
-  const { zoom } = geoState()
+  const { center, zoom } = geoState()
   zoomLevel.value = Number(zoom.toFixed(2))
   syncLayerMode()
   scheduleRefresh()
 
-  // 夹取放到手势停顿之后：拖动过程中反复 setOption 会打断 ECharts 的惯性
-  if (centerClampTimer !== null) window.clearTimeout(centerClampTimer)
-  centerClampTimer = window.setTimeout(() => {
-    centerClampTimer = null
-    const current = geoState()
-    const [clampedX, clampedY] = clampCenter(current.center)
-    if (clampedX !== current.center[0] || clampedY !== current.center[1]) {
-      instance.setOption({ geo: { center: [clampedX, clampedY] } })
-    }
-  }, 180)
+  // 实时夹取：拖动过程中越界就把中心顶回边界，而不是等松手后「传送」回来。
+  // 写回时带上传当前 zoom，避免只写 center 时把缩放重置成默认值。
+  const [clampedX, clampedY] = clampCenter(center)
+  if (clampedX !== center[0] || clampedY !== center[1]) {
+    clampingCenter = true
+    instance.setOption({ geo: { center: [clampedX, clampedY], zoom } })
+    clampingCenter = false
+  }
 }
 
 function handleChartClick(params: unknown): void {
@@ -388,7 +386,7 @@ function buildLayerRegions(
         itemStyle: {
           areaColor: paletteNow.mapArea,
           borderColor: paletteNow.mapBorder,
-          borderWidth: 0.9,
+          borderWidth: 1.1,
         },
         // hover 只加深描边：铺灰底会把压在上面的河道盖成一片灰
         emphasis: {
@@ -423,7 +421,7 @@ function buildLayerRegions(
       itemStyle: {
         areaColor: 'transparent',
         borderColor: paletteNow.districtLine,
-        borderWidth: 0.6,
+        borderWidth: 0.7,
       },
       emphasis: {
         itemStyle: {
@@ -541,7 +539,6 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
-  if (centerClampTimer !== null) window.clearTimeout(centerClampTimer)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   chart.value?.off('georoam', handleGeoRoam)
   chart.value?.dispose()
