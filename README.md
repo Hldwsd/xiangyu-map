@@ -4,6 +4,7 @@
 
 - 产品与项目规划：[docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)
 - 两人协作规范：[docs/COLLABORATION.md](docs/COLLABORATION.md)
+- 两台机器上的 DSH 协作设置：[docs/DSH_COLLAB.md](docs/DSH_COLLAB.md)
 - 技术决策记录：[docs/adr/](docs/adr/README.md)
 
 ## 项目简介

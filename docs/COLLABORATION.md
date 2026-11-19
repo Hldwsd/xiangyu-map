@@ -1,7 +1,7 @@
 # 协作规范
 
 > 适用：Hldwsd（A）、xc3122（B）。目标不是流程好看，而是**两个人同时改一个仓库不互相踩、每次改动都能追溯为什么**。
-> 配套文件：[项目规划](PROJECT_PLAN.md)、[ADR 索引](adr/README.md)
+> 配套文件：[项目规划](PROJECT_PLAN.md)、[ADR 索引](adr/README.md)、[DSH 协作设置](DSH_COLLAB.md)
 
 ## 三条底线
 
@@ -11,7 +11,7 @@
 
 ## 一、环境与身份
 
-Node.js 24 LTS（规划文档的版本基线要求 Node `^20.19.0 || >=22.12.0`），包管理用 pnpm，版本以 `package.json` 的 `packageManager` 字段为准，通过 corepack 自动切换。
+Node.js 24 LTS（`package.json` 的 `engines` 要求 `^22.18.0 || >=24.12.0`），包管理用 pnpm，版本以 `package.json` 的 `packageManager` 字段为准，通过 corepack 自动切换。
 
 ```bash
 corepack enable
@@ -109,7 +109,7 @@ fix bug
 
 流程：
 
-1. 从最新 `main` 切分支 → 开发 → 本地自检（`pnpm lint`、`pnpm typecheck`、`pnpm test`）；
+1. 从最新 `main` 切分支 → 开发 → 本地自检（`pnpm lint`、`pnpm format:check`、`pnpm type-check`、`pnpm test:unit --run`、`pnpm build`）；
 2. 推送分支，开 PR，标题沿用提交规范（squash 后它就是主干上的提交标题）；
 3. 按模板填「变更内容 / 为什么 / 验证方式 / 截图 / 影响面」；
 4. 指定对方为 reviewer，**24 小时内**给结论：approve、评论、或 request changes；
