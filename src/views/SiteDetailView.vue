@@ -133,7 +133,7 @@ function markBroken(url: string): void {
         class="detail__pager-item"
         :to="{ name: 'site-detail', params: { id: previous.id } }"
       >
-        <span class="detail__pager-dir">← 上一条</span>
+        <span class="detail__pager-dir"><AppIcon name="prev" :size="12" />上一条</span>
         <span class="detail__pager-name">{{ previous.name }}</span>
       </RouterLink>
       <span v-else class="detail__pager-item detail__pager-item--empty">已是第一条</span>
@@ -143,7 +143,7 @@ function markBroken(url: string): void {
         class="detail__pager-item detail__pager-item--next"
         :to="{ name: 'site-detail', params: { id: next.id } }"
       >
-        <span class="detail__pager-dir">下一条 →</span>
+        <span class="detail__pager-dir">下一条<AppIcon name="next" :size="12" /></span>
         <span class="detail__pager-name">{{ next.name }}</span>
       </RouterLink>
       <span v-else class="detail__pager-item detail__pager-item--empty detail__pager-item--next"
@@ -151,9 +151,9 @@ function markBroken(url: string): void {
       >
     </nav>
 
-    <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }"
-      >← 返回地图</RouterLink
-    >
+    <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }">
+      <AppIcon name="back" :size="14" />返回地图
+    </RouterLink>
   </article>
 
   <div v-else class="detail detail--missing">
@@ -166,123 +166,157 @@ function markBroken(url: string): void {
 <style scoped>
 .detail {
   width: 100%;
-  max-width: 760px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 0 1.25rem 3rem;
+  padding: 0 var(--space-5) var(--space-7);
 }
 
+/* ---- 返回 ---- */
+
 .detail__back {
-  display: inline-block;
-  margin: 1.25rem 0 1rem;
-  font-size: 0.85rem;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin: var(--space-4) 0 var(--space-3);
+  font-size: var(--text-sm);
   color: var(--ink-soft);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .detail__back:hover {
   color: var(--accent);
 }
 
+/* ---- 头部 ---- */
+
 .detail__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: var(--space-2);
   align-items: center;
-  margin: 0 0 0.5rem;
-  font-size: 0.8rem;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
   color: var(--ink-soft);
 }
 
 .detail__category {
-  padding: 0.1rem 0.5rem;
-  color: var(--accent);
-  border: 1px solid currentcolor;
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.14rem 0.55rem;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-pill);
 }
 
 .detail__updated {
   margin-left: auto;
-  font-size: 0.74rem;
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
 
 .detail__title {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-2);
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 4vw, 2.2rem);
-  line-height: 1.25;
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
   color: var(--ink);
 }
 
 .detail__summary {
+  max-width: 58ch;
   margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
   color: var(--ink-soft);
 }
 
 .detail__cover {
   display: block;
   width: 100%;
-  margin: 1.4rem 0 0.5rem;
+  margin: var(--space-5) 0 0;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: var(--surface-muted);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
 }
 
+/* ---- 小节：细线 + 大间距，形成阅读节奏 ---- */
+
 .detail__section {
-  margin-top: 1.8rem;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
 }
 
 .detail__section h2 {
-  margin: 0 0 0.65rem;
-  font-size: 0.78rem;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-2xs);
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--tracking-label);
   color: var(--ink-soft);
 }
 
 .detail__section p {
-  margin: 0 0 0.7rem;
-  font-size: 0.92rem;
-  line-height: 1.85;
+  max-width: 62ch;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
   color: var(--ink);
 }
 
 .detail__gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-2);
 }
 
 .detail__gallery img {
   width: 100%;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
 }
 
+/* ---- 实用信息：定义列表按行分栏，行间用细线 ---- */
+
 .detail__facts {
   display: grid;
-  grid-template-columns: 5.5rem 1fr;
-  gap: 0.35rem 0.75rem;
+  grid-template-columns: 7rem 1fr;
   margin: 0;
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
+}
+
+.detail__facts dt,
+.detail__facts dd {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .detail__facts dt {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
   color: var(--ink-soft);
 }
 
 .detail__facts dd {
   margin: 0;
-  line-height: 1.6;
+  line-height: var(--leading-snug);
 }
+
+/* ---- 来源与提示 ---- */
 
 .detail__sources {
   padding-left: 1.1rem;
   margin: 0;
-  font-size: 0.84rem;
-  line-height: 1.8;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
 }
 
 .detail__sources a {
@@ -291,41 +325,48 @@ function markBroken(url: string): void {
 }
 
 .detail__notice {
-  margin-top: 0.7rem !important;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.78rem !important;
-  line-height: 1.6 !important;
+  margin: var(--space-3) 0 0 !important;
+  padding: 0.65rem 0.8rem;
+  font-size: var(--text-xs) !important;
+  line-height: 1.65 !important;
   color: var(--ink-soft) !important;
   background: var(--surface-muted);
   border-radius: var(--radius-sm);
 }
 
-.detail__back--bottom {
-  margin-top: 2rem;
-}
+/* ---- 上下一条 ---- */
 
 .detail__pager {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-  padding-top: 1.2rem;
-  margin-top: 2rem;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  margin-top: var(--space-5);
   border-top: 1px solid var(--line);
 }
 
 .detail__pager-item {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.6rem 0.75rem;
+  gap: 0.25rem;
+  padding: 0.7rem 0.85rem;
   color: var(--ink);
   text-decoration: none;
-  background: rgb(var(--surface-rgb) / 78%);
+  background: rgb(var(--surface-rgb) / 88%);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.detail__pager-item:hover {
+  background: var(--surface-muted);
+  border-color: var(--line-strong);
 }
 
 .detail__pager-item--next {
+  align-items: flex-end;
   text-align: right;
 }
 
@@ -336,22 +377,23 @@ function markBroken(url: string): void {
 }
 
 .detail__pager-dir {
-  font-size: 0.72rem;
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
 }
 
 .detail__pager-name {
-  font-size: 0.9rem;
+  font-size: var(--text-base);
+}
+
+.detail__back--bottom {
+  margin-top: var(--space-5);
 }
 
 .detail--missing {
-  padding-top: 3rem;
-}
-.detail__back,
-.detail__category,
-.detail__facts dt {
-  display: inline-flex;
-  gap: 0.3rem;
-  align-items: center;
+  padding-top: var(--space-6);
 }
 </style>
