@@ -183,12 +183,12 @@ function toSiteDatum(
     symbol: categoryMarkerSymbol(site.category, selected),
     symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
     itemStyle: {
-      // 圆钉本身已经带了白底与描边（SVG 里），这里只留一点投影做层次
+      // 圆钉自身已有白底与细圈，不再加 canvas 阴影：阴影会溢出到河道上，把水系盖出灰边
       color,
       borderColor: 'transparent',
       borderWidth: 0,
-      shadowBlur: selected ? 10 : 6,
-      shadowColor: 'rgba(17, 17, 17, 0.18)',
+      shadowBlur: 0,
+      shadowColor: 'transparent',
     },
     label: { show: selected },
   }
@@ -267,7 +267,9 @@ export function buildAnhuiMapOption(
       map: ANHUI_MAP_NAME,
       // 拖动会让人误以为整张图可以随便拖走，而且省域在视野里本来就固定；
       // 缩放交给组件自己的滚轮/缩放条（带动画），所以这里既不开拖动也不开滚轮。
-      roam: false,
+      // 'move'：允许拖动平移，但缩放由组件自己的滚轮/缩放条/双指接管（避免两套缩放打架）。
+      // 拖动范围由组件在 georoam 里夹住，不能把省域拖出视野。
+      roam: 'move',
       // geo 自己的形变动画会让「地图」比「地标」晚一截：散点位置按目标变换立即计算，
       // 而 polygons 还在 300–400ms 的补间里。平滑由组件的 rAF 补间负责，这里必须关掉。
       animation: false,
@@ -312,7 +314,8 @@ export function buildAnhuiMapOption(
         animation: false,
         // polyline：把每条河的折线整体画出来，而不是首尾相连的「飞线」
         polyline: true,
-        lineStyle: { color: palette.riverLine, opacity: 0.9, cap: 'round' },
+        // 河道按「水面」画：与湖水同色、圆头、足够宽，缩到省域视野也看得出是水系
+        lineStyle: { color: palette.riverLine, opacity: 1, cap: 'round', join: 'round' },
         data: rivers.map((river) => ({
           coords: river.coords,
           lineStyle: { width: river.width },
