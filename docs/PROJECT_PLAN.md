@@ -1,11 +1,11 @@
 # 乡遇地图 · 项目规划
 
-> 版本：v1.0 ｜ 制定日期：2026-11-18 ｜ 维护人：Hldwsd（A）、xc3122（B）
+> 版本：v1.1 ｜ 制定日期：2026-11-18 ｜ 修订：2026-11-19 范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)） ｜ 维护人：Hldwsd（A）、xc3122（B）
 > 本文件是排期、分工与验收标准的**唯一准绳**；README 只做摘要，不复制排期。
 
 ## 项目定位
 
-「乡遇地图」把散落在全国乡镇的文旅项目聚到一张可点击的中国地图上。它不是 OTA 预订平台，而是一个**发现入口**：先用地图建立空间感，再用详情页讲清一个项目"值不值得去、什么时候去、怎么去"。
+「乡遇地图」把安徽各地散落的文旅项目聚到一张可点击的安徽省地图上，地图按 16 个地级市分区。它不是 OTA 预订平台，而是一个**发现入口**：先用地图建立空间感，再用详情页讲清一个项目"值不值得去、什么时候去、怎么去"。
 
 判断标准：任何一个功能，如果不能让用户更快地"在地图上发现一个项目"或"看懂一个项目"，就不进 MVP。
 
@@ -15,10 +15,10 @@
 
 | 能力         | 说明                                                                   |
 | ------------ | ---------------------------------------------------------------------- |
-| 首页中国地图 | 省界轮廓 + 地标点，支持缩放平移、悬停/点击反馈                         |
+| 首页安徽地图 | 16 个地级市分区轮廓 + 市名 + 地标点，支持缩放平移、悬停/点击反馈       |
 | 地标数据层   | 结构化的项目数据（含坐标、分类、图文、来源），可增删改而无需改代码逻辑 |
 | 详情展示     | 点击地标 → 详情卡/详情页，含图文、位置、季节、交通、预约入口           |
-| 发现辅助     | 按分类/省份筛选、关键词搜索、列表与地图双向联动                        |
+| 发现辅助     | 按分类/城市筛选、关键词搜索、列表与地图双向联动                        |
 | 响应式       | 桌面优先，兼容平板与手机浏览（触摸缩放可用）                           |
 | 质量基线     | 类型检查、lint、核心工具函数单测、自动部署                             |
 
@@ -44,8 +44,8 @@
 
 核心流程（MVP 只保证第 1 条走通）：
 
-1. **发现**：进入首页 → 看到中国地图上的地标分布 → 点击某个地标 → 侧栏出现项目摘要 → 进入详情页看完整信息。
-2. **筛选**：选择"非遗"分类或某省份 → 地图只保留对应地标 → 列表同步收敛。
+1. **发现**：进入首页 → 看到安徽省地图上按 16 个地级市划分的地标分布 → 点击某个地标 → 侧栏出现项目摘要 → 进入详情页看完整信息。
+2. **筛选**：选择"非遗"分类或某个城市（如黄山市）→ 地图只保留对应地标 → 列表同步收敛。
 3. **检索**（M2 起）：输入"廊桥""梯田" → 命中地标并高亮定位。
 4. **深链**：把 `/site/:id` 直接发给朋友，打开即达详情。
 
@@ -78,24 +78,24 @@
 xiangyu-map/
 ├─ docs/                          # 规划、协作规范、ADR
 ├─ public/
-│  ├─ maps/china.json             # 中国地图 GeoJSON（35 个要素，568.9 KB / gzip 192.8 KB）
+│  ├─ maps/anhui.json             # 安徽省 GeoJSON（16 个市级要素，124.3 KB / gzip 39.8 KB）
 │  ├─ maps/README.md              # 底图来源、sha256、合规提示
 │  └─ images/placeholder.svg      # 示例数据统一占位图；正式图放 images/sites/<id>/
-├─ scripts/fetch-china-map.mjs    # 重新抓取底图（pnpm data:china-map）
+├─ scripts/fetch-anhui-map.mjs    # 重新抓取底图（pnpm data:anhui-map）
 ├─ src/
 │  ├─ assets/main.css             # 设计变量与全局样式
 │  ├─ components/
-│  │  ├─ map/ChinaMap.vue         # 唯一创建/销毁 ECharts 实例的地方
-│  │  ├─ map/china-map-option.ts  # 纯函数构建 option（可直接单测）
+│  │  ├─ map/AnhuiMap.vue         # 唯一创建/销毁 ECharts 实例的地方
+│  │  ├─ map/anhui-map-option.ts  # 纯函数构建 option（可直接单测）
 │  │  └─ site/CategoryFilter.vue、site/SitePanel.vue
 │  ├─ data/sites.ts               # 地标数据（当前 10 条示例）
 │  ├─ router/index.ts             # / 与 /site/:id（详情页按需加载）
-│  ├─ services/china-map-loader.ts # 底图加载与缓存，全站唯一的 fetch 出口
+│  ├─ services/anhui-map-loader.ts # 底图加载与缓存，全站唯一的 fetch 出口
 │  ├─ stores/sites.ts             # 数据 + 筛选 + 选中态
 │  ├─ types/site.ts               # 数据契约（双方评审后冻结）
 │  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
 │  ├─ views/HomeView.vue、views/SiteDetailView.vue
-│  ├─ __tests__/                  # Vitest 单测（4 个文件 / 37 个用例）
+│  ├─ __tests__/                  # Vitest 单测（4 个文件 / 48 个用例）
 │  ├─ App.vue
 │  └─ main.ts
 ├─ .github/workflows/ci.yml       # PR 上跑 lint / format / typecheck / test / build
@@ -107,17 +107,17 @@ xiangyu-map/
 
 - 地图实例只由 `components/map/` 内的组件持有，其他组件通过 props/emit 或 store 交互，避免多处 `echarts.init` 抢 canvas。
 - `src/types/site.ts` 是**接口契约**：字段增删必须双方在 PR 中确认（见协作规范的「契约先行」）。
-- ECharts 6 已不再内置中国地图数据（自 5.0 起移除），GeoJSON 必须自备并用 `echarts.registerMap()` 注册；地图数据来源与审图号在 M0 落定（见风险一节）。
+- ECharts 6 已不再内置地图数据（自 5.0 起移除），GeoJSON 必须自备并用 `echarts.registerMap()` 注册。本项目底图是 DataV.GeoAtlas 的安徽省市级轮廓（16 个要素），来源、sha256 与审图号待办记在 `public/maps/README.md`。
 
 示意（仅说明接入方式，落地后以 `src/` 实现为准）：
 
 ```ts
-// src/services/china-map-loader.ts —— 全站唯一调用 fetch 的地方
-const geoJson = await loadChinaMap() // 同一会话只请求一次，失败清缓存可重试
+// src/services/anhui-map-loader.ts —— 全站唯一调用 fetch 的地方
+const geoJson = await loadAnhuiMap() // 同一会话只请求一次，失败清缓存可重试
 
-// src/components/map/ChinaMap.vue —— 唯一持有实例的地方
-echarts.registerMap(CHINA_MAP_NAME, geoJson)
-chart.value?.setOption(buildChinaMapOption(sites, selectedId))
+// src/components/map/AnhuiMap.vue —— 唯一持有实例的地方
+echarts.registerMap(ANHUI_MAP_NAME, geoJson)
+chart.value?.setOption(buildAnhuiMapOption(sites, selectedId))
 ```
 
 ## 数据模型与约定
@@ -127,17 +127,40 @@ chart.value?.setOption(buildChinaMapOption(sites, selectedId))
 ```ts
 export type SiteCategory = '古镇' | '非遗' | '红色' | '自然' | '演艺' | '乡村'
 
+// 当前范围只有安徽，所以省份是字面量、城市是 16 个地级市的联合类型：
+// 写错一个字的城市名在编译期就被拦下，而不是等到筛选时静默落空。
+export const ANHUI_PROVINCE = '安徽省' as const
+export const ANHUI_CITIES = [
+  '合肥市',
+  '芜湖市',
+  '蚌埠市',
+  '淮南市',
+  '马鞍山市',
+  '淮北市',
+  '铜陵市',
+  '安庆市',
+  '黄山市',
+  '滁州市',
+  '阜阳市',
+  '宿州市',
+  '六安市',
+  '亳州市',
+  '池州市',
+  '宣城市',
+] as const
+export type AnhuiCity = (typeof ANHUI_CITIES)[number]
+
 export interface LngLat {
   lng: number
   lat: number
 }
 
 export interface Site {
-  id: string // 稳定 slug，如 'wuzhen'，一旦上线不可改（详情页深链依赖）
+  id: string // 稳定 slug，如 'hongcun'，一旦上线不可改（详情页深链依赖）
   name: string
   category: SiteCategory
-  province: string // 省级行政区全称，如 '浙江省'
-  city: string
+  province: typeof ANHUI_PROVINCE // 字面量：当前只有安徽
+  city: AnhuiCity // 必须是 16 个地级市之一；地图分区与筛选都依赖它
   location: LngLat // GCJ-02（高德坐标拾取器取点）
   summary: string // ≤ 60 字，地图侧栏与列表用
   description: string // 详情页正文，纯文本；空行分段
@@ -156,33 +179,33 @@ export interface Site {
 
 ```json
 {
-  "id": "wuzhen",
-  "name": "乌镇",
-  "category": "古镇",
-  "province": "浙江省",
-  "city": "嘉兴市",
-  "location": { "lng": 120.49, "lat": 30.74 },
-  "summary": "水网穿镇而过，东西栅气质不同：东栅偏市井，西栅的夜灯与河道更容易被记住。",
-  "description": "乌镇沿河成街，石桥、廊棚与水阁构成典型的江南水乡格局。",
+  "id": "hongcun",
+  "name": "宏村",
+  "category": "乡村",
+  "province": "安徽省",
+  "city": "黄山市",
+  "location": { "lng": 117.988, "lat": 29.996 },
+  "summary": "牛形水系串起月沼与南湖的古村落，白墙黛瓦倒映在水面，清晨最安静。",
+  "description": "宏村的水系按牛形布局，水圳从每家门前流过，月沼与南湖是两处最开阔的水面。",
   "cover": "/images/placeholder.svg",
   "gallery": [],
-  "tags": ["示例数据", "水乡", "夜游", "古镇"],
-  "bestSeason": "3-5 月、9-11 月",
-  "transport": "桐乡站转公交约 30 分钟，或从杭州、上海自驾直达。",
-  "sources": ["https://example.com/sites/wuzhen"],
-  "updatedAt": "2026-11-18"
+  "tags": ["示例数据", "徽派", "村落"],
+  "bestSeason": "3-4 月、11 月",
+  "transport": "黄山北站转乘至黟县，再换乘至宏村。",
+  "sources": ["https://example.com/sites/hongcun"],
+  "updatedAt": "2026-11-19"
 }
 ```
 
 字段规则：
 
-| 规则 | 内容                                                                                                                                                     |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 分类 | 只用 `SiteCategory` 六个值；新增分类需改类型 + 图例配色，单独 PR                                                                                         |
-| 坐标 | 统一 GCJ-02；若 geoJSON 底图与取点存在明显偏移（> 1km），统一做一次 WGS-84 → GCJ-02 转换，不逐条手改                                                     |
-| 图片 | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放                                                                                  |
-| 来源 | `sources` 必填：官方站点、开放数据或授权素材；无来源数据不入库                                                                                           |
-| 校验 | 启动时校验：id 唯一与格式、分类枚举、省级行政区全称、坐标在国内范围、summary 长度、图片路径与 id 一致、updatedAt 真实日期；单测覆盖真实数据，CI 必须通过 |
+| 规则 | 内容                                                                                                                                                                                     |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 分类 | 只用 `SiteCategory` 六个值；新增分类需改类型 + 图例配色，单独 PR                                                                                                                         |
+| 坐标 | 统一 GCJ-02；若 geoJSON 底图与取点存在明显偏移（> 1km），统一做一次 WGS-84 → GCJ-02 转换，不逐条手改                                                                                     |
+| 图片 | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放                                                                                                                  |
+| 来源 | `sources` 必填：官方站点、开放数据或授权素材；无来源数据不入库                                                                                                                           |
+| 校验 | 启动时校验：id 唯一与格式、分类枚举、省份固定为安徽省、城市属于 16 个地级市、坐标落在安徽省外包框内、summary 长度、图片路径与 id 一致、updatedAt 真实日期；单测覆盖真实数据，CI 必须通过 |
 
 ## 团队与分工
 
@@ -224,15 +247,16 @@ export interface Site {
 目标：一条命令起服务，一条命令出构建，地图能画出来，数据有契约。
 
 - [x] 【A】Vite + Vue 3 + TS 脚手架；`package.json` 写入 `engines` 与 `packageManager`，提交 `pnpm-lock.yaml`
-- [x] 【A】ESLint（flat config）+ Prettier + `vue-tsc --build` + Vitest 通过（4 个文件 / 37 个用例）
+- [x] 【A】ESLint（flat config）+ Prettier + `vue-tsc --build` + Vitest 通过（4 个文件 / 48 个用例）
 - [x] 【A】GitHub Actions：PR 上跑 `lint` / `format:check` / `type-check` / `test:unit` / `build`
-- [x] 【A】`public/maps/china.json` 落地（35 要素，gzip 192.8 KB），`registerMap` 渲染出国界与省界，页脚与 `public/maps/README.md` 注明来源、审图号待办
+- [x] 【A】`public/maps/anhui.json` 落地（16 个市级要素，gzip 39.8 KB），`registerMap` 渲染出 16 个地级市边界与市名，页脚与 `public/maps/README.md` 注明来源、审图号待办
 - [x] 【B】`src/types/site.ts` 契约初稿 + `utils/site-validation.ts` 校验实现，PR 中 @A 评审后冻结
 - [x] 【B】10 条示例数据（全部标注「示例数据」），校验在 store 初始化时执行，校验失败直接抛 `SiteDataError`
 - [ ] 【A】部署链路打通（GitHub Pages 或 Vercel），推 main 自动出预览地址
+- [x] 【A】范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)）：底图换 `anhui.json`（16 市）、`province` 固定 + `city` 收成 16 市联合类型、校验换 `ANHUI_BBOX` 与市级白名单、10 条示例数据与 48 个用例同步
 - [x] 【B】照 README 的「快速开始」在干净目录实跑一遍，修正文档（A 已实测，见下；B 合并前置 checkout 复核）
 
-**DoD 进度**：`pnpm build` 成功 ✅；首页可见中国地图轮廓 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ✅（2026-11-18 在全新克隆目录实测：`pnpm install --frozen-lockfile` 3 分 14 秒 + `pnpm build` 0.5 秒，产物与开发机一致）。
+**DoD 进度**：`pnpm build` 成功 ✅；首页可见安徽省 16 个地级市的分区轮廓与市名 ✅（含 10 个可点击地标）；CI 在 PR 上必跑 ✅（配置已提交，首次运行见本 PR 的 checks）；新同学按 README 10 分钟跑起来 ✅（2026-11-18 在全新克隆目录实测：`pnpm install --frozen-lockfile` 3 分 14 秒 + `pnpm build` 0.5 秒，产物与开发机一致）。
 
 **M0 起已可用的手感验证**（M0 交付时实测）：点击地标 → 侧栏摘要 → 详情页；分类筛选与关键词搜索联动列表与地图；窗口缩到 500px 宽自动切单列。
 
@@ -242,7 +266,7 @@ export interface Site {
 
 - 地标渲染：scatter/effectScatter，按分类配色与图标，密度高的区域做视觉聚合
 - 交互：`roam` 缩放平移、hover 高亮 + tooltip、点击选中并联动侧栏
-- 筛选：分类图例、省份选择（store 驱动，不直接操作 chart 实例）
+- 筛选：分类图例、城市选择（16 个地级市，store 驱动，不直接操作 chart 实例）
 - 键盘与读屏基础：地标可通过 Tab 聚焦、Enter 打开
 - 性能：首次渲染与缩放帧率达标（见质量标准）
 
@@ -254,7 +278,7 @@ export interface Site {
 
 - `/site/:id` 详情页：图文排版、画廊、位置小图、交通与预约、上下一条导航
 - 深链与分享：直达详情、回退保持地图选中态
-- 搜索：名称/标签/省份检索，命中后地图定位并高亮
+- 搜索：名称/标签/城市检索，命中后地图定位并高亮
 - 列表 ↔ 地图双向联动（悬停/选中互相同步）
 - 状态完备：加载骨架、空态、错误态、图片懒加载与失败占位
 - 响应式：≥1440 / 768–1439 / <768 三档布局
@@ -280,9 +304,9 @@ export interface Site {
 - Tauri 2 桌面壳：复用 `dist/`，跑通 Windows 打包与安装
 - 移动端方案对比（Tauri 2 mobile vs Capacitor）：包体、插件生态、地图性能、上架流程
 - 适配问题清单：安全区、手势冲突、`back` 键行为、离线缓存
-- 产出 ADR 0002（结论 + 代价），以及 v0.2.0 的候选清单
+- 产出 ADR 0003（结论 + 代价），以及 v0.2.0 的候选清单
 
-**DoD**：本机产出可安装的 Windows 包；ADR 0002 记录选型结论与遗留问题。
+**DoD**：本机产出可安装的 Windows 包；ADR 0003 记录选型结论与遗留问题。
 
 ## 工程与质量标准
 
@@ -299,16 +323,16 @@ export interface Site {
 
 ## 风险与对策
 
-| 风险                                                                               | 概率 | 影响               | 对策                                                                                                                                                                                                                                                                             |
-| ---------------------------------------------------------------------------------- | ---- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **地图合规**：公开登载中国地图需地图审核、标注审图号；互联网地图服务还涉及测绘资质 | 中   | 高（可能被迫下线） | M0 就定底图来源（优先使用官方标准地图服务或已授权底图），页面显著位置标注审图号与来源；上线前向自然资源主管部门/法务确认；先内测不公开访问。依据：《地图管理条例》与自然资源部、工信部 2024 年《关于规范移动互联网应用程序中登载使用地图行为的通知》要求履行地图审核并标示审图号 |
-| GeoJSON 体积过大导致首屏慢                                                         | 高   | 中                 | 简化边界精度（保留国界与省界）、gzip/brotli、按需加载（先渲染轮廓再补细节）、必要时按大区分片                                                                                                                                                                                    |
-| 移动端地图手势与页面滚动冲突                                                       | 高   | 中                 | 用 `touch-action` 与 roam 手势边界控制；进入地图区域时才接管手势；真机测试纳入 M1 DoD                                                                                                                                                                                            |
-| 两人并行改同一文件冲突                                                             | 中   | 中                 | 功能纵切 + 契约先行；`types/`、`router/`、`main.ts` 改动在 PR 里 @对方；分支存活 ≤ 3 天                                                                                                                                                                                          |
-| 文旅数据真实性与图片版权                                                           | 高   | 中                 | `sources` 必填、图片只用授权/自有素材、示例数据显式标注；上线前做一次全量抽查                                                                                                                                                                                                    |
-| 后续多端迁移成本                                                                   | 中   | 中                 | 核心逻辑与平台壳分离；不在组件里直接调浏览器 API（统一走 utils）；M4 用小壳验证而非大改                                                                                                                                                                                          |
-| TS 7 / Vue 生态适配滞后                                                            | 中   | 低                 | **已触发**：`vue-tsc` 3.3 尚不支持 TS 7，M0 落地为 TypeScript 6.0.3（见本 PR 说明）；待生态跟进后单独开 PR 升级                                                                                                                                                                  |
-| 依赖下载失败（镜像抖动/超时）                                                      | 中   | 低                 | CI 用 `--frozen-lockfile`；本地首次安装失败时用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3`，不要删 lockfile 重装                                                                                                                           |
+| 风险                                                                                     | 概率 | 影响               | 对策                                                                                                                                                                                                                                                                             |
+| ---------------------------------------------------------------------------------------- | ---- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **地图合规**：公开登载安徽省地图同样需地图审核、标注审图号；互联网地图服务还涉及测绘资质 | 中   | 高（可能被迫下线） | M0 就定底图来源（优先使用官方标准地图服务或已授权底图），页面显著位置标注审图号与来源；上线前向自然资源主管部门/法务确认；先内测不公开访问。依据：《地图管理条例》与自然资源部、工信部 2024 年《关于规范移动互联网应用程序中登载使用地图行为的通知》要求履行地图审核并标示审图号 |
+| GeoJSON 体积过大导致首屏慢                                                               | 低   | 中                 | 当前安徽省底图 gzip 39.8 KB，距 250 KB 预算余量很大；扩到多省/全国时再按省分片加载，并重新核算预算                                                                                                                                                                               |
+| 移动端地图手势与页面滚动冲突                                                             | 高   | 中                 | 用 `touch-action` 与 roam 手势边界控制；进入地图区域时才接管手势；真机测试纳入 M1 DoD                                                                                                                                                                                            |
+| 两人并行改同一文件冲突                                                                   | 中   | 中                 | 功能纵切 + 契约先行；`types/`、`router/`、`main.ts` 改动在 PR 里 @对方；分支存活 ≤ 3 天                                                                                                                                                                                          |
+| 文旅数据真实性与图片版权                                                                 | 高   | 中                 | `sources` 必填、图片只用授权/自有素材、示例数据显式标注；上线前做一次全量抽查                                                                                                                                                                                                    |
+| 后续多端迁移成本                                                                         | 中   | 中                 | 核心逻辑与平台壳分离；不在组件里直接调浏览器 API（统一走 utils）；M4 用小壳验证而非大改                                                                                                                                                                                          |
+| TS 7 / Vue 生态适配滞后                                                                  | 中   | 低                 | **已触发**：`vue-tsc` 3.3 尚不支持 TS 7，M0 落地为 TypeScript 6.0.3（见本 PR 说明）；待生态跟进后单独开 PR 升级                                                                                                                                                                  |
+| 依赖下载失败（镜像抖动/超时）                                                            | 中   | 低                 | CI 用 `--frozen-lockfile`；本地首次安装失败时用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3`，不要删 lockfile 重装                                                                                                                           |
 
 ## 度量与复盘
 

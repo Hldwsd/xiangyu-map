@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import ChinaMap from '@/components/map/ChinaMap.vue'
-import { CATEGORY_COLORS } from '@/components/map/china-map-option'
+import AnhuiMap from '@/components/map/AnhuiMap.vue'
+import { CATEGORY_COLORS } from '@/components/map/anhui-map-option'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { useSitesStore } from '@/stores/sites'
@@ -19,7 +19,7 @@ const empty = computed(() => filteredSites.value.length === 0)
 <template>
   <div class="home">
     <section class="home__map-area">
-      <ChinaMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
+      <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
 
       <div class="home__filters">
         <CategoryFilter
@@ -63,7 +63,7 @@ const empty = computed(() => filteredSites.value.length === 0)
             <button type="button" class="home__item" @click="store.selectSite(site.id)">
               <span class="home__dot" :style="{ background: CATEGORY_COLORS[site.category] }" />
               <span class="home__item-name">{{ site.name }}</span>
-              <span class="home__item-meta">{{ site.province }} · {{ site.city }}</span>
+              <span class="home__item-meta">{{ site.city }}</span>
             </button>
           </li>
         </ul>

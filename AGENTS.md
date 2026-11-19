@@ -6,7 +6,7 @@
 
 ## 项目
 
-「乡遇地图」：一张中国地图，地标代表文旅项目（古镇/非遗/红色/自然/演艺/乡村），点击看详情。当前只有网页端：Vue 3 + Vite + TypeScript + Pinia + Vue Router + ECharts 6。桌面/移动壳在 M4 预研。
+「乡遇地图」：一张安徽省地图，按 16 个地级市分区，地标代表文旅项目（古镇/非遗/红色/自然/演艺/乡村），点击看详情。当前只有网页端：Vue 3 + Vite + TypeScript + Pinia + Vue Router + ECharts 6。桌面/移动壳在 M4 预研。
 
 ## 命令
 
@@ -16,7 +16,7 @@ pnpm build                   # 类型检查 + 生产构建（提交前必须绿�
 pnpm test:unit --run         # 单测
 pnpm lint                    # ESLint
 pnpm format                  # Prettier
-pnpm data:china-map          # 重新抓取 public/maps/china.json
+pnpm data:anhui-map          # 重新抓取 public/maps/anhui.json
 ```
 
 首次安装失败（镜像超时）用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3`，**不要删 lockfile 重装**。
@@ -36,16 +36,17 @@ pnpm data:china-map          # 重新抓取 public/maps/china.json
 | 想改什么                | 改这里                                                       | 别动                     |
 | ----------------------- | ------------------------------------------------------------ | ------------------------ |
 | 新增/修改一个文旅项目   | `src/data/sites.ts`（加一条数据 + 放图）                     | 组件里不写死项目内容     |
-| 地标样式、配色、tooltip | `src/components/map/china-map-option.ts`                     | 不要在组件外 new ECharts |
-| 地图实例生命周期        | `src/components/map/ChinaMap.vue`                            | 别处不碰 ECharts 实例    |
+| 地标样式、配色、tooltip | `src/components/map/anhui-map-option.ts`                     | 不要在组件外 new ECharts |
+| 地图实例生命周期        | `src/components/map/AnhuiMap.vue`                            | 别处不碰 ECharts 实例    |
 | 筛选、搜索、选中态      | `src/stores/sites.ts`                                        | 组件内不各自过滤         |
 | 数据结构与校验          | `src/types/site.ts`、`src/utils/site-validation.ts`          | 校验失败不要静默降级     |
-| 底图                    | `public/maps/china.json`（用 `pnpm data:china-map` 生成）    | 不要手改 JSON            |
+| 底图                    | `public/maps/anhui.json`（用 `pnpm data:anhui-map` 生成）    | 不要手改 JSON            |
 | 构建、CI、依赖          | `vite.config.ts`、`.github/workflows/ci.yml`、`package.json` | 不在 PR 里偷偷放宽闸门   |
 
 ## 数据规则
 
-- 坐标一律 **GCJ-02**；`id` 是 kebab-case 深链，上线后不可改（改了旧链接就死）。
+- 坐标一律 **GCJ-02**，且必须落在安徽省外包框内；`id` 是 kebab-case 深链，上线后不可改（改了旧链接就死）。
+- `province` 固定 `安徽省`；`city` 必须是 `src/types/site.ts` 里 16 个地级市之一（写「黄山」而不是「黄山市」会校验失败）。
 - `summary` ≤ 60 字；`sources` 必填，必须是可访问的 `http(s)` 链接。
 - 示例数据必须在 `tags` 首项写「示例数据」，别让占位内容看起来像事实。
 - 图片放 `public/images/sites/<id>/`，WebP、单张 ≤ 300 KB。

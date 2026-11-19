@@ -14,16 +14,16 @@ function validSite(): Record<string, unknown> {
     id: 'demo-site',
     name: '演示项目',
     category: '古镇',
-    province: '山西省',
-    city: '晋中市',
-    location: { lng: 112.18, lat: 37.2 },
+    province: '安徽省',
+    city: '合肥市',
+    location: { lng: 117.25, lat: 31.86 },
     summary: '一句话简介',
     description: '正文',
     cover: '/images/placeholder.svg',
     gallery: [],
     tags: ['示例数据'],
     sources: ['https://example.com/sites/demo-site'],
-    updatedAt: '2026-11-18',
+    updatedAt: '2026-11-19',
   }
 }
 
@@ -41,7 +41,8 @@ describe('validateSites', () => {
   it('接受仓库里的全部示例数据', () => {
     const validated = validateSites(sites)
     expect(validated).toHaveLength(10)
-    expect(validated.map((site) => site.id)).toContain('pingyao')
+    expect(validated.map((site) => site.id)).toContain('hongcun')
+    expect(validated.every((site) => site.province === '安徽省')).toBe(true)
   })
 
   it('接受一条最小合法数据', () => {
@@ -108,19 +109,29 @@ describe('validateSites', () => {
     expect(expectProblems([broken]).some((problem) => problem.includes('YYYY-MM-DD'))).toBe(true)
   })
 
-  it('province 用简称时报错', () => {
+  it('province 不是安徽省时报错', () => {
     const broken = validSite()
-    broken['province'] = '山西'
-    expect(expectProblems([broken]).some((problem) => problem.includes('省级行政区全称'))).toBe(
-      true,
-    )
+    broken['province'] = '山西省'
+    expect(expectProblems([broken]).some((problem) => problem.includes('当前只收录'))).toBe(true)
   })
 
-  it('坐标落在境外时报错', () => {
+  it('city 不在 16 个地级市内时报错', () => {
     const broken = validSite()
-    // 东京：全球范围合法，但不在中国外包框内，对应「抄错一位 / 经纬度写反」
-    broken['location'] = { lng: 139.7, lat: 35.7 }
-    expect(expectProblems([broken]).some((problem) => problem.includes('不在中国范围内'))).toBe(
+    broken['city'] = '黄山区'
+    expect(expectProblems([broken]).some((problem) => problem.includes('地级市'))).toBe(true)
+  })
+
+  it('city 用简称时报错', () => {
+    const broken = validSite()
+    broken['city'] = '黄山'
+    expect(expectProblems([broken]).some((problem) => problem.includes('地级市'))).toBe(true)
+  })
+
+  it('坐标落在安徽省外时报错', () => {
+    const broken = validSite()
+    // 杭州：全球范围合法、也在中国境内，但不在安徽外包框内，对应「抄错一位 / 经纬度写反」
+    broken['location'] = { lng: 120.15, lat: 30.27 }
+    expect(expectProblems([broken]).some((problem) => problem.includes('不在安徽省范围内'))).toBe(
       true,
     )
   })

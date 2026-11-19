@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts'
 
-import { CHINA_MAP_NAME } from '@/services/china-map-loader'
+import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
 import type { Site, SiteCategory } from '@/types/site'
 
 /** 分类配色。与 assets/main.css 中的 --cat-* 变量保持一致 */
@@ -92,8 +92,11 @@ export function formatSiteTooltip(params: unknown): string {
  *
  * 只用了 geo + scatter 两种能力，没有引入 map 系列 / 地图漫游以外的组件，
  * 是为了守住首屏 JS ≤300KB 的预算（echarts 按需引入）。
+ *
+ * 市级划分靠 geo 的默认行为：底图是 16 个地级市要素，每个要素自带边界与名称，
+ * 所以「划线 + 标市名」不需要额外画图层；这里只调样式与层级。
  */
-export function buildChinaMapOption(sites: Site[], selectedId: string | null): EChartsOption {
+export function buildAnhuiMapOption(sites: Site[], selectedId: string | null): EChartsOption {
   const data = toScatterData(sites, selectedId)
 
   return {
@@ -109,20 +112,25 @@ export function buildChinaMapOption(sites: Site[], selectedId: string | null): E
       formatter: formatSiteTooltip,
     },
     geo: {
-      map: CHINA_MAP_NAME,
+      map: ANHUI_MAP_NAME,
       roam: true,
-      // 默认按底图完整范围自适应：底图含南海诸岛（纬度到 3.4°N），
-      // 这里不裁剪视野，避免出现「少画一块」的合规问题。
+      // 默认按底图完整范围自适应：16 个市必须全部在视野内，
+      // 否则「某个市没有项目」会被误读成「那个市不存在」。
       scaleLimit: { min: 0.9, max: 8 },
       selectedMode: false,
+      label: {
+        show: true,
+        color: '#8a7a63',
+        fontSize: 10,
+      },
       itemStyle: {
         areaColor: '#efe7d8',
         borderColor: '#cbbfa8',
-        borderWidth: 0.8,
+        borderWidth: 0.9,
       },
       emphasis: {
         itemStyle: { areaColor: '#e3d8c2' },
-        label: { show: false },
+        label: { show: true, color: '#2a2620', fontWeight: 'bold' },
       },
     },
     series: [

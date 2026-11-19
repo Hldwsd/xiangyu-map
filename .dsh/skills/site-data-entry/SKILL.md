@@ -19,22 +19,22 @@ description: 在乡遇地图新增或修改一个文旅项目（地标）时使�
 
 在数组里追加一条，字段与 `src/types/site.ts` 的 `Site` 一致：
 
-| 字段                       | 要求                                                                  |
-| -------------------------- | --------------------------------------------------------------------- |
-| `id`                       | kebab-case，全库唯一；**它是详情页的深链 `/site/<id>`，上线后不可改** |
-| `name`                     | 项目正式名称，不用宣传语                                              |
-| `category`                 | 六个枚举值之一                                                        |
-| `province` / `city`        | 中文全称，`市`/`州`/`地区` 按官方写法                                 |
-| `location`                 | `{ lng, lat }`，**GCJ-02**，小数点后至少 4 位                         |
-| `summary`                  | ≤ 60 字，一句话说清"是什么 + 凭什么值得来"                            |
-| `description`              | 纯文本，空行分段；不写 HTML、不写 Markdown 标题                       |
-| `cover`                    | `/images/sites/<id>/cover.webp`                                       |
-| `gallery`                  | 可为空数组；每张同样放 `/images/sites/<id>/`                          |
-| `tags`                     | 2–5 个；正式数据不要带「示例数据」标签                                |
-| `bestSeason` / `transport` | 可选，有就写具体（几月、从哪个站怎么走）                              |
-| `bookingUrl`               | 可选，官方预约入口，没有就不写                                        |
-| `sources`                  | **必填**，至少一条可访问的 `http(s)` 链接，用来溯源                   |
-| `updatedAt`                | `YYYY-MM-DD`                                                          |
+| 字段                       | 要求                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `id`                       | kebab-case，全库唯一；**它是详情页的深链 `/site/<id>`，上线后不可改**                            |
+| `name`                     | 项目正式名称，不用宣传语                                                                         |
+| `category`                 | 六个枚举值之一                                                                                   |
+| `province` / `city`        | `province` 只能是 `安徽省`；`city` 必须是 16 个地级市之一，如 `黄山市`（写 `黄山` 会被校验拦下） |
+| `location`                 | `{ lng, lat }`，**GCJ-02**，小数点后至少 4 位                                                    |
+| `summary`                  | ≤ 60 字，一句话说清"是什么 + 凭什么值得来"                                                       |
+| `description`              | 纯文本，空行分段；不写 HTML、不写 Markdown 标题                                                  |
+| `cover`                    | `/images/sites/<id>/cover.webp`                                                                  |
+| `gallery`                  | 可为空数组；每张同样放 `/images/sites/<id>/`                                                     |
+| `tags`                     | 2–5 个；正式数据不要带「示例数据」标签                                                           |
+| `bestSeason` / `transport` | 可选，有就写具体（几月、从哪个站怎么走）                                                         |
+| `bookingUrl`               | 可选，官方预约入口，没有就不写                                                                   |
+| `sources`                  | **必填**，至少一条可访问的 `http(s)` 链接，用来溯源                                              |
+| `updatedAt`                | `YYYY-MM-DD`                                                                                     |
 
 ## 3. 放图
 
@@ -48,7 +48,7 @@ pnpm test:unit --run src/__tests__/site-validation.spec.ts
 pnpm dev    # 打开首页，确认地标位置正确、点击右侧出现详情、详情页能打开
 ```
 
-校验器会拦住：id 格式或重复、分类不在枚举内、坐标越界、summary 超长、`sources` 为空或不是 http(s)、日期格式不对。报错信息里带 `sites[<下标>]`，按它定位。
+校验器会拦住：id 格式或重复、分类不在枚举内、省份不是安徽省、城市不在 16 市内、坐标落在安徽省外包框外、summary 超长、`sources` 为空或不是 http(s)、图片目录与 id 不一致、日期格式或真实日期不对。
 
 ## 5. 提交
 

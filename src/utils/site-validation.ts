@@ -1,5 +1,11 @@
-import { SITE_CATEGORIES, type Site, type SiteCategory } from '@/types/site'
-import { isProvince } from '@/utils/provinces'
+import {
+  ANHUI_CITIES,
+  ANHUI_PROVINCE,
+  SITE_CATEGORIES,
+  type Site,
+  type SiteCategory,
+} from '@/types/site'
+import { ANHUI_BBOX, isAnhuiCity } from '@/utils/region'
 
 /** summary 的字数上限，与 docs/PROJECT_PLAN.md 数据契约一致 */
 export const SUMMARY_MAX_LENGTH = 60
@@ -7,13 +13,8 @@ export const SUMMARY_MAX_LENGTH = 60
 /** 示例数据的统一占位封面；正式图必须落在 public/images/sites/<id>/ 下 */
 export const PLACEHOLDER_COVER = '/images/placeholder.svg'
 
-/**
- * 中国陆地经纬度外包框。
- *
- * 只用来拦住「坐标落在境外」「经纬度写反」这类错误，不判断点位是否真的在岸上——
- * 那种精度需要底图参与，不在数据校验的职责里。底图与坐标的坐标系一致性另行核对。
- */
-export const CHINA_BBOX = { minLng: 73.4, maxLng: 135.1, minLat: 3.8, maxLat: 53.6 } as const
+// 外包框的取值与理由见 src/utils/region.ts 的 ANHUI_BBOX：
+// 只用来拦住「坐标落到外省」「经纬度写反」，不判断点位是否真的在岸上。
 
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -93,14 +94,20 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
   const province = raw['province']
   if (!isNonEmptyString(province)) {
     problems.push(`${label}.province: 必须是非空字符串`)
-  } else if (!isProvince(province)) {
-    // 简称（「浙江」）能骗过非空校验，但会让省份筛选与分组静默落空
-    problems.push(
-      `${label}.province: "${province}" 不是省级行政区全称（如「山西省」，见 src/utils/provinces.ts）`,
-    )
+  } else if (province !== ANHUI_PROVINCE) {
+    // 当前范围只有安徽。别的省能过「非空」，但会让省份文案前后矛盾
+    problems.push(`${label}.province: 当前只收录「${ANHUI_PROVINCE}」，收到 "${province}"`)
   }
 
-  if (!isNonEmptyString(raw['city'])) problems.push(`${label}.city: 必须是非空字符串`)
+  const city = raw['city']
+  if (!isNonEmptyString(city)) {
+    problems.push(`${label}.city: 必须是非空字符串`)
+  } else if (!isAnhuiCity(city)) {
+    // 简称或错字（「黄山」而非「黄山市」）能骗过非空校验，但会让市级筛选与分组静默落空
+    problems.push(
+      `${label}.city: "${city}" 不在 ${ANHUI_CITIES.length} 个地级市内（如「黄山市」，见 src/types/site.ts）`,
+    )
+  }
 
   const location = raw['location']
   if (!isRecord(location)) {
@@ -120,12 +127,12 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
       typeof lat === 'number' &&
       Number.isFinite(lng) &&
       Number.isFinite(lat) &&
-      (lng < CHINA_BBOX.minLng ||
-        lng > CHINA_BBOX.maxLng ||
-        lat < CHINA_BBOX.minLat ||
-        lat > CHINA_BBOX.maxLat)
+      (lng < ANHUI_BBOX.minLng ||
+        lng > ANHUI_BBOX.maxLng ||
+        lat < ANHUI_BBOX.minLat ||
+        lat > ANHUI_BBOX.maxLat)
     ) {
-      problems.push(`${label}.location: (${lng}, ${lat}) 不在中国范围内，检查是否把经纬度写反`)
+      problems.push(`${label}.location: (${lng}, ${lat}) 不在安徽省范围内，检查是否把经纬度写反`)
     }
   }
 

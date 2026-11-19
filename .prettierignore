@@ -3,5 +3,5 @@ dist
 dist-ssr
 coverage
 pnpm-lock.yaml
-public/maps/china.json
+public/maps/anhui.json
 public/favicon.ico

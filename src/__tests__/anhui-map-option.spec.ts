@@ -3,11 +3,11 @@ import type { EChartsOption } from 'echarts'
 
 import {
   CATEGORY_COLORS,
-  buildChinaMapOption,
+  buildAnhuiMapOption,
   escapeHtml,
   formatSiteTooltip,
   toScatterData,
-} from '@/components/map/china-map-option'
+} from '@/components/map/anhui-map-option'
 import { sites } from '@/data/sites'
 
 function scatterDataOf(option: EChartsOption): unknown[] {
@@ -21,15 +21,15 @@ describe('toScatterData', () => {
     const data = toScatterData(sites, null)
     expect(data).toHaveLength(sites.length)
 
-    const wuzhen = data.find((datum) => datum.siteId === 'wuzhen')
-    expect(wuzhen?.value).toEqual([120.49, 30.74])
-    expect(wuzhen?.name).toBe('乌镇')
+    const hongcun = data.find((datum) => datum.siteId === 'hongcun')
+    expect(hongcun?.value).toEqual([117.988, 29.996])
+    expect(hongcun?.name).toBe('宏村')
   })
 
   it('默认不显示名称标签，选中项放大并显示标签', () => {
-    const data = toScatterData(sites, 'wuzhen')
-    const selected = data.find((datum) => datum.siteId === 'wuzhen')
-    const other = data.find((datum) => datum.siteId === 'pingyao')
+    const data = toScatterData(sites, 'hongcun')
+    const selected = data.find((datum) => datum.siteId === 'hongcun')
+    const other = data.find((datum) => datum.siteId === 'huangshan-scenic')
 
     expect(selected?.symbolSize).toBeGreaterThan(other?.symbolSize ?? 0)
     expect(selected?.label.show).toBe(true)
@@ -47,23 +47,23 @@ describe('toScatterData', () => {
 
 describe('escapeHtml', () => {
   it('转义会破坏结构的字符', () => {
-    expect(escapeHtml('<b>"平遥" & \'古城\'</b>')).toBe(
-      '&lt;b&gt;&quot;平遥&quot; &amp; &#39;古城&#39;&lt;/b&gt;',
+    expect(escapeHtml('<b>"宏村" & \'古村\'</b>')).toBe(
+      '&lt;b&gt;&quot;宏村&quot; &amp; &#39;古村&#39;&lt;/b&gt;',
     )
   })
 
   it('普通文本保持不变', () => {
-    expect(escapeHtml('平遥古城')).toBe('平遥古城')
+    expect(escapeHtml('徽州古城')).toBe('徽州古城')
   })
 })
 
 describe('formatSiteTooltip', () => {
   it('输出项目名与「分类 · 简介」', () => {
     const html = formatSiteTooltip({
-      data: { name: '乌镇', category: '古镇', summary: '水网穿镇而过' },
+      data: { name: '宏村', category: '乡村', summary: '月沼与南湖' },
     })
-    expect(html).toContain('<strong>乌镇</strong>')
-    expect(html).toContain('古镇 · 水网穿镇而过')
+    expect(html).toContain('<strong>宏村</strong>')
+    expect(html).toContain('乡村 · 月沼与南湖')
   })
 
   it('转义数据里的 HTML', () => {
@@ -78,17 +78,32 @@ describe('formatSiteTooltip', () => {
   })
 })
 
-describe('buildChinaMapOption', () => {
-  it('使用已注册的 china 地图与 scatter 系列', () => {
-    const option = buildChinaMapOption(sites, null)
+describe('buildAnhuiMapOption', () => {
+  it('使用已注册的 anhui 地图与 scatter 系列', () => {
+    const option = buildAnhuiMapOption(sites, null)
 
-    expect(option.geo).toMatchObject({ map: 'china', roam: true })
+    expect(option.geo).toMatchObject({ map: 'anhui', roam: true })
     expect(scatterDataOf(option)).toHaveLength(sites.length)
+  })
+
+  it('打开 geo 标签，市级划分才看得见', () => {
+    const option = buildAnhuiMapOption(sites, null)
+    const geo = option.geo as { label?: { show?: boolean }; emphasis?: { label?: unknown } }
+
+    expect(geo.label?.show).toBe(true)
+    expect(geo.emphasis?.label).toBeDefined()
+  })
+
+  it('不写死 center/zoom，视野跟着底图自适应', () => {
+    const geo = buildAnhuiMapOption(sites, null).geo as Record<string, unknown>
+
+    expect(geo['center']).toBeUndefined()
+    expect(geo['zoom']).toBeUndefined()
   })
 
   it('筛选后只保留传入的项目', () => {
     const subset = sites.filter((site) => site.category === '古镇')
-    const option = buildChinaMapOption(subset, null)
+    const option = buildAnhuiMapOption(subset, null)
 
     expect(scatterDataOf(option)).toHaveLength(subset.length)
   })
