@@ -41,7 +41,7 @@
   /* ---- 地图 ---- */
   --map-glow: rgb(255 255 255 / 70%);
   --map-area: #ffffff;
-  --map-border: #e6e6e6;
+  --map-border: #b8b8b8;
   --map-label: #767676;
   --map-area-hover: #f2f2f2;
   --cluster: #111111;
@@ -49,7 +49,7 @@
   /* 水是黑白地图上唯一保留的彩色：浅蓝，和白色陆地一眼区分 */
   --water-fill: #dbeafe;
   --water-border: #bfdbfe;
-  --district-line: #eeeeee;
+  --district-line: #dcdcdc;
   --river-line: #bfdbfe;
 
   /*

@@ -295,7 +295,7 @@ export function buildAnhuiMapOption(
       itemStyle: {
         areaColor: palette.mapArea,
         borderColor: palette.mapBorder,
-        borderWidth: 0.9,
+        borderWidth: 1.1,
       },
       // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
       regions,
