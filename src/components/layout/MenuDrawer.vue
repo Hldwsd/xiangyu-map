@@ -76,7 +76,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
       </section>
 
       <footer class="drawer__footer">
-        <span>黑白 · 现代简约</span>
+        <span>纸本墨线 · 2026</span>
         <a href="https://github.com/Hldwsd/xiangyu-map" target="_blank" rel="noopener noreferrer">
           GitHub
           <AppIcon name="external" :size="12" />
@@ -113,7 +113,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
   width: min(20rem, 84vw);
   padding: calc(env(safe-area-inset-top, 0px) + var(--space-4)) var(--space-4) var(--space-4);
   overflow-y: auto;
-  background: #fff;
+  background: var(--surface);
   border-right: 1px solid var(--line);
   animation: slide-in 0.2s ease;
 }

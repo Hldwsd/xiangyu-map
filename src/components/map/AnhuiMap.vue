@@ -781,7 +781,7 @@ watch(
   height: 0.85rem;
   margin-left: -0.35rem;
   background: var(--ink);
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   border-radius: 50%;
   appearance: none;
 }
@@ -795,7 +795,7 @@ watch(
   width: 0.85rem;
   height: 0.85rem;
   background: var(--ink);
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   border-radius: 50%;
 }
 

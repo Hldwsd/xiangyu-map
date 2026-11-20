@@ -1,13 +1,13 @@
 import type { SiteCategory } from '@/types/site'
 
-/** 组件里用到的一套配色：分类色 + 地图配色（单色方向下分类同色，靠形状区分） */
+/** 组件里用到的一套配色：分类色 + 地图配色（单色方向下分类同色，靠 S1 形状区分） */
 export interface ThemePalette {
   category: Record<SiteCategory, string>
   mapArea: string
   mapBorder: string
   mapLabel: string
   mapAreaHover: string
-  /** 聚合点颜色：与地标同色，靠白色数字与尺寸区分 */
+  /** 聚合点颜色：与地标同色，靠纸底与尺寸区分 */
   cluster: string
   /** 水域填充与描边 */
   waterFill: string
@@ -19,27 +19,27 @@ export interface ThemePalette {
 }
 
 /**
- * 黑白 / 现代简约方向的兜底值，与 tokens.css 的默认值保持一致。
+ * 纸本墨线方向的兜底值，与 tokens.css 的默认值保持一致。
  * 组件在没有 DOM（单测）或变量缺失时用它，保证渲染结果可预期。
  */
 export const DEFAULT_PALETTE: ThemePalette = {
   category: {
-    古镇: '#111111',
-    非遗: '#111111',
-    红色: '#111111',
-    自然: '#111111',
-    演艺: '#111111',
-    乡村: '#111111',
+    古镇: '#1c1a17',
+    非遗: '#1c1a17',
+    红色: '#1c1a17',
+    自然: '#1c1a17',
+    演艺: '#1c1a17',
+    乡村: '#1c1a17',
   },
-  mapArea: '#f2f2f2',
-  mapBorder: '#dedede',
-  mapLabel: '#8c8c8c',
-  mapAreaHover: '#e8e8e8',
-  cluster: '#111111',
-  waterFill: '#dbeafe',
-  waterBorder: '#bfdbfe',
-  districtLine: '#dcdcdc',
-  riverLine: '#bfdbfe',
+  mapArea: '#fcf8ee',
+  mapBorder: '#6f6759',
+  mapLabel: '#5e564b',
+  mapAreaHover: '#f7f1e5',
+  cluster: '#1c1a17',
+  waterFill: '#dce4e1',
+  waterBorder: '#c3d0cb',
+  districtLine: '#d8cebc',
+  riverLine: '#8fa39d',
 }
 
 const CATEGORY_VARS: Record<SiteCategory, string> = {

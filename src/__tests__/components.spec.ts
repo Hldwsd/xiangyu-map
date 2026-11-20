@@ -5,6 +5,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import TopBar from '@/components/layout/TopBar.vue'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
+import CityIndex from '@/components/home/CityIndex.vue'
+import HomeRail from '@/components/home/HomeRail.vue'
 import { sites } from '@/data/sites'
 import { useSitesStore } from '@/stores/sites'
 import type { Site } from '@/types/site'
@@ -104,6 +106,50 @@ describe('TopBar', () => {
 
     await wrapper.setProps({ activeFilters: 2 })
     expect(wrapper.get('.topbar__badge').text()).toBe('2')
+  })
+})
+
+describe('HomeRail', () => {
+  it('渲染「全部」加 6 个分类，点击分类写入 store', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(HomeRail, { global: { plugins: [pinia] } })
+
+    const rows = wrapper.findAll('.lrow')
+    expect(rows).toHaveLength(7)
+    expect(rows[0]?.text()).toContain('全部')
+
+    await rows[1]?.trigger('click')
+    expect(useSitesStore().category).toBe('古镇')
+  })
+
+  it('图例按钮把当前筛选暴露为 aria-pressed，读屏能听出选中态', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(HomeRail, { global: { plugins: [pinia] } })
+
+    const rows = wrapper.findAll('.lrow')
+    expect(rows[0]?.attributes('aria-pressed')).toBe('true')
+    expect(rows[1]?.attributes('aria-pressed')).toBe('false')
+
+    await rows[1]?.trigger('click')
+
+    const afterClick = wrapper.findAll('.lrow')
+    expect(afterClick[0]?.attributes('aria-pressed')).toBe('false')
+    expect(afterClick[1]?.attributes('aria-pressed')).toBe('true')
+  })
+})
+
+describe('CityIndex', () => {
+  it('16 个市全部列出，点击有项目的城市写入 store', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(CityIndex, { global: { plugins: [pinia] } })
+
+    expect(wrapper.findAll('.city')).toHaveLength(16)
+    const hefei = wrapper.findAll('.city').find((button) => button.text().includes('合肥'))
+    await hefei?.trigger('click')
+    expect(useSitesStore().city).toBe('合肥市')
   })
 })
 

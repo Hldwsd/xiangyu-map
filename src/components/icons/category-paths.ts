@@ -1,65 +1,76 @@
 import type { SiteCategory } from '@/types/site'
 
 /**
- * 六类地标的线性图标：24×24、描边、不填充。
+ * S1 圆线：六类地标图标（48 网格，无外框、曲线、3–4 笔）。
  *
- * 为什么从「实心黑块」改成「白底圆钉 + 黑线图标」：
- * 实心剪影在整张浅底地图上是一堆黑点，远看像脏东西；圆钉有白色底、墨色细圈和内部线条，
- * 既保留黑白语言，又在浅灰底图上分得出层次。选中态反转成墨底白线，仍然是同一套语言。
+ * 这版取代早期的「方框 + 横平竖直」墨模：
+ * - 古镇：弧顶 + 拱门 + 墙基，按视觉重心上移 4.5；
+ * - 乡村：稻穗（茎 + 两叶 + 地线）；
+ * - 非遗：折扇（扇面 + 三根扇骨）；
+ * - 红色：飘旗（弯旗杆 + 波浪旗面）；
+ * - 自然：双弧山脊 + 地线，按视觉重心上移 4；
+ * - 演艺：鼓（鼓身 + 鼓面 + 两支鼓槌）。
+ *
+ * 地图钉与界面图标共用同一套线条；地图钉为纸白圆钉 + 墨线，
+ * 选中态反转为墨底纸线，并加一圈金色虚线。
  */
 export const CATEGORY_GLYPHS: Record<SiteCategory, string[]> = {
-  // 古镇：坡屋顶 + 墙体 + 门
-  古镇: ['M4 12 12 5 20 12', 'M6 11.5V20h12v-8.5', 'M10 20v-4.5h4V20'],
-  // 非遗：印章（方形印面 + 印钮）
-  非遗: ['M7 10h10v10H7Z', 'M10 10V6h4v4', 'M10.5 15h3'],
-  // 红色：旗杆 + 旗面
-  红色: ['M7 4v16', 'M7 5h10l-2.6 3.6L17 12H7'],
-  // 自然：双峰山
-  自然: ['M3 19 9 8l3.6 6L15.2 9 21 19Z'],
-  // 演艺：音符（符头 + 符干 + 符尾）
-  演艺: [
-    'M10 17.5a2.4 2.4 0 1 0-2.4-2.4',
-    'M10 17.5V6',
-    'M10 6l8-2v9',
-    'M18 13a2.4 2.4 0 1 0-2.4-2.4',
+  古镇: ['M7 21.5c5-6 10-9 17-9s12 3 17 9', 'M11 21.5v11h26V21.5', 'M21 32.5v-5a3 3 0 0 1 6 0v5'],
+  乡村: [
+    'M24 38c-1-9-1-17 0-24',
+    'M24 20c-5 0-8-3-9-8 5 0 8 3 9 8z',
+    'M24 26c5 0 8-3 9-8-5 0-8 3-9 8z',
+    'M16 38h16',
   ],
-  // 乡村：树冠 + 树干
-  乡村: ['M12 21v-6', 'M12 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z'],
+  非遗: ['M24 38L8 22A24 24 0 0 1 40 22Z', 'M24 38V12', 'M24 38L14 18', 'M24 38L34 18'],
+  红色: ['M16 9c0 10-1 20 0 30', 'M16 12c8-4 12 4 20 0-2 5-2 9 0 14-8 4-12-4-20 0'],
+  自然: ['M6 31c6-12 11-16 17-6 4-8 10-8 16 2', 'M6 31h36'],
+  演艺: [
+    'M12 20a12 4 0 1 0 24 0 12 4 0 1 0-24 0',
+    'M12 20v10a12 4 0 0 0 24 0V20',
+    'M10 10l12 10',
+    'M38 10l-12 10',
+  ],
 }
 
-/** 圆钉直径与内圈半径（48 单位画布） */
+const INK = '#1c1a17'
+const PAPER = '#fbf6ea'
+const GOLD = '#b08a4a'
+
+/** 48 单位画布上的圆钉与图形比例 */
 const SIZE = 48
 const RING_RADIUS = 21
-
-const INK = '#111111'
-const PAPER = '#ffffff'
+const GLYPH_SCALE = 0.6
+const GLYPH_OFFSET = (SIZE - 48 * GLYPH_SCALE) / 2
+/** 视觉线宽 2.2px：外面还会按 symbolSize 缩放，这里先留出余量 */
+const GLYPH_STROKE = 5.2
 
 function glyphMarkup(category: SiteCategory, stroke: string): string {
-  // 图标占圆钉直径的 ~63%：再小认不出是屋檐还是山峰，再大会顶到细圈
-  const scale = 0.86
-  const offset = (SIZE - 24 * scale) / 2
   const paths = CATEGORY_GLYPHS[category].map((path) => `<path d="${path}"/>`).join('')
   return (
-    `<g transform="translate(${offset} ${offset}) scale(${scale})" fill="none" stroke="${stroke}"` +
-    ` stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${paths}</g>`
+    `<g transform="translate(${GLYPH_OFFSET} ${GLYPH_OFFSET}) scale(${GLYPH_SCALE})"` +
+    ` fill="none" stroke="${stroke}" stroke-width="${GLYPH_STROKE}" stroke-linecap="round"` +
+    ` stroke-linejoin="round">${paths}</g>`
   )
 }
 
 /**
  * 生成 ECharts 可用的图片符号：`image://data:image/svg+xml,...`
  *
- * 用图片而不是 `path://`：`path://` 只能填充一个轮廓，画不出「白底 + 细圈 + 内部线条」这三层；
- * 图片还能保留命中面积——图片符号的命中区就是整个方框，比只覆盖填充像素更稳。
+ * 圆钉是纸白底 + 墨线图形；选中态反转为墨底纸线，并加金色虚线环。
+ * 用图片而不是 `path://`：图片能同时画「圆底 + 图形 + 虚线环」三层，
+ * 且命中区是整个方框，比只覆盖描边的符号更稳。
  */
 export function categoryMarkerSymbol(category: SiteCategory, selected = false): string {
   const body = selected
-    ? `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${INK}"/>`
-    : `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${PAPER}" stroke="${INK}" stroke-width="2"/>`
+    ? `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${INK}"/>` +
+      `<circle cx="24" cy="24" r="23" fill="none" stroke="${GOLD}" stroke-width="1.3" stroke-dasharray="3 2.4"/>`
+    : `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${PAPER}" stroke="${INK}" stroke-width="1.6"/>`
   const glyph = glyphMarkup(category, selected ? PAPER : INK)
-  // 极轻的投影：白钉压在白色省份上时，只靠 2px 细圈会「粘」在底图上
+  // 极轻的投影：纸白圆钉压在接近纸白的陆地上时，只靠细圈会「粘」在底图上
   const shadow =
     '<defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%">' +
-    '<feDropShadow dx="0" dy="1" stdDeviation="1.3" flood-color="#111111" flood-opacity="0.22"/>' +
+    '<feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#1c1a17" flood-opacity="0.18"/>' +
     '</filter></defs>'
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}">` +

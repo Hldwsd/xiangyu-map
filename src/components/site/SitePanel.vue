@@ -27,7 +27,7 @@ const emit = defineEmits<{ close: [] }>()
     <div class="panel__body">
       <p class="panel__meta">
         <span class="panel__category">
-          <CategoryIcon :category="site.category" :size="12" />{{ site.category }}
+          <CategoryIcon :category="site.category" :size="20" />{{ site.category }}
         </span>
         <span>{{ site.province }} · {{ site.city }}</span>
       </p>
@@ -129,14 +129,15 @@ const emit = defineEmits<{ close: [] }>()
   padding: 0.1rem 0.5rem;
   font-size: var(--text-2xs);
   color: var(--ink);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--seal);
   border-radius: var(--radius-pill);
 }
 
 .panel__title {
   margin: 0;
-  font-size: var(--text-lg);
-  font-weight: 650;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
   color: var(--ink);

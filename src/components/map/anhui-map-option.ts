@@ -13,7 +13,7 @@ import type { Site, SiteCategory } from '@/types/site'
 export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
 
 /**
- * 分类符号：白底圆钉 + 墨色线条图标（屋檐 / 印章 / 旗帜 / 山峰 / 音符 / 树冠）。
+ * 分类符号：纸白圆钉 + 墨色 S1 曲线图标（古镇 / 稻穗 / 折扇 / 飘旗 / 山脊 / 鼓）。
  * 线条定义在 category-paths.ts，与界面里的 CategoryIcon 共用。
  */
 export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
@@ -24,6 +24,12 @@ export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
   演艺: categoryMarkerSymbol('演艺'),
   乡村: categoryMarkerSymbol('乡村'),
 }
+
+/** 与 tokens.css / 纸本样张一致：纸、墨、金 */
+const PAPER = '#fbf6ea'
+const INK = '#1c1a17'
+const GOLD = '#b08a4a'
+const MAP_FONT = "'Songti SC', 'STSong', 'SimSun', 'Noto Serif CJK SC', serif"
 
 export interface SiteScatterDatum {
   name: string
@@ -43,6 +49,17 @@ export interface SiteScatterDatum {
   }
   label: {
     show: boolean
+    formatter?: string
+    position?: 'right'
+    distance?: number
+    color?: string
+    fontSize?: number
+    fontFamily?: string
+    backgroundColor?: string
+    borderColor?: string
+    borderWidth?: number
+    padding?: number[]
+    borderRadius?: number
   }
 }
 
@@ -100,15 +117,16 @@ export interface MapRegionStyle {
   label?: { show: boolean }
 }
 
-const SELECTED_SYMBOL_SIZE = 44
+const SELECTED_SYMBOL_SIZE = 46
 /**
- * 圆钉尺寸。28 太小（线条图标看不清），36 在省域视野下既能辨认图标、又不会糊成一片。
+ * 圆钉尺寸。34 在省域视野下既能辨认 S1 线条、命中区也够大；
+ * 46 只给选中项，配金色虚线环，不靠颜色也能一眼找到。
  */
-const DEFAULT_SYMBOL_SIZE = 36
+const DEFAULT_SYMBOL_SIZE = 34
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
-const CLUSTER_MAX_SIZE = 34
+const CLUSTER_MAX_SIZE = 30
 
 /** 把项目列表转成散点数据；选中的点放大，方便在密集区域里认出来 */
 export function toScatterData(
@@ -125,15 +143,32 @@ export function toScatterData(
 
   const byId = new Map(sites.map((site) => [site.id, site]))
   const data: MapScatterDatum[] = []
+  /** 选中项如果被并进簇，先单独拿出来，最后再画，保证它一定看得见 */
+  let selectedDatum: SiteScatterDatum | null = null
 
   for (const group of groups) {
-    if (group.ids.length === 1) {
-      const site = byId.get(group.ids[0] ?? '')
+    const ids = group.ids
+    if (ids.length === 1) {
+      const site = byId.get(ids[0] ?? '')
       if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette))
       continue
     }
 
-    const members = group.ids
+    const containsSelected = selectedId !== null && ids.includes(selectedId)
+    const remainingIds = containsSelected ? ids.filter((id) => id !== selectedId) : ids
+    if (containsSelected && selectedId !== null) {
+      const site = byId.get(selectedId)
+      if (site !== undefined) selectedDatum = toSiteDatum(site, selectedId, palette)
+    }
+
+    if (remainingIds.length === 1) {
+      const site = byId.get(remainingIds[0] ?? '')
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette))
+      continue
+    }
+    if (remainingIds.length === 0) continue
+
+    const members = remainingIds
       .map((id) => byId.get(id))
       .filter((site): site is Site => site !== undefined)
     if (members.length === 0) continue
@@ -142,28 +177,32 @@ export function toScatterData(
     data.push({
       name: `${count} 个文旅项目`,
       value: [group.lng, group.lat],
-      clusterIds: group.ids,
+      clusterIds: remainingIds,
       clusterNames: members.map((site) => site.name),
       count,
       symbol: 'circle',
       // 数字越大点越大，但按对数增长：20 个目标的簇不该吃掉半张地图
       symbolSize: Math.min(CLUSTER_MAX_SIZE, CLUSTER_BASE_SIZE + Math.log2(count) * 4),
       itemStyle: {
-        color: palette.cluster,
-        borderColor: '#ffffff',
-        borderWidth: 2,
-        shadowBlur: 10,
-        shadowColor: 'rgba(52, 40, 24, 0.4)',
+        // 聚合点比地标「轻」：纸色圆盘 + 墨圈，数字用墨色；
+        // 早期用纯黑圆 + 白字，远看黑簇先跳出来，把地标压住了。
+        color: PAPER,
+        borderColor: INK,
+        borderWidth: 1.2,
+        shadowBlur: 6,
+        shadowColor: 'rgba(28, 26, 23, 0.18)',
       },
       label: {
         show: true,
         formatter: String(count),
-        color: '#ffffff',
-        fontSize: 11,
+        color: INK,
+        fontSize: 9.5,
         fontWeight: 'bold',
       },
     })
   }
+
+  if (selectedDatum !== null) data.push(selectedDatum)
 
   return data
 }
@@ -186,14 +225,30 @@ function toSiteDatum(
     symbol: categoryMarkerSymbol(site.category, selected),
     symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
     itemStyle: {
-      // 圆钉自身已有白底与细圈，不再加 canvas 阴影：阴影会溢出到河道上，把水系盖出灰边
+      // 圆钉自身已有纸底与细圈，不再加 canvas 阴影：阴影会溢出到河道上，把水系盖出灰边
       color,
       borderColor: 'transparent',
       borderWidth: 0,
       shadowBlur: 0,
       shadowColor: 'transparent',
     },
-    label: { show: selected },
+    // 选中项的名称做成纸色小签：不靠面板也能知道点到了哪里
+    label: selected
+      ? {
+          show: true,
+          formatter: site.name,
+          position: 'right',
+          distance: 8,
+          color: INK,
+          fontSize: 11,
+          fontFamily: MAP_FONT,
+          backgroundColor: PAPER,
+          borderColor: GOLD,
+          borderWidth: 1,
+          padding: [4, 7],
+          borderRadius: 0,
+        }
+      : { show: false },
   }
 }
 
@@ -260,10 +315,13 @@ export function buildAnhuiMapOption(
     tooltip: {
       trigger: 'item',
       confine: true,
-      backgroundColor: 'rgba(28, 26, 22, 0.94)',
-      borderWidth: 0,
-      padding: [10, 12],
-      textStyle: { color: '#f7f3ea', fontSize: 12, lineHeight: 18 },
+      backgroundColor: PAPER,
+      borderColor: GOLD,
+      borderWidth: 1,
+      padding: [8, 10],
+      textStyle: { color: INK, fontSize: 12, lineHeight: 18, fontFamily: MAP_FONT },
+      // 让 tooltip 永远压在右侧详情卡下面（卡片 z-index 16），别盖住面板
+      extraCssText: 'z-index: 12; box-shadow: 0 10px 24px -16px rgba(28,26,23,.45);',
       formatter: formatSiteTooltip,
     },
     geo: {
@@ -290,12 +348,16 @@ export function buildAnhuiMapOption(
       label: {
         show: true,
         color: palette.mapLabel,
-        fontSize: 10,
+        fontSize: 10.5,
+        fontFamily: MAP_FONT,
+        // 纸色描边把市名从地标与河道上「抬」起来，16 个市名才读得清
+        textBorderColor: PAPER,
+        textBorderWidth: 2,
       },
       itemStyle: {
         areaColor: palette.mapArea,
         borderColor: palette.mapBorder,
-        borderWidth: 1.1,
+        borderWidth: 0.8,
       },
       // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
       regions,
@@ -304,7 +366,7 @@ export function buildAnhuiMapOption(
         itemStyle: {
           areaColor: palette.mapArea,
           borderColor: palette.mapLabel,
-          borderWidth: 1.4,
+          borderWidth: 1.2,
         },
         label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
       },
@@ -342,8 +404,8 @@ export function buildAnhuiMapOption(
         // 聚合/散开时数据项整体换位置，开动画会出现「两个合并点互换」的错觉
         animation: false,
         emphasis: {
-          scale: 1.6,
-          itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
+          // 圆钉自带 1.6px 墨圈，hover 只轻微放大；白描边在纸白钉上不可见，已去掉
+          scale: 1.12,
         },
       },
     ],

@@ -43,7 +43,7 @@ const emit = defineEmits<{ select: [id: string]; close: [] }>()
           :class="{ 'sheet__item--on': site.id === selectedId }"
           @click="emit('select', site.id)"
         >
-          <span class="sheet__icon"><CategoryIcon :category="site.category" :size="14" /></span>
+          <span class="sheet__icon"><CategoryIcon :category="site.category" :size="20" /></span>
           <span class="sheet__name">{{ site.name }}</span>
           <span class="sheet__meta">{{ site.category }} · {{ site.city }}</span>
         </button>
@@ -141,7 +141,7 @@ const emit = defineEmits<{ select: [id: string]; close: [] }>()
   width: 1.55rem;
   height: 1.55rem;
   color: var(--ink);
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-xs);
 }

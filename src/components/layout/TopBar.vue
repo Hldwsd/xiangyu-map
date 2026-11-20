@@ -97,7 +97,7 @@ function onInput(event: Event): void {
 }
 
 .topbar__icon:hover {
-  background: #fff;
+  background: var(--surface);
   border-color: var(--line-strong);
 }
 
@@ -125,7 +125,7 @@ function onInput(event: Event): void {
   color: var(--accent-ink);
   text-align: center;
   background: var(--ink);
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   border-radius: var(--radius-pill);
 }
 
