@@ -81,7 +81,7 @@ describe('CategoryFilter', () => {
 describe('TopBar', () => {
   it('搜索栏输入时抛出 update:query，点清除按钮清空', async () => {
     const wrapper = mount(TopBar, {
-      props: { query: '', activeFilters: 0, filterOpen: false },
+      props: { query: '', activeFilters: 0, listCount: 30, listOpen: false, filterOpen: false },
     })
 
     await wrapper.get('input').setValue('宏村')
@@ -94,7 +94,7 @@ describe('TopBar', () => {
 
   it('菜单与筛选按钮各自抛事件，筛选项多于 0 时显示角标', async () => {
     const wrapper = mount(TopBar, {
-      props: { query: '', activeFilters: 0, filterOpen: false },
+      props: { query: '', activeFilters: 0, listCount: 30, listOpen: false, filterOpen: false },
     })
 
     expect(wrapper.find('.topbar__badge').exists()).toBe(false)

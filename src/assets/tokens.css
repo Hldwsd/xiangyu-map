@@ -11,6 +11,7 @@
 
   /* ---- 底色与表面 ---- */
   --paper: #f4eee2;
+  --paper-rgb: 244 238 226;
   --paper-glow-a: #faf5eb;
   --paper-glow-b: #f7f1e6;
   --surface: #fbf6ea;

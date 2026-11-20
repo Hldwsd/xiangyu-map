@@ -6,12 +6,16 @@ defineProps<{
   /** 生效中的筛选项个数（分类 + 城市），用来在筛选按钮上挂角标 */
   activeFilters: number
   filterOpen: boolean
+  /** 当前结果数，给「列表」按钮 */
+  listCount: number
+  listOpen: boolean
 }>()
 
 const emit = defineEmits<{
   'update:query': [value: string]
   menu: []
   filter: []
+  list: []
 }>()
 
 function onInput(event: Event): void {
@@ -50,6 +54,18 @@ function onInput(event: Event): void {
 
     <button
       type="button"
+      class="topbar__icon topbar__icon--wide"
+      :class="{ 'topbar__icon--on': listOpen }"
+      :aria-expanded="listOpen"
+      aria-label="项目列表"
+      @click="emit('list')"
+    >
+      <AppIcon name="all" :size="18" />
+      <span class="topbar__count">{{ listCount }}</span>
+    </button>
+
+    <button
+      type="button"
       class="topbar__icon"
       :class="{ 'topbar__icon--on': filterOpen }"
       :aria-expanded="filterOpen"
@@ -74,7 +90,7 @@ function onInput(event: Event): void {
   align-items: center;
   padding: calc(env(safe-area-inset-top, 0px) + var(--space-3)) var(--space-3) var(--space-3);
   /* 顶部压一层极淡的渐变，让浮在上面的控件与地图之间有过渡，而不是硬切 */
-  background: linear-gradient(to bottom, rgb(255 255 255 / 92%), rgb(255 255 255 / 0%));
+  background: linear-gradient(to bottom, rgb(var(--paper-rgb) / 92%), rgb(var(--paper-rgb) / 0%));
 }
 
 .topbar__icon {
@@ -109,6 +125,16 @@ function onInput(event: Event): void {
 
 .topbar__icon--on:hover {
   background: var(--accent);
+}
+
+.topbar__count {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.3rem;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
 
 .topbar__badge {
