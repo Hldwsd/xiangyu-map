@@ -40,10 +40,10 @@ body {
   color: var(--ink);
   /*
    * 背景：宣纸底 + 邓石如《少学琴书册》墨迹（清代，公有领域）。
-   * 墨迹做成一张整幅横披，只留约 1/4 的浓度，四边淡出；地图与卡片仍是视觉最前面的一层。
+   * 全屏 cover 铺满，只留约 1/4 的浓度；地图与卡片仍是视觉最前面的一层。
    */
   background:
-    url('/images/bg-calligraphy.webp') center 52% / 100% auto no-repeat fixed,
+    url('/images/bg-calligraphy.webp') center / cover no-repeat fixed,
     radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
     radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
     var(--paper);

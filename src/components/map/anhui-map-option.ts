@@ -93,6 +93,13 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
+/** 省界光晕：同一圈轮廓按不同线宽/浓度画三遍，越外越浅 */
+export interface OutlineRing {
+  coords: [number, number][]
+  width: number
+  alpha: string
+}
+
 /** 河道线：一条河可能由很多段组成 */
 export interface RiverLine {
   name: string
@@ -307,6 +314,7 @@ export function buildAnhuiMapOption(
   regions: MapRegionStyle[] = [],
   rivers: RiverLine[] = [],
   mapName: string = ANHUI_MAP_NAME,
+  outlineRings: OutlineRing[] = [],
 ): EChartsOption {
   const data = toScatterData(sites, selectedId, groups, palette)
 
@@ -333,6 +341,8 @@ export function buildAnhuiMapOption(
       // 不会出现「地图/河道/地标谁慢半拍」。缩放条与点簇仍是组件直接设置 zoom。
       // 拖动范围由组件在 georoam 里夹住，不能把省域拖出视野。
       roam: true,
+      // 省界光晕是 lines 系列（z 1），geo 抬到 z 2 才能盖住描边向内的那一半
+      z: 2,
       // geo 自己的形变动画会让「地图」比「地标」晚一截：散点位置按目标变换立即计算，
       // 而 polygons 还在 300–400ms 的补间里。平滑由组件的 rAF 补间负责，这里必须关掉。
       animation: false,
@@ -373,6 +383,27 @@ export function buildAnhuiMapOption(
       },
     },
     series: [
+      {
+        id: 'province-outline',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        // 压在 geo 之下：描边沿路径居中，向内的那一半会被市域白底盖掉，只剩向外的光晕
+        zlevel: 0,
+        z: 1,
+        silent: true,
+        polyline: true,
+        // 圆角拐点：省界不再按多边形的直线交点切出尖角
+        lineStyle: { color: '#1c1a17', opacity: 1, cap: 'round' as const, join: 'round' as const },
+        data: outlineRings.map((ring) => ({
+          coords: ring.coords,
+          lineStyle: {
+            width: ring.width,
+            color: ring.alpha,
+            cap: 'round' as const,
+            join: 'round' as const,
+          },
+        })),
+      },
       {
         id: 'rivers',
         type: 'lines',

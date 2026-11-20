@@ -13,6 +13,7 @@ import {
   type ClusterScatterDatum,
   type MapRegionStyle,
   type MapScatterDatum,
+  type OutlineRing,
   type RiverLine,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
@@ -87,7 +88,8 @@ let activeMapName = ANHUI_MAP_NAME
 /** 首屏加载的市界与水域，切换区县图层时复用，不再重复请求 */
 let cachedCity: Parameters<typeof mergeMapLayers>[0] | null = null
 let cachedWater: Parameters<typeof mergeMapLayers>[2] = null
-let cachedOutline: Parameters<typeof mergeMapLayers>[3] = null
+/** 省界光晕：同一圈轮廓的三种线宽/浓度（lines 系列画，拐点用圆角） */
+let outlineRings: OutlineRing[] = []
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
@@ -338,6 +340,7 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
     layerRegions,
     riverLines,
     activeMapName,
+    outlineRings,
   )
 }
 
@@ -408,27 +411,6 @@ function buildLayerRegions(
         },
         silent: interactive !== 'city',
         label: { show: true },
-      })
-      continue
-    }
-
-    if (layer === 'outline') {
-      // 1 = 最外圈（最粗最浅），3 = 最内圈（最细最深）
-      const ring = feature.properties.ring === 2 ? 2 : feature.properties.ring === 3 ? 3 : 1
-      const style = {
-        1: { width: 20, alpha: '6%' },
-        2: { width: 9, alpha: '15%' },
-        3: { width: 2.5, alpha: '42%' },
-      }[ring]
-      regions.push({
-        name,
-        itemStyle: {
-          areaColor: 'transparent',
-          borderColor: `rgb(28 26 23 / ${style.alpha})`,
-          borderWidth: style.width,
-        },
-        silent: true,
-        label: { show: false },
       })
       continue
     }
@@ -514,7 +496,7 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
   if (disposed || chart.value === null) return
 
   const { center, zoom } = geoState()
-  const merged = mergeMapLayers(cachedCity, districts, cachedWater, cachedOutline)
+  const merged = mergeMapLayers(cachedCity, districts, cachedWater)
   mapFeatures = merged.features
   layerMode = zoom >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
   layerRegions = buildLayerRegions(mapFeatures, layerMode)
@@ -525,6 +507,49 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
   instance.setOption({ geo: { center, zoom } })
   zoomLevel.value = Number(zoom.toFixed(2))
   refreshMarkers()
+}
+
+/** 省界 GeoJSON → 三圈折线（外圈最粗最浅，内圈最细最深） */
+function buildOutlineRings(outline: { features: unknown[] } | null): OutlineRing[] {
+  const feature = outline?.features?.[0] as
+    { geometry?: { type?: string; coordinates?: unknown } } | undefined
+  const geometry = feature?.geometry
+  if (geometry === undefined) return []
+
+  const toCoords = (ring: unknown): [number, number][] => {
+    if (!Array.isArray(ring)) return []
+    const points: [number, number][] = []
+    for (const point of ring) {
+      if (!Array.isArray(point) || point.length < 2) continue
+      const [lng, lat] = point as [unknown, unknown]
+      if (typeof lng !== 'number' || typeof lat !== 'number') continue
+      points.push([lng, lat])
+    }
+    return points
+  }
+
+  const rings: [number, number][][] = []
+  if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates)) {
+    for (const ring of geometry.coordinates) rings.push(toCoords(ring))
+  } else if (geometry.type === 'MultiPolygon' && Array.isArray(geometry.coordinates)) {
+    for (const polygon of geometry.coordinates) {
+      if (!Array.isArray(polygon)) continue
+      for (const ring of polygon) rings.push(toCoords(ring))
+    }
+  }
+
+  const styles = [
+    { width: 20, alpha: 'rgb(28 26 23 / 6%)' },
+    { width: 9, alpha: 'rgb(28 26 23 / 15%)' },
+    { width: 2.5, alpha: 'rgb(28 26 23 / 42%)' },
+  ]
+
+  const result: OutlineRing[] = []
+  for (const coords of rings) {
+    if (coords.length < 3) continue
+    for (const style of styles) result.push({ coords, width: style.width, alpha: style.alpha })
+  }
+  return result
 }
 
 async function render(): Promise<void> {
@@ -546,8 +571,8 @@ async function render(): Promise<void> {
 
     cachedCity = city
     cachedWater = water
-    cachedOutline = outline
-    const merged = mergeMapLayers(city, null, water, outline)
+    outlineRings = buildOutlineRings(outline)
+    const merged = mergeMapLayers(city, null, water)
     mapFeatures = merged.features
     riverLines = buildRiverLines(rivers)
     layerMode = 'city'
