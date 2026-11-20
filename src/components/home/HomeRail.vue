@@ -108,16 +108,31 @@ function chooseAll(): void {
 </template>
 
 <style scoped>
+/*
+ * 版头是一张独立的纸片：不透明底色 + 描边 + 投影。
+ * 之前直接浮在地图上，文字和地图线重叠，读起来很费劲。
+ */
 .rail {
   position: absolute;
-  top: 28px;
-  bottom: 28px;
-  left: 28px;
+  top: 1.4rem;
+  bottom: 1.4rem;
+  left: 1.4rem;
   z-index: 12;
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 19rem;
+  padding: 1.2rem 1.1rem;
+  overflow-y: auto;
   color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
 }
 
 .rail__brand {
@@ -129,7 +144,7 @@ function chooseAll(): void {
 .rail__brand h1 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 1.8rem;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: var(--tracking-brand);
@@ -140,19 +155,19 @@ function chooseAll(): void {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 2.2rem;
+  height: 2.2rem;
   margin-top: 1px;
   font-family: var(--font-serif);
-  font-size: 20px;
+  font-size: 1.15rem;
   color: var(--seal);
   background: var(--ink);
   border: 1px solid var(--seal);
 }
 
 .rail__tag {
-  margin: 10px 0 0;
-  font-size: 11.5px;
+  margin: 0.6rem 0 0;
+  font-size: 0.68rem;
   line-height: 1.8;
   color: var(--ink-soft);
   letter-spacing: 0.14em;
@@ -162,9 +177,9 @@ function chooseAll(): void {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 42px;
-  padding: 0 12px;
-  margin-top: 20px;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  margin-top: 1.2rem;
   color: var(--ink-soft);
   background: var(--surface);
   border: 1px solid var(--line-strong);
@@ -176,7 +191,7 @@ function chooseAll(): void {
   min-width: 0;
   padding: 0;
   font: inherit;
-  font-size: 12.5px;
+  font-size: 0.75rem;
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -199,8 +214,8 @@ function chooseAll(): void {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin: 26px 0 10px;
-  font-size: 10.5px;
+  margin: 1.5rem 0 0.6rem;
+  font-size: 0.64rem;
   font-weight: 500;
   color: var(--ink-soft);
   letter-spacing: 0.26em;
@@ -211,14 +226,14 @@ function chooseAll(): void {
 }
 
 .rail__badge {
-  font-size: 9px;
+  font-size: 0.55rem;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
 }
 
 .rail__legend,
 .rail__picks {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--rule);
 }
 
 .lrow {
@@ -281,7 +296,7 @@ function chooseAll(): void {
 .lrow__num {
   margin-left: auto;
   font-family: var(--font-display);
-  font-size: 11px;
+  font-size: 0.66rem;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
@@ -317,7 +332,7 @@ function chooseAll(): void {
 .pick b {
   overflow: hidden;
   font-family: var(--font-serif);
-  font-size: 12.5px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--ink);
   letter-spacing: 0.06em;
@@ -327,7 +342,7 @@ function chooseAll(): void {
 
 .pick__city {
   margin-left: auto;
-  font-size: 10.5px;
+  font-size: 0.64rem;
   letter-spacing: 0.06em;
 }
 
@@ -337,11 +352,11 @@ function chooseAll(): void {
   gap: 2px;
   padding-top: 9px;
   margin-top: auto;
-  font-size: 9.5px;
+  font-size: 0.58rem;
   line-height: 1.9;
   color: var(--ink-soft);
   letter-spacing: 0.08em;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--rule);
 }
 
 .rail__meta b {
