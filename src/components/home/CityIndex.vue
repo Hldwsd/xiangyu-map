@@ -55,7 +55,7 @@ function toggle(city: AnhuiCity): void {
 
 .city-index__head span {
   font-family: var(--font-display);
-  font-size: 7px;
+  font-size: 9px;
   color: var(--ink-soft);
   letter-spacing: 0.18em;
 }
@@ -72,7 +72,7 @@ function toggle(city: AnhuiCity): void {
   gap: 6px;
   padding: 2px 0;
   font: inherit;
-  font-size: 8px;
+  font-size: 10px;
   color: var(--ink-soft);
   text-align: left;
   cursor: pointer;
@@ -98,7 +98,7 @@ function toggle(city: AnhuiCity): void {
 .city__n {
   margin-left: auto;
   font-family: var(--font-display);
-  font-size: 7.5px;
+  font-size: 9.5px;
   color: inherit;
   font-variant-numeric: tabular-nums;
 }

@@ -67,6 +67,7 @@ const routes = [
         type="button"
         class="lrow"
         :class="{ 'lrow--on': store.category === ALL_CATEGORIES }"
+        :aria-pressed="store.category === ALL_CATEGORIES"
         @click="chooseAll"
       >
         <span class="lrow__all" aria-hidden="true"> <i /><i /><i /><i /> </span>
@@ -79,6 +80,7 @@ const routes = [
         type="button"
         class="lrow"
         :class="{ 'lrow--on': store.category === item.name }"
+        :aria-pressed="store.category === item.name"
         @click="choose(item.name)"
       >
         <CategoryIcon :category="item.name" :size="22" />
@@ -103,8 +105,14 @@ const routes = [
     </div>
 
     <p class="rail__label rail__label--gap">主题路线 <span class="rail__badge">规划中</span></p>
-    <div class="rail__routes">
-      <div v-for="route in routes" :key="route.no" class="route">
+    <div class="rail__routes" role="list" aria-label="主题路线（规划中，暂不可用）">
+      <div
+        v-for="route in routes"
+        :key="route.no"
+        class="route"
+        role="listitem"
+        title="路线功能规划中，暂不可用"
+      >
         <span class="route__no">{{ route.no }}</span>
         <b>{{ route.name }}</b>
         <i aria-hidden="true" />
@@ -250,6 +258,14 @@ const routes = [
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--line);
+}
+
+.lrow:focus-visible,
+.pick:focus-visible,
+.rail__menu:focus-visible,
+.city:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .lrow:hover {

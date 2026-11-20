@@ -122,6 +122,22 @@ describe('HomeRail', () => {
     await rows[1]?.trigger('click')
     expect(useSitesStore().category).toBe('古镇')
   })
+
+  it('图例按钮把当前筛选暴露为 aria-pressed，读屏能听出选中态', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(HomeRail, { global: { plugins: [pinia] } })
+
+    const rows = wrapper.findAll('.lrow')
+    expect(rows[0]?.attributes('aria-pressed')).toBe('true')
+    expect(rows[1]?.attributes('aria-pressed')).toBe('false')
+
+    await rows[1]?.trigger('click')
+
+    const afterClick = wrapper.findAll('.lrow')
+    expect(afterClick[0]?.attributes('aria-pressed')).toBe('false')
+    expect(afterClick[1]?.attributes('aria-pressed')).toBe('true')
+  })
 })
 
 describe('CityIndex', () => {

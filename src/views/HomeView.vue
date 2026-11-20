@@ -176,7 +176,7 @@ function selectFromList(id: string): void {
     </div>
 
     <div class="home-status">
-      <span>安徽省 · 16 个地级市 · {{ total }} 处项目</span>
+      <span class="home-status__scope">安徽省 · 16 个地级市 · {{ total }} 处项目</span>
       <span>拖动探索 · 滚轮缩放</span>
     </div>
 
@@ -502,6 +502,27 @@ function selectFromList(id: string): void {
   /* 地图自带的缩放条挪到右侧栏左边，避免被卡片压住 */
   .map-shell__map :deep(.anhui-map__zoom) {
     right: 340px;
+  }
+
+  /* 版头底部已经有「安徽省 · 16 个地级市」，底栏只留交互提示，并靠右 */
+  .home-status__scope {
+    display: none;
+  }
+
+  .home-status {
+    justify-content: flex-end;
+  }
+
+  /* 版头图例已承担分类筛选，桌面把右上「筛选」降为细线按钮，减少两个入口的视觉重量 */
+  .home-actions .home-action:nth-child(2) {
+    color: var(--ink-soft);
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .home-actions .home-action:nth-child(2):hover {
+    color: var(--ink);
+    border-color: var(--line);
   }
 }
 
