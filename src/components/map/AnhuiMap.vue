@@ -35,7 +35,7 @@ echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRen
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
  * 略小于圆钉直径（36）：允许轻微重叠不合并，否则聚合会太激进。
  */
-const CLUSTER_MIN_GAP = 34
+const CLUSTER_MIN_GAP = 36
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */

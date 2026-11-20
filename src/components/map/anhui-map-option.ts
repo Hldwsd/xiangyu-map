@@ -117,12 +117,12 @@ export interface MapRegionStyle {
   label?: { show: boolean }
 }
 
-const SELECTED_SYMBOL_SIZE = 46
+const SELECTED_SYMBOL_SIZE = 48
 /**
  * 圆钉尺寸。34 在省域视野下既能辨认 S1 线条、命中区也够大；
  * 46 只给选中项，配金色虚线环，不靠颜色也能一眼找到。
  */
-const DEFAULT_SYMBOL_SIZE = 34
+const DEFAULT_SYMBOL_SIZE = 36
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
