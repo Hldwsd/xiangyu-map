@@ -17,14 +17,25 @@ body {
  * 桌面端整页偏小：以 16px 为基准放大一档（17px）。
  * 各组件里的 rem 尺寸会一起长，px 写死的局部字号另行调整。
  */
+/*
+ * 基准字号随视口宽度走：1280 宽约 17px，1920 宽约 19px，超宽封顶 21px。
+ * 组件里凡是 rem 的字号/宽度都会跟着放大，不再出现「大屏上还是一撮小字」。
+ */
 html {
-  font-size: 17px;
+  font-size: clamp(17px, 0.45vw + 10.5px, 21px);
+}
+
+/* 矮屏（1366×768 这类）整页略收一档，侧栏才不会挤到溢出 */
+@media (max-height: 820px) {
+  html {
+    font-size: clamp(15.5px, 0.42vw + 9.4px, 21px);
+  }
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--ink);
   background:

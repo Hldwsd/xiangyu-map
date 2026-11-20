@@ -22,6 +22,8 @@
   --ink-soft: #5a544b;
   --ink-inverse: #fbf6ea;
   --line: #d8cebc;
+  /* 版头/侧栏内部的区分线：比 --line 深一档，纸底上才看得出来 */
+  --rule: #b9ac96;
   --line-strong: #8c8172;
 
   /* ---- 强调与状态 ---- */

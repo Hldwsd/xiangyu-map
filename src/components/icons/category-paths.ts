@@ -22,7 +22,7 @@ export const CATEGORY_GLYPHS: Record<SiteCategory, string[]> = {
     'M24 26c5 0 8-3 9-8-5 0-8 3-9 8z',
     'M16 38h16',
   ],
-  非遗: ['M24 38L8 22A24 24 0 0 1 40 22Z', 'M24 38V12', 'M24 38L14 18', 'M24 38L34 18'],
+  非遗: ['M24 38L8 22A24 24 0 0 1 40 22Z', 'M24 38V15.9', 'M24 38L14 18', 'M24 38L34 18'],
   红色: ['M16 9c0 10-1 20 0 30', 'M16 12c8-4 12 4 20 0-2 5-2 9 0 14-8 4-12-4-20 0'],
   自然: ['M6 31c6-12 11-16 17-6 4-8 10-8 16 2', 'M6 31h36'],
   演艺: [
@@ -42,8 +42,11 @@ const SIZE = 48
 const RING_RADIUS = 21
 const GLYPH_SCALE = 0.6
 const GLYPH_OFFSET = (SIZE - 48 * GLYPH_SCALE) / 2
-/** 视觉线宽 2.2px：外面还会按 symbolSize 缩放，这里先留出余量 */
-const GLYPH_STROKE = 5.2
+/**
+ * 线宽：按原版 S1 样张（.tmp/ink-paper/final/s1-icons.png）的细线来。
+ * 之前 5.2 × 0.6 = 3.1 单位，比样张粗一档，六类在小尺寸下会糊成一样重。
+ */
+const GLYPH_STROKE = 4.2
 
 function glyphMarkup(category: SiteCategory, stroke: string): string {
   const paths = CATEGORY_GLYPHS[category].map((path) => `<path d="${path}"/>`).join('')

@@ -217,24 +217,24 @@ function selectFromList(id: string): void {
 .home-actions {
   position: absolute;
   top: 40px;
-  right: 28px;
+  right: 1.6rem;
   z-index: 15;
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .home-action {
   display: inline-flex;
-  gap: 6px;
+  gap: 0.4rem;
   align-items: center;
-  height: 30px;
-  padding: 0 12px;
+  height: 2rem;
+  padding: 0 0.75rem;
   font: inherit;
-  font-size: 8.5px;
+  font-size: 0.62rem;
   color: var(--ink);
   letter-spacing: 0.1em;
   cursor: pointer;
-  background: rgb(var(--surface-rgb) / 86%);
+  background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-xs);
 }
@@ -248,7 +248,7 @@ function selectFromList(id: string): void {
 
 .home-action__n {
   font-family: var(--font-display);
-  font-size: 8px;
+  font-size: 0.6rem;
   opacity: 0.7;
 }
 
@@ -258,14 +258,14 @@ function selectFromList(id: string): void {
  */
 .home-side {
   position: absolute;
-  top: 100px;
-  right: 32px;
-  bottom: 56px;
+  top: 5.6rem;
+  right: 4rem;
+  bottom: 2rem;
   z-index: 14;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 320px;
+  gap: 1rem;
+  width: 20rem;
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -276,7 +276,9 @@ function selectFromList(id: string): void {
 
 .home-side :deep(.city-index) {
   flex: none;
-  padding: 12px 14px 14px;
+  /* 城市索引钉在右下角：上面留自动外边距，面板变矮也不会把它顶上来 */
+  margin-top: auto;
+  padding: 0.6rem 0.75rem 0.7rem;
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-panel);
@@ -294,8 +296,8 @@ function selectFromList(id: string): void {
 }
 
 .home-side :deep(.panel__body) {
-  gap: 6px;
-  padding: 12px;
+  gap: 0.4rem;
+  padding: 0.85rem;
 }
 
 .home-side :deep(.panel__summary) {
@@ -303,13 +305,13 @@ function selectFromList(id: string): void {
 }
 
 .home-side :deep(.panel__facts) {
-  padding-top: 8px;
-  font-size: 10.5px;
+  padding-top: 0.5rem;
+  font-size: 0.66rem;
 }
 
 .home-side :deep(.panel__link) {
-  padding: 8px 14px;
-  margin-top: 10px;
+  padding: 0.5rem 0.9rem;
+  margin-top: 0.6rem;
 }
 
 .home-about {
@@ -334,17 +336,22 @@ function selectFromList(id: string): void {
 
 .home-status {
   position: absolute;
-  right: 28px;
-  bottom: 18px;
-  left: 300px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.9rem);
+  left: 50%;
   z-index: 15;
   display: flex;
-  justify-content: space-between;
-  padding-top: 8px;
-  font-size: 9.5px;
+  gap: 1.4rem;
+  justify-content: center;
+  padding: 0.34rem 0.95rem;
+  font-size: 0.58rem;
   color: var(--ink-soft);
-  letter-spacing: 0.14em;
-  border-top: 1px solid var(--line);
+  letter-spacing: 0.12em;
+  /* 提示条也是纸片：不让半透明文字直接压在地图上 */
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+  transform: translateX(-50%);
 }
 
 /* ---- 顶部浮层（窄屏） ---- */
@@ -360,7 +367,7 @@ function selectFromList(id: string): void {
 .map-shell__filter {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 4.4rem);
-  right: 340px;
+  right: 25.5rem;
   z-index: 25;
   width: min(22rem, calc(100vw - 2 * var(--space-3)));
 }
@@ -386,7 +393,7 @@ function selectFromList(id: string): void {
   font-size: var(--text-2xs);
   letter-spacing: 0.03em;
   color: var(--ink-soft);
-  background: rgb(var(--surface-rgb) / 92%);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-soft);
@@ -444,7 +451,7 @@ function selectFromList(id: string): void {
   align-items: center;
   padding: var(--space-4) var(--space-5);
   text-align: center;
-  background: rgb(var(--surface-rgb) / 92%);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
@@ -511,14 +518,29 @@ function selectFromList(id: string): void {
   }
 
   /* 地图自带的缩放条挪到右侧栏左边，避免被卡片压住 */
-  /* 缩条放在右侧栏左边留出的空隙里：32（外边距）+ 320（栏宽）+ 16（间距） */
+  /* 缩放条钉在最右侧：右侧栏整体左移，给它让出位置 */
   .map-shell__map :deep(.anhui-map__zoom) {
-    right: 372px;
+    right: 16px;
   }
 
   /* 版头底部已经有「安徽省 · 16 个地级市」，底栏只留交互提示，并靠右 */
   .home-status__scope {
     display: none;
+  }
+
+  /* 矮屏：城市索引排四列、封面压扁、底边收紧，避免挤到需要滚动 */
+  @media (max-height: 760px) {
+    .home-side {
+      bottom: 1.2rem;
+    }
+
+    .home-side :deep(.city-index__grid) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .home-side :deep(.panel__cover) {
+      aspect-ratio: 16 / 5.4;
+    }
   }
 
   .home-status {

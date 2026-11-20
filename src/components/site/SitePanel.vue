@@ -136,7 +136,7 @@ const emit = defineEmits<{ close: [] }>()
 .panel__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 21px;
+  font-size: 1.3rem;
   font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
