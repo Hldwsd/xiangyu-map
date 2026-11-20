@@ -54,6 +54,12 @@ body {
   min-height: 100vh;
 }
 
+/* 动态水墨背景是不透明画布：这时不必再下载书法背景，纸色交给画布 */
+body.has-ink-bg {
+  background-color: var(--paper);
+  background-image: none;
+}
+
 img {
   max-width: 100%;
 }

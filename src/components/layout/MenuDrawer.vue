@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
+import { useBackgroundPreference } from '@/composables/use-background-preference'
 import { useFocusTrap } from '@/composables/use-focus-trap'
 
 const props = defineProps<{ open: boolean; siteCount: number; showDistricts: boolean }>()
@@ -13,6 +14,7 @@ const emit = defineEmits<{
 }>()
 
 const panel = ref<HTMLElement | null>(null)
+const { mode: backgroundMode, setMode: setBackgroundMode } = useBackgroundPreference()
 useFocusTrap(
   computed(() => props.open),
   panel,
@@ -79,6 +81,20 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
             <small>默认关闭：官方标准图只画 16 个地级市（皖S(2025)71号）</small>
           </span>
         </label>
+
+        <label class="drawer__toggle">
+          <input
+            type="checkbox"
+            :checked="backgroundMode === 'ink'"
+            @change="
+              setBackgroundMode(($event.target as HTMLInputElement).checked ? 'ink' : 'paper')
+            "
+          />
+          <span>
+            动态水墨背景
+            <small>默认开启：水墨宏村（远山、马头墙、南湖倒影、落墨）。关闭后是静态纸本</small>
+          </span>
+        </label>
       </section>
 
       <section class="drawer__section">
@@ -96,7 +112,10 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           行政区划依据：安徽省自然资源厅《安徽省示意图（一）》（审图号
           皖S(2025)71号）——该标准图只划分 16 个地级市，因此默认不显示区县界。
         </p>
-        <p class="drawer__note">背景书法：邓石如《少学琴书册》（清代，公有领域）。</p>
+        <p class="drawer__note">
+          背景：动态水墨宏村（Canvas 程序化实时渲染，36 秒无缝循环）；关闭后为静态纸本，
+          书法取自邓石如《少学琴书册》（清代，公有领域）。
+        </p>
       </section>
 
       <footer class="drawer__footer">
