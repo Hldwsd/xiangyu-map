@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import CategoryLegend from '@/components/home/CategoryLegend.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
-import CategoryIcon from '@/components/icons/CategoryIcon.vue'
-import { ALL_CATEGORIES, useSitesStore } from '@/stores/sites'
-import { SITE_CATEGORIES, type Site, type SiteCategory } from '@/types/site'
+import { useSitesStore } from '@/stores/sites'
+import type { Site } from '@/types/site'
 
 const emit = defineEmits<{ menu: []; select: [id: string] }>()
 
 const store = useSitesStore()
-
-const categories = computed(() =>
-  SITE_CATEGORIES.map((name) => ({ name, count: store.categoryCounts[name] })),
-)
 
 /** 本期精选：数据里真实存在的三个项目，点名字直接选中 */
 const picks = computed(() =>
@@ -20,18 +16,6 @@ const picks = computed(() =>
     .map((id) => store.getSiteById(id))
     .filter((site): site is Site => site !== null),
 )
-
-function onQuery(event: Event): void {
-  store.setQuery((event.target as HTMLInputElement).value)
-}
-
-function choose(category: SiteCategory): void {
-  store.setCategory(store.category === category ? ALL_CATEGORIES : category)
-}
-
-function chooseAll(): void {
-  store.setCategory(ALL_CATEGORIES)
-}
 </script>
 
 <template>
@@ -42,45 +26,8 @@ function chooseAll(): void {
     </div>
     <p class="rail__tag">在地图上，遇见一个文旅项目<br />十六市 · 三十处</p>
 
-    <label class="rail__search">
-      <AppIcon name="search" :size="14" />
-      <input
-        :value="store.query"
-        type="search"
-        placeholder="搜地名、城市或标签"
-        aria-label="搜索文旅项目"
-        autocomplete="off"
-        @input="onQuery"
-      />
-    </label>
-
     <p class="rail__label">分类 · 图例</p>
-    <div class="rail__legend">
-      <button
-        type="button"
-        class="lrow"
-        :class="{ 'lrow--on': store.category === ALL_CATEGORIES }"
-        :aria-pressed="store.category === ALL_CATEGORIES"
-        @click="chooseAll"
-      >
-        <span class="lrow__all" aria-hidden="true"> <i /><i /><i /><i /> </span>
-        <span class="lrow__name">全部</span>
-        <span class="lrow__num">{{ store.sites.length }}</span>
-      </button>
-      <button
-        v-for="item in categories"
-        :key="item.name"
-        type="button"
-        class="lrow"
-        :class="{ 'lrow--on': store.category === item.name }"
-        :aria-pressed="store.category === item.name"
-        @click="choose(item.name)"
-      >
-        <CategoryIcon :category="item.name" :size="22" />
-        <span class="lrow__name">{{ item.name }}</span>
-        <span class="lrow__num">{{ item.count }}</span>
-      </button>
-    </div>
+    <CategoryLegend />
 
     <p class="rail__label rail__label--gap">本期精选</p>
     <div class="rail__picks">
@@ -114,7 +61,8 @@ function chooseAll(): void {
  */
 .rail {
   position: absolute;
-  top: 1.4rem;
+  /* 顶栏（菜单 / 搜索 / 筛选）现在常驻，版头从它下面开始 */
+  top: 5.4rem;
   bottom: 1.4rem;
   left: 1.4rem;
   z-index: 12;
@@ -173,43 +121,6 @@ function chooseAll(): void {
   letter-spacing: 0.14em;
 }
 
-.rail__search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 2.5rem;
-  padding: 0 0.75rem;
-  margin-top: 1.2rem;
-  color: var(--ink-soft);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-xs);
-}
-
-.rail__search input {
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  font: inherit;
-  font-size: 0.75rem;
-  color: var(--ink);
-  background: transparent;
-  border: 0;
-  outline: none;
-}
-
-.rail__search input::placeholder {
-  color: var(--ink-soft);
-}
-
-.rail__search:focus-within {
-  border-color: var(--ink);
-}
-
-.rail__search input::-webkit-search-cancel-button {
-  appearance: none;
-}
-
 .rail__label {
   display: flex;
   align-items: baseline;
@@ -229,76 +140,6 @@ function chooseAll(): void {
   font-size: 0.55rem;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
-}
-
-.rail__legend,
-.rail__picks {
-  border-top: 1px solid var(--rule);
-}
-
-.lrow {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  height: 31px;
-  padding: 0 4px;
-  font: inherit;
-  color: var(--ink-soft);
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.lrow:focus-visible,
-.pick:focus-visible,
-.rail__menu:focus-visible,
-.city:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-.lrow:hover {
-  background: var(--surface-muted);
-}
-
-.lrow--on {
-  color: var(--ink);
-  background: var(--surface);
-  box-shadow: inset 2px 0 0 var(--ink);
-}
-
-.lrow__all {
-  display: grid;
-  flex: none;
-  grid-template-columns: repeat(2, 6px);
-  gap: 3px;
-  width: 22px;
-  height: 22px;
-  align-content: center;
-  justify-content: center;
-}
-
-.lrow__all i {
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentcolor;
-}
-
-.lrow__name {
-  font-family: var(--font-serif);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-}
-
-.lrow__num {
-  margin-left: auto;
-  font-family: var(--font-display);
-  font-size: 0.66rem;
-  color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
 }
 
 .pick {

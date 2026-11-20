@@ -3,9 +3,11 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
+import CategoryLegend from '@/components/home/CategoryLegend.vue'
 import CityIndex from '@/components/home/CityIndex.vue'
 import HomeRail from '@/components/home/HomeRail.vue'
 import FilterPopover from '@/components/layout/FilterPopover.vue'
+import EdgeDrawer from '@/components/layout/EdgeDrawer.vue'
 import MenuDrawer from '@/components/layout/MenuDrawer.vue'
 import SiteListSheet from '@/components/layout/SiteListSheet.vue'
 import TopBar from '@/components/layout/TopBar.vue'
@@ -24,6 +26,9 @@ const activeFilters = computed(
 const menuOpen = ref(false)
 const filterOpen = ref(false)
 const listOpen = ref(false)
+/** 窄屏侧边抽屉：左「分类」、右「城市索引」 */
+const legendOpen = ref(false)
+const cityOpen = ref(false)
 
 /*
  * 区县界默认关闭：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界。
@@ -84,36 +89,18 @@ function selectFromList(id: string): void {
 
     <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
 
-    <div class="home-actions">
-      <button
-        type="button"
-        class="home-action"
-        :aria-expanded="listOpen"
-        @click="listOpen = !listOpen"
-      >
-        <AppIcon name="all" :size="13" />列表
-        <span class="home-action__n">{{ filteredSites.length }}</span>
-      </button>
-      <button
-        type="button"
-        class="home-action"
-        :class="{ 'home-action--on': filterOpen }"
-        :aria-expanded="filterOpen"
-        @click="filterOpen = !filterOpen"
-      >
-        <AppIcon name="filter" :size="13" />筛选
-      </button>
-    </div>
-
     <!-- 窄屏/平板沿用顶部搜索栏；桌面版头已接管搜索与筛选 -->
     <div class="home-topbar">
       <TopBar
         :query="store.query"
         :active-filters="activeFilters"
         :filter-open="filterOpen"
+        :list-count="filteredSites.length"
+        :list-open="listOpen"
         @update:query="store.setQuery"
         @menu="menuOpen = true"
         @filter="filterOpen = !filterOpen"
+        @list="listOpen = !listOpen"
       />
     </div>
 
@@ -171,15 +158,6 @@ function selectFromList(id: string): void {
       >
         <AppIcon name="reset" :size="13" />清空筛选
       </button>
-      <button
-        type="button"
-        class="map-shell__list-toggle"
-        :aria-expanded="listOpen"
-        @click="listOpen = !listOpen"
-      >
-        <AppIcon name="all" :size="13" />列表
-        <span class="map-shell__count">{{ filteredSites.length }}</span>
-      </button>
     </div>
 
     <div class="home-status">
@@ -195,6 +173,24 @@ function selectFromList(id: string): void {
       @select="selectFromList"
       @close="listOpen = false"
     />
+
+    <!-- 窄屏：左右两侧抽拉「分类」「城市索引」 -->
+    <div class="edge-tabs">
+      <button type="button" class="edge-tab edge-tab--left" @click="legendOpen = true">
+        <AppIcon name="all" :size="14" />分类
+      </button>
+      <button type="button" class="edge-tab edge-tab--right" @click="cityOpen = true">
+        城市<AppIcon name="map" :size="14" />
+      </button>
+    </div>
+
+    <EdgeDrawer :open="legendOpen" side="left" title="分类筛选" @close="legendOpen = false">
+      <CategoryLegend />
+    </EdgeDrawer>
+
+    <EdgeDrawer :open="cityOpen" side="right" title="城市索引" @close="cityOpen = false">
+      <CityIndex />
+    </EdgeDrawer>
 
     <MenuDrawer
       :open="menuOpen"
@@ -228,51 +224,13 @@ function selectFromList(id: string): void {
 
 /* ---- 桌面：右上动作 / 右侧栏 / 底部状态 ---- */
 
-.home-actions {
-  position: absolute;
-  top: 40px;
-  right: 1.6rem;
-  z-index: 15;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.home-action {
-  display: inline-flex;
-  gap: 0.4rem;
-  align-items: center;
-  height: 2rem;
-  padding: 0 0.75rem;
-  font: inherit;
-  font-size: 0.62rem;
-  color: var(--ink);
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-xs);
-}
-
-.home-action:hover,
-.home-action--on {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.home-action__n {
-  font-family: var(--font-display);
-  font-size: 0.6rem;
-  opacity: 0.7;
-}
-
 /*
  * 右侧栏：选中卡与城市索引是两张独立的卡（各自有底色/描边/间距），
  * 不是一张长卡片被切开；同时隐藏滚动条 —— 超高时仍可滚，但不出现那条灰杠。
  */
 .home-side {
   position: absolute;
-  top: 5.6rem;
+  top: 5.4rem;
   right: 4rem;
   bottom: 2rem;
   z-index: 14;
@@ -524,7 +482,7 @@ function selectFromList(id: string): void {
 /* ---- 桌面 / 窄屏切换 ---- */
 
 @media (min-width: 1200px) {
-  .home-topbar,
+  /* 顶栏（菜单 / 搜索 / 筛选）在宽屏也保留；只藏窄屏专用的底部动作区与浮卡 */
   .map-shell__meta,
   .map-shell__actions,
   .map-shell__panel {
@@ -574,11 +532,56 @@ function selectFromList(id: string): void {
   }
 }
 
+/* ---- 窄屏侧边抽拉 ---- */
+
+.edge-tabs {
+  display: none;
+}
+
+.edge-tab {
+  position: absolute;
+  /* 避开地图右侧的缩放条（竖排、居中） */
+  top: 32%;
+  z-index: 16;
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  padding: 0.55rem 0.4rem;
+  font: inherit;
+  font-size: 0.62rem;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+}
+
+.edge-tab--left {
+  left: 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.edge-tab--right {
+  right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.edge-tab:hover {
+  background: var(--surface-muted);
+}
+
 @media (width <= 1199px) {
   .home-actions,
   .home-side,
   .home-status {
     display: none;
+  }
+
+  .edge-tabs {
+    display: block;
   }
 
   .map-shell__filter {
