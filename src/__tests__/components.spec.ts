@@ -81,7 +81,7 @@ describe('CategoryFilter', () => {
 describe('TopBar', () => {
   it('搜索栏输入时抛出 update:query，点清除按钮清空', async () => {
     const wrapper = mount(TopBar, {
-      props: { query: '', activeFilters: 0, listCount: 30, listOpen: false, filterOpen: false },
+      props: { query: '', listCount: 30, listOpen: false },
     })
 
     await wrapper.get('input').setValue('宏村')
@@ -92,20 +92,18 @@ describe('TopBar', () => {
     expect(wrapper.emitted('update:query')?.[1]).toEqual([''])
   })
 
-  it('菜单与筛选按钮各自抛事件，筛选项多于 0 时显示角标', async () => {
+  it('菜单与列表按钮各自抛事件；筛选入口已并入图例/城市索引', async () => {
     const wrapper = mount(TopBar, {
-      props: { query: '', activeFilters: 0, listCount: 30, listOpen: false, filterOpen: false },
+      props: { query: '', listCount: 30, listOpen: false },
     })
 
-    expect(wrapper.find('.topbar__badge').exists()).toBe(false)
+    // 右上角的筛选按钮已删除，避免与左侧图例、右侧城市索引重复
+    expect(wrapper.find('[aria-label="筛选"]').exists()).toBe(false)
 
     await wrapper.get('[aria-label="打开菜单"]').trigger('click')
-    await wrapper.get('[aria-label="筛选"]').trigger('click')
+    await wrapper.get('[aria-label="项目列表"]').trigger('click')
     expect(wrapper.emitted('menu')).toHaveLength(1)
-    expect(wrapper.emitted('filter')).toHaveLength(1)
-
-    await wrapper.setProps({ activeFilters: 2 })
-    expect(wrapper.get('.topbar__badge').text()).toBe('2')
+    expect(wrapper.emitted('list')).toHaveLength(1)
   })
 })
 

@@ -6,25 +6,19 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryLegend from '@/components/home/CategoryLegend.vue'
 import CityIndex from '@/components/home/CityIndex.vue'
 import HomeRail from '@/components/home/HomeRail.vue'
-import FilterPopover from '@/components/layout/FilterPopover.vue'
 import EdgeDrawer from '@/components/layout/EdgeDrawer.vue'
 import MenuDrawer from '@/components/layout/MenuDrawer.vue'
 import SiteListSheet from '@/components/layout/SiteListSheet.vue'
 import TopBar from '@/components/layout/TopBar.vue'
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
-import { ALL_CITIES, ALL_CATEGORIES, useSitesStore } from '@/stores/sites'
+import { useSitesStore } from '@/stores/sites'
 
 const store = useSitesStore()
-const { filteredSites, selectedSite, selectedId, categoryCounts, cityCounts } = storeToRefs(store)
+const { filteredSites, selectedSite, selectedId } = storeToRefs(store)
 
 const total = computed(() => store.sites.length)
-const activeFilters = computed(
-  () => (store.category === ALL_CATEGORIES ? 0 : 1) + (store.city === ALL_CITIES ? 0 : 1),
-)
-
 const menuOpen = ref(false)
-const filterOpen = ref(false)
 const listOpen = ref(false)
 /** 窄屏侧边抽屉：左「分类」、右「城市索引」 */
 const legendOpen = ref(false)
@@ -46,7 +40,6 @@ onMounted(() => {
 
 function closeOverlays(): void {
   menuOpen.value = false
-  filterOpen.value = false
 }
 
 function onKeydown(event: KeyboardEvent): void {
@@ -55,14 +48,6 @@ function onKeydown(event: KeyboardEvent): void {
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
-
-watch(menuOpen, (open) => {
-  if (open) filterOpen.value = false
-})
-
-watch(filterOpen, (open) => {
-  if (open) menuOpen.value = false
-})
 
 /** 精选是「跳到一个具体项目」，先把筛选清掉，避免点进去却不在当前结果里 */
 function selectFeatured(id: string): void {
@@ -89,52 +74,25 @@ function selectFromList(id: string): void {
 
     <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
 
-    <!-- 窄屏/平板沿用顶部搜索栏；桌面版头已接管搜索与筛选 -->
-    <div class="home-topbar">
-      <TopBar
-        :query="store.query"
-        :active-filters="activeFilters"
-        :filter-open="filterOpen"
-        :list-count="filteredSites.length"
-        :list-open="listOpen"
-        @update:query="store.setQuery"
-        @menu="menuOpen = true"
-        @filter="filterOpen = !filterOpen"
-        @list="listOpen = !listOpen"
-      />
-    </div>
-
-    <Transition name="pop">
-      <div v-if="filterOpen" class="map-shell__filter">
-        <FilterPopover
-          :category="store.category"
-          :city="store.city"
-          :counts="categoryCounts"
-          :city-counts="cityCounts"
-          :total="total"
-          :matched="filteredSites.length"
-          @update:category="store.setCategory"
-          @update:city="store.setCity"
-          @reset="store.resetFilters()"
-        />
-      </div>
-    </Transition>
-
-    <div v-if="filteredSites.length === 0" class="map-shell__void">
-      <span class="map-shell__void-icon"><AppIcon name="search" :size="18" /></span>
-      <p>没有匹配的项目</p>
-      <button type="button" class="map-shell__void-reset" @click="store.resetFilters()">
-        清空筛选
-      </button>
-    </div>
-
-    <!-- 桌面右侧：选中卡片 / 城市索引（两张独立的卡） -->
+    <!-- 桌面右侧：选中卡片 + 城市索引（两张独立的卡） -->
     <div class="home-side">
       <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
       <CityIndex />
     </div>
 
-    <!-- 窄屏：底部/右侧浮卡与原来的动作区 -->
+    <!-- 窄屏/平板沿用顶部搜索栏；桌面版头已接管搜索与筛选 -->
+    <div class="home-topbar">
+      <TopBar
+        :query="store.query"
+        :list-count="filteredSites.length"
+        :list-open="listOpen"
+        @update:query="store.setQuery"
+        @menu="menuOpen = true"
+        @list="listOpen = !listOpen"
+      />
+    </div>
+
+    <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->
     <SitePanel
       v-if="selectedSite"
       class="map-shell__panel"
@@ -158,11 +116,6 @@ function selectFromList(id: string): void {
       >
         <AppIcon name="reset" :size="13" />清空筛选
       </button>
-    </div>
-
-    <div class="home-status">
-      <span class="home-status__scope">安徽省 · 16 个地级市 · {{ total }} 处项目</span>
-      <span>拖动探索 · 滚轮缩放</span>
     </div>
 
     <SiteListSheet
@@ -335,14 +288,6 @@ function selectFromList(id: string): void {
 }
 
 /* ---- 筛选浮层 ---- */
-
-.map-shell__filter {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 4.4rem);
-  right: 25.5rem;
-  z-index: 25;
-  width: min(22rem, calc(100vw - 2 * var(--space-3)));
-}
 
 .map-shell__meta {
   position: absolute;
@@ -583,33 +528,10 @@ function selectFromList(id: string): void {
   .edge-tabs {
     display: block;
   }
-
-  .map-shell__filter {
-    right: var(--space-2);
-    left: var(--space-2);
-    width: auto;
-    max-width: none;
-  }
 }
 
 /* 筛选浮层进出：轻微上浮 + 淡入 */
-.pop-enter-active,
-.pop-leave-active {
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
-}
-
-.pop-enter-from,
-.pop-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .pop-enter-active,
-  .pop-leave-active {
-    transition: none;
-  }
 }
 </style>
