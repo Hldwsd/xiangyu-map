@@ -38,9 +38,15 @@ body {
   font-size: 1rem;
   line-height: 1.6;
   color: var(--ink);
+  /*
+   * 背景：宣纸底 + 书法《皖 / 徽》+ 极淡远山。
+   * 图片压得很浅，保证地图、卡片仍是视觉最前面的一层。
+   */
   background:
+    url('/images/bg-anhui-calligraphy.svg') center / cover no-repeat fixed,
     radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
-    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%), var(--paper);
+    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
+    var(--paper);
   -webkit-font-smoothing: antialiased;
 }
 
