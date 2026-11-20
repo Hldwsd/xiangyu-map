@@ -26,9 +26,9 @@ describe('地标圆钉', () => {
     expect(normal.startsWith('image://data:image/svg+xml')).toBe(true)
     expect(selected.startsWith('image://data:image/svg+xml')).toBe(true)
     expect(normal).not.toBe(selected)
-    // 未选中是白底墨圈，选中是墨底
-    expect(decodeURIComponent(normal)).toContain('fill="#ffffff"')
-    expect(decodeURIComponent(selected)).toContain('fill="#111111"')
+    // 未选中是纸白圆钉 + 墨线，选中是墨底纸线 + 金环
+    expect(decodeURIComponent(normal).toLowerCase()).toContain('fill="#fbf6ea"')
+    expect(decodeURIComponent(selected).toLowerCase()).toContain('fill="#1c1a17"')
   })
 
   it('六个分类的符号互不相同', () => {

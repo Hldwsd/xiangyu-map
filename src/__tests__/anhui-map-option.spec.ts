@@ -203,6 +203,29 @@ describe('buildAnhuiMapOption 的聚合点', () => {
     })
   })
 
+  it('选中项在簇里时单独拆出来，簇数量不含它，且选中项最后绘制', () => {
+    const trio = sites.slice(0, 3)
+    const first = trio[0]
+    if (first === undefined) throw new Error('测试数据为空')
+
+    const data = toScatterData(trio, first.id, [
+      { ids: trio.map((site) => site.id), lng: 117, lat: 31 },
+    ])
+
+    expect(data).toHaveLength(2)
+    const selected = data.find(
+      (datum): datum is SiteScatterDatum => 'siteId' in datum && datum.siteId === first.id,
+    )
+    const cluster = data.find((datum): datum is ClusterScatterDatum => 'count' in datum)
+
+    expect(selected?.label.show).toBe(true)
+    expect(selected?.symbolSize).toBeGreaterThan(cluster?.symbolSize ?? 0)
+    expect(cluster?.count).toBe(2)
+    expect(cluster?.clusterIds).toEqual(trio.slice(1).map((site) => site.id))
+    // 最后绘制，才不会被簇压住
+    expect(data[data.length - 1]).toBe(selected)
+  })
+
   it('簇的 tooltip 先说数量、再列名字', () => {
     const html = formatSiteTooltip({
       data: {

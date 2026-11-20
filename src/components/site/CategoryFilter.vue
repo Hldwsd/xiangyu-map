@@ -38,7 +38,7 @@ defineProps<{
       :class="{ 'filter__chip--active': category === item }"
       @click="category = item"
     >
-      <CategoryIcon :category="item" :size="13" />
+      <CategoryIcon :category="item" :size="18" />
       <span>{{ item }}</span>
       <span class="filter__count">{{ counts[item] }}</span>
     </button>
@@ -61,7 +61,7 @@ defineProps<{
   font-size: var(--text-sm);
   color: var(--ink);
   cursor: pointer;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   transition:

@@ -56,7 +56,7 @@ function markBroken(url: string): void {
     <header class="detail__header">
       <p class="detail__meta">
         <span class="detail__category">
-          <CategoryIcon :category="site.category" :size="12" />{{ site.category }}
+          <CategoryIcon :category="site.category" :size="20" />{{ site.category }}
         </span>
         <span>{{ site.province }} · {{ site.city }}</span>
         <span class="detail__updated">更新于 {{ site.updatedAt }}</span>
