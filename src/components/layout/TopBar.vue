@@ -3,9 +3,6 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 
 defineProps<{
   query: string
-  /** 生效中的筛选项个数（分类 + 城市），用来在筛选按钮上挂角标 */
-  activeFilters: number
-  filterOpen: boolean
   /** 当前结果数，给「列表」按钮 */
   listCount: number
   listOpen: boolean
@@ -14,7 +11,6 @@ defineProps<{
 const emit = defineEmits<{
   'update:query': [value: string]
   menu: []
-  filter: []
   list: []
 }>()
 
@@ -62,18 +58,6 @@ function onInput(event: Event): void {
     >
       <AppIcon name="all" :size="18" />
       <span class="topbar__count">{{ listCount }}</span>
-    </button>
-
-    <button
-      type="button"
-      class="topbar__icon"
-      :class="{ 'topbar__icon--on': filterOpen }"
-      :aria-expanded="filterOpen"
-      aria-label="筛选"
-      @click="emit('filter')"
-    >
-      <AppIcon name="filter" :size="18" />
-      <span v-if="activeFilters > 0" class="topbar__badge">{{ activeFilters }}</span>
     </button>
   </div>
 </template>
@@ -135,24 +119,6 @@ function onInput(event: Event): void {
   font-size: 0.55rem;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
-}
-
-.topbar__badge {
-  position: absolute;
-  top: -0.15rem;
-  right: -0.15rem;
-  display: inline-flex;
-  min-width: 1.1rem;
-  height: 1.1rem;
-  padding: 0 0.25rem;
-  font-size: 0.66rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1rem;
-  color: var(--accent-ink);
-  text-align: center;
-  background: var(--ink);
-  border: 2px solid var(--surface);
-  border-radius: var(--radius-pill);
 }
 
 /* ---- 全圆角搜索栏 ---- */

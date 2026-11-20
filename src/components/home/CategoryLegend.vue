@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import { ALL_CATEGORIES, useSitesStore } from '@/stores/sites'
 import { SITE_CATEGORIES, type SiteCategory } from '@/types/site'
@@ -34,7 +35,7 @@ function chooseAll(): void {
       :aria-pressed="store.category === ALL_CATEGORIES"
       @click="chooseAll"
     >
-      <span class="lrow__all" aria-hidden="true"> <i /><i /><i /><i /> </span>
+      <AppIcon class="lrow__icon" name="map" :size="28" aria-hidden="true" />
       <span class="lrow__name">全部</span>
       <span class="lrow__num">{{ store.sites.length }}</span>
     </button>
@@ -47,7 +48,7 @@ function chooseAll(): void {
       :aria-pressed="store.category === item.name"
       @click="choose(item.name)"
     >
-      <CategoryIcon :category="item.name" :size="22" />
+      <CategoryIcon class="lrow__icon" :category="item.name" :size="28" />
       <span class="lrow__name">{{ item.name }}</span>
       <span class="lrow__num">{{ item.count }}</span>
     </button>
@@ -104,31 +105,9 @@ function chooseAll(): void {
   font-variant-numeric: tabular-nums;
 }
 
-/* 「全部」的四格符号：四类形状的抽象 */
-.lrow__all {
-  display: grid;
+/* 图标统一 28px、与分类图标同一线宽（比上一版 22px 大一圈，列表更好认） */
+.lrow__icon {
   flex: none;
-  grid-template-columns: repeat(2, 6px);
-  gap: 2px;
-  width: 22px;
-  justify-content: center;
-}
-
-.lrow__all i {
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentcolor;
-}
-
-.lrow__all i:nth-child(2) {
-  border-radius: 50%;
-}
-
-.lrow__all i:nth-child(3) {
-  border-radius: 1px 1px 4px 4px;
-}
-
-.lrow__all i:nth-child(4) {
-  border-radius: 50% 50% 0 0;
+  color: inherit;
 }
 </style>
