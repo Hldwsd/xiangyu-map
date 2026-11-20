@@ -129,15 +129,10 @@ function selectFromList(id: string): void {
       </button>
     </div>
 
-    <!-- 桌面右侧：选中卡片 / 城市索引 / 关于 -->
+    <!-- 桌面右侧：选中卡片 / 城市索引（两张独立的卡） -->
     <div class="home-side">
       <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
       <CityIndex />
-      <div class="home-about">
-        <b>关于</b>
-        「乡遇安徽」把安徽省 16 个地级市的文旅项目放在一张地图上，点开看详情。<br />
-        当前为示例数据，图片与来源待替换。
-      </div>
     </div>
 
     <!-- 窄屏：底部/右侧浮卡与原来的动作区 -->
@@ -257,18 +252,34 @@ function selectFromList(id: string): void {
   opacity: 0.7;
 }
 
+/*
+ * 右侧栏：选中卡与城市索引是两张独立的卡（各自有底色/描边/间距），
+ * 不是一张长卡片被切开；同时隐藏滚动条 —— 超高时仍可滚，但不出现那条灰杠。
+ */
 .home-side {
   position: absolute;
-  top: 96px;
-  right: 28px;
-  bottom: 52px;
+  top: 100px;
+  right: 32px;
+  bottom: 56px;
   z-index: 14;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  width: 284px;
+  gap: 16px;
+  width: 320px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+}
+
+.home-side::-webkit-scrollbar {
+  display: none;
+}
+
+.home-side :deep(.city-index) {
+  flex: none;
+  padding: 12px 14px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-panel);
 }
 
 .home-side :deep(.panel) {
@@ -279,7 +290,7 @@ function selectFromList(id: string): void {
 
 /* 桌面卡片压缩一点，给下面的城市索引留出首屏空间 */
 .home-side :deep(.panel__cover) {
-  aspect-ratio: 16 / 8.4;
+  aspect-ratio: 16 / 6.6;
 }
 
 .home-side :deep(.panel__body) {
@@ -288,17 +299,17 @@ function selectFromList(id: string): void {
 }
 
 .home-side :deep(.panel__summary) {
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .home-side :deep(.panel__facts) {
-  padding-top: 6px;
-  font-size: 8.5px;
+  padding-top: 8px;
+  font-size: 10.5px;
 }
 
 .home-side :deep(.panel__link) {
-  padding: 6px 12px;
-  margin-top: 8px;
+  padding: 8px 14px;
+  margin-top: 10px;
 }
 
 .home-about {
@@ -330,7 +341,7 @@ function selectFromList(id: string): void {
   display: flex;
   justify-content: space-between;
   padding-top: 8px;
-  font-size: 7.5px;
+  font-size: 9.5px;
   color: var(--ink-soft);
   letter-spacing: 0.14em;
   border-top: 1px solid var(--line);
@@ -500,8 +511,9 @@ function selectFromList(id: string): void {
   }
 
   /* 地图自带的缩放条挪到右侧栏左边，避免被卡片压住 */
+  /* 缩条放在右侧栏左边留出的空隙里：32（外边距）+ 320（栏宽）+ 16（间距） */
   .map-shell__map :deep(.anhui-map__zoom) {
-    right: 340px;
+    right: 372px;
   }
 
   /* 版头底部已经有「安徽省 · 16 个地级市」，底栏只留交互提示，并靠右 */

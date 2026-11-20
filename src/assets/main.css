@@ -13,6 +13,14 @@ body {
   min-height: 100%;
 }
 
+/*
+ * 桌面端整页偏小：以 16px 为基准放大一档（17px）。
+ * 各组件里的 rem 尺寸会一起长，px 写死的局部字号另行调整。
+ */
+html {
+  font-size: 17px;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);

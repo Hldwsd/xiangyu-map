@@ -32,13 +32,6 @@ function choose(category: SiteCategory): void {
 function chooseAll(): void {
   store.setCategory(ALL_CATEGORIES)
 }
-
-/** 三条路线还是规划中，先做静态展示，不假装能点 */
-const routes = [
-  { no: '01', name: '徽州文化线', days: '一日' },
-  { no: '02', name: '山水朝圣线', days: '两日' },
-  { no: '03', name: '楚汉风物线', days: '两日' },
-]
 </script>
 
 <template>
@@ -104,22 +97,6 @@ const routes = [
       </button>
     </div>
 
-    <p class="rail__label rail__label--gap">主题路线 <span class="rail__badge">规划中</span></p>
-    <div class="rail__routes" role="list" aria-label="主题路线（规划中，暂不可用）">
-      <div
-        v-for="route in routes"
-        :key="route.no"
-        class="route"
-        role="listitem"
-        title="路线功能规划中，暂不可用"
-      >
-        <span class="route__no">{{ route.no }}</span>
-        <b>{{ route.name }}</b>
-        <i aria-hidden="true" />
-        <span class="route__days">{{ route.days }}</span>
-      </div>
-    </div>
-
     <div class="rail__meta">
       <b>安徽省 · 16 个地级市</b>
       <span>底图：DataV.GeoAtlas · 示例数据</span>
@@ -139,7 +116,7 @@ const routes = [
   z-index: 12;
   display: flex;
   flex-direction: column;
-  width: 272px;
+  width: 300px;
   color: var(--ink);
 }
 
@@ -152,7 +129,7 @@ const routes = [
 .rail__brand h1 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 27px;
+  font-size: 30px;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: var(--tracking-brand);
@@ -163,19 +140,19 @@ const routes = [
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   margin-top: 1px;
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 20px;
   color: var(--seal);
   background: var(--ink);
   border: 1px solid var(--seal);
 }
 
 .rail__tag {
-  margin: 9px 0 0;
-  font-size: 10px;
+  margin: 10px 0 0;
+  font-size: 11.5px;
   line-height: 1.8;
   color: var(--ink-soft);
   letter-spacing: 0.14em;
@@ -185,8 +162,8 @@ const routes = [
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 38px;
-  padding: 0 11px;
+  height: 42px;
+  padding: 0 12px;
   margin-top: 20px;
   color: var(--ink-soft);
   background: var(--surface);
@@ -199,7 +176,7 @@ const routes = [
   min-width: 0;
   padding: 0;
   font: inherit;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -222,8 +199,9 @@ const routes = [
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin: 24px 0 8px;
-  font-size: 8.5px;
+  margin: 26px 0 10px;
+  font-size: 10.5px;
+  font-weight: 500;
   color: var(--ink-soft);
   letter-spacing: 0.26em;
 }
@@ -233,14 +211,13 @@ const routes = [
 }
 
 .rail__badge {
-  font-size: 7px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
 }
 
 .rail__legend,
-.rail__picks,
-.rail__routes {
+.rail__picks {
   border-top: 1px solid var(--line);
 }
 
@@ -304,7 +281,7 @@ const routes = [
 .lrow__num {
   margin-left: auto;
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 11px;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
@@ -340,7 +317,7 @@ const routes = [
 .pick b {
   overflow: hidden;
   font-family: var(--font-serif);
-  font-size: 10.5px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--ink);
   letter-spacing: 0.06em;
@@ -350,45 +327,8 @@ const routes = [
 
 .pick__city {
   margin-left: auto;
-  font-size: 8.5px;
+  font-size: 10.5px;
   letter-spacing: 0.06em;
-}
-
-.route {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 27px;
-  border-bottom: 1px solid var(--line);
-}
-
-.route__no {
-  font-family: var(--font-display);
-  font-size: 7.5px;
-  color: var(--seal-ink);
-}
-
-.route b {
-  font-family: var(--font-serif);
-  font-size: 9.5px;
-  font-weight: 500;
-  color: var(--ink);
-  letter-spacing: 0.06em;
-}
-
-.route i {
-  width: 38px;
-  height: 1px;
-  margin-left: auto;
-  background: var(--seal);
-  opacity: 0.8;
-}
-
-.route__days {
-  width: 2.6em;
-  font-size: 7.5px;
-  color: var(--ink-soft);
-  text-align: right;
 }
 
 .rail__meta {
@@ -397,7 +337,7 @@ const routes = [
   gap: 2px;
   padding-top: 9px;
   margin-top: auto;
-  font-size: 8px;
+  font-size: 9.5px;
   line-height: 1.9;
   color: var(--ink-soft);
   letter-spacing: 0.08em;
