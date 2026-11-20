@@ -226,7 +226,7 @@ export const sites: Site[] = [
     tags: ['长江', '李白', '矶头'],
     bestSeason: '4-5 月、9-11 月',
     transport: '马鞍山东站打车约 30 分钟',
-    sources: ['http://www.caishiji.com/'],
+    sources: ['https://www.ah.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -388,7 +388,7 @@ export const sites: Site[] = [
     tags: ['豆腐', '淮河', '低山'],
     bestSeason: '4-5 月、9-10 月',
     transport: '淮南站打车约 30 分钟',
-    sources: ['https://www.huainan.gov.cn/'],
+    sources: ['http://www.bagongshan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {

@@ -15,6 +15,8 @@
  * 判定口径：
  * - 403 / 412 / 429 记为「反爬」而不是失效——政府站点常对脚本请求返回这些码，浏览器里能打开；
  *   是否算失败由 --strict-blocked 决定，默认只警告。
+ * - 200 但页面是"域名出售 / 域名停放 / 正在跳转 / 阿里云虚机报错"这类占位页时，记为「可疑页」：
+ *   域名过期后被域名商挂上待售页，状态码照样 200，只看状态码会把它们判成可达。
  * - example.com 单独计为「占位」：示例数据还没替换来源时它会一直出现，不该淹没真实问题。
  */
 import { sites } from '../src/data/sites.ts'
@@ -48,6 +50,41 @@ function classify(url, status) {
   return 'dead'
 }
 
+/**
+ * 停放域名与占位页的痕迹。
+ *
+ * 200 不等于「这个来源有用」：域名过期后常被域名商挂成待售页或跳转页，
+ * 状态码照样是 200。只看状态码会把「hcy.com.cn 域名出售」这种地址判成可达。
+ */
+const PARKED_SIGNS = [
+  '域名出售',
+  'domain for sale',
+  '域名转让',
+  '域名停放',
+  '正在跳转',
+  '阿里云万网虚机',
+  'west.cn',
+  'parking',
+]
+
+/** 判为可疑页时要读的正文上限：只取样，不把整站拉下来 */
+const SNIFF_BYTES = 4096
+
+async function sniffSuspicious(response) {
+  const length = Number(response.headers.get('content-length') ?? 0)
+  // 正常的政府/景区页面动辄几十上百 KB；这里只排除明显不是网页的响应
+  if (length > 3_000_000) return null
+
+  const text = await response.text()
+  const head = text.slice(0, SNIFF_BYTES).toLowerCase()
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(text)?.[1]?.trim() ?? ''
+
+  const sign = PARKED_SIGNS.find((sign) => head.includes(sign.toLowerCase()))
+  if (sign !== undefined) return `疑似停放页（含「${sign}」）`
+  if (title === '') return '页面没有标题，可能是占位或跳转页'
+  return null
+}
+
 async function probe(url) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -58,7 +95,17 @@ async function probe(url) {
       headers: { 'user-agent': USER_AGENT, accept: 'text/html,application/xhtml+xml,*/*' },
       signal: controller.signal,
     })
-    return { url, status: response.status, kind: classify(url, response.status) }
+    const base = { url, status: response.status, kind: classify(url, response.status) }
+
+    if (base.kind === 'ok') {
+      const suspicious = await sniffSuspicious(response)
+      if (suspicious !== null) return { ...base, kind: 'suspicious', reason: suspicious }
+    } else {
+      // 反爬/不可达的响应体没有意义，但必须读掉，否则连接不会释放
+      await response.arrayBuffer().catch(() => undefined)
+    }
+
+    return base
   } catch (error) {
     const reason = error instanceof Error && error.name === 'AbortError' ? '超时' : '连接失败'
     return { url, status: 0, kind: 'dead', reason }
@@ -81,9 +128,15 @@ async function worker() {
 
 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, urls.length) }, worker))
 
-const order = { dead: 0, blocked: 1, placeholder: 2, ok: 3 }
-const icons = { ok: '✓', blocked: '⚠', dead: '✗', placeholder: '·' }
-const labels = { ok: '可达', blocked: '反爬', dead: '不可达', placeholder: '占位' }
+const order = { dead: 0, suspicious: 1, blocked: 2, placeholder: 3, ok: 4 }
+const icons = { ok: '✓', blocked: '⚠', suspicious: '⚑', dead: '✗', placeholder: '·' }
+const labels = {
+  ok: '可达',
+  blocked: '反爬',
+  suspicious: '可疑页',
+  dead: '不可达',
+  placeholder: '占位',
+}
 
 results.sort((a, b) => order[a.kind] - order[b.kind] || a.url.localeCompare(b.url))
 
@@ -94,16 +147,20 @@ for (const result of results) {
   const status = result.status === 0 ? result.reason : String(result.status)
   const owners = sourceMap.get(result.url).join(', ')
   console.log(`${icons[result.kind]} ${labels[result.kind]}  ${status.padEnd(8)} ${result.url}`)
-  if (result.kind !== 'ok') console.log(`${' '.repeat(14)}↳ ${owners}`)
+  if (result.kind !== 'ok') {
+    const detail = result.reason === undefined ? '' : ` — ${result.reason}`
+    console.log(`${' '.repeat(14)}↳ ${owners}${detail}`)
+  }
 }
 
 const count = (kind) => results.filter((result) => result.kind === kind).length
 console.log(
-  `\n合计：可达 ${count('ok')} · 反爬 ${count('blocked')} · 不可达 ${count('dead')} · 占位 ${count('placeholder')}\n`,
+  `\n合计：可达 ${count('ok')} · 反爬 ${count('blocked')} · 可疑页 ${count('suspicious')} · 不可达 ${count('dead')} · 占位 ${count('placeholder')}\n`,
 )
 
-const failed = count('dead') > 0 || (strictBlocked && count('blocked') > 0)
+const failed =
+  count('dead') > 0 || count('suspicious') > 0 || (strictBlocked && count('blocked') > 0)
 if (strict && failed) {
-  console.error('存在不可达/被拒绝的来源，--strict 下按失败处理。')
+  console.error('存在不可达 / 可疑 / 被拒绝的来源，--strict 下按失败处理。')
   process.exit(1)
 }
