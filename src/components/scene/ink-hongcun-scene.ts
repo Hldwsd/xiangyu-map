@@ -1,23 +1,24 @@
 /**
- * 水墨宏村：程序化的「南湖 + 马头墙 + 远山」场景。
+ * 水墨宏村 · 写实向渲染器（v3）
  *
- * 设计要点：
- * - **无缝循环**：所有动画都是 loop t ∈ [0,1) 的函数，周期项用整数倍正弦；
- *   滴溅事件的起点 + 时长都落在循环内，不会跨帧断掉。
- * - **静态层缓存**：纸纹、远山、屋舍、石桥只画一次，存进离屏 canvas；
- *   每帧只叠水波、雾气、倒影、滴溅、飞鸟。
- * - **墨色克制**：远景最浅 6%，屋舍线 55%，水面 4–8%——背景不跟地图抢信息。
+ * 目标：不是「用线条拼一座村子」，而是让它像一张水墨画——
+ * 用湿笔、晕染、层层积墨和纸纹去堆出体积与空气感。
+ *
+ * 手法：
+ * - **软边**：所有形体都带轻微模糊（`ctx.filter`），远山更糊、近景更实，形成空气透视。
+ * - **积墨**：山体由「一层渐变底 + 上百笔皴」叠出来，而不是一条轮廓线。
+ * - **留白**：屋舍是纸白，靠黛瓦与窗洞的重墨反衬，不描边。
+ * - **纸纹与湿痕**：静态层铺噪点纸纹；天空与水面撒「湿痕」墨晕。
+ * - **无缝循环**：36 秒，周期项全为整数倍正弦；滴溅用半开区间相位。
  */
 
 const INK = '28, 26, 23'
-const WALL = '#fcf8ef'
+const PAPER = '#f7f1e4'
 
-/** 一次完整的循环时长（毫秒）：36 秒 */
 export const LOOP_MS = 36_000
 
 const TAU = Math.PI * 2
 
-/** 确定性随机：同一个 seed 每次都生成同一幅画，保证循环首尾一致 */
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0
   return () => {
@@ -29,17 +30,16 @@ function mulberry32(seed: number): () => number {
   }
 }
 
-/** 一条「山脊」：几组不同频率的正弦叠起来，再轻微随机，避免机械重复 */
 function ridge(
   width: number,
   baseY: number,
   amplitude: number,
   seed: number,
-  steps = 110,
+  steps = 140,
 ): Array<[number, number]> {
   const random = mulberry32(seed)
-  const waves = Array.from({ length: 4 }, (_, index) => ({
-    freq: (index + 1) * (0.9 + random() * 0.8),
+  const waves = Array.from({ length: 5 }, (_, index) => ({
+    freq: (index + 1) * (0.7 + random() * 0.9),
     phase: random() * TAU,
     weight: 1 / (index + 1),
   }))
@@ -54,60 +54,68 @@ function ridge(
   return points
 }
 
-function fillPolygon(
+/** 一支「湿笔」：短、软、两头淡，叠多了就是山体的皴 */
+function wetStroke(
   ctx: CanvasRenderingContext2D,
-  points: Array<[number, number]>,
-  bottomY: number,
-  fill: string,
+  x: number,
+  y: number,
+  length: number,
+  angle: number,
+  width: number,
+  alpha: number,
 ): void {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  const gradient = ctx.createLinearGradient(0, 0, length, 0)
+  gradient.addColorStop(0, `rgba(${INK}, 0)`)
+  gradient.addColorStop(0.35, `rgba(${INK}, ${alpha})`)
+  gradient.addColorStop(1, `rgba(${INK}, 0)`)
+  ctx.strokeStyle = gradient
+  ctx.lineWidth = width
+  ctx.lineCap = 'round'
   ctx.beginPath()
-  ctx.moveTo(points[0]![0], bottomY)
-  for (const [x, y] of points) ctx.lineTo(x, y)
-  ctx.lineTo(points[points.length - 1]![0], bottomY)
+  ctx.moveTo(0, 0)
+  ctx.quadraticCurveTo(length * 0.45, length * 0.06, length, 0)
+  ctx.stroke()
+  ctx.restore()
+}
+
+/** 墨晕：不规则的多瓣形 + 径向渐变，像一滴墨在湿纸上化开 */
+function bloom(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  alpha: number,
+  seed: number,
+): void {
+  const random = mulberry32(seed)
+  const points = 16
+  ctx.beginPath()
+  for (let i = 0; i <= points; i += 1) {
+    const angle = (i / points) * TAU
+    const variation = 0.62 + random() * 0.72
+    const x = cx + Math.cos(angle) * radius * variation
+    const y = cy + Math.sin(angle) * radius * variation * 0.86
+    if (i === 0) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  }
   ctx.closePath()
-  ctx.fillStyle = fill
+  const gradient = ctx.createRadialGradient(cx, cy, radius * 0.05, cx, cy, radius)
+  gradient.addColorStop(0, `rgba(${INK}, ${alpha})`)
+  gradient.addColorStop(0.55, `rgba(${INK}, ${alpha * 0.55})`)
+  gradient.addColorStop(1, `rgba(${INK}, 0)`)
+  ctx.fillStyle = gradient
   ctx.fill()
 }
-
-interface SplashEvent {
-  x: number
-  y: number
-  size: number
-  /** 在循环里的起始位置（0–1） */
-  offset: number
-}
-
-/** 滴溅事件：起点 + 0.16 必须 < 1，才能保证循环首尾干净 */
-const SPLASHES: SplashEvent[] = [
-  { x: 0.3, y: 0.26, size: 72, offset: 0.03 },
-  { x: 0.66, y: 0.17, size: 48, offset: 0.24 },
-  { x: 0.48, y: 0.34, size: 96, offset: 0.47 },
-  { x: 0.84, y: 0.29, size: 40, offset: 0.7 },
-]
-
-const SPLASH_LIFE = 0.16
-
-/**
- * 滴溅在循环里的相位：返回 0–1 表示正在扩散，null 表示这一刻没有滴溅。
- * 抽成纯函数是为了能直接单测「首尾不出界」这条约束。
- */
-export function splashPhase(t: number, offset: number): number | null {
-  const local = t - offset
-  // 半开区间：正好落在结束点上视为已消失，避免浮点误差把「最后一帧」算进来
-  if (local < 0 || local >= SPLASH_LIFE) return null
-  return local / SPLASH_LIFE
-}
-
-/** 每个滴溅在循环里的可见区间，必须落在 [0,1) 内，否则循环接缝会断 */
-export const SPLASH_WINDOWS: ReadonlyArray<{ offset: number; end: number }> = SPLASHES.map(
-  (splash) => ({ offset: splash.offset, end: splash.offset + SPLASH_LIFE }),
-)
 
 export class InkHongcunScene {
   private readonly ctx: CanvasRenderingContext2D
   private readonly canvas: HTMLCanvasElement
   private staticLayer: HTMLCanvasElement | null = null
   private bankLayer: HTMLCanvasElement | null = null
+  private grainLayer: HTMLCanvasElement | null = null
   private width = 0
   private height = 0
   private dpr = 1
@@ -122,7 +130,6 @@ export class InkHongcunScene {
   resize(width: number, height: number, dpr: number): void {
     if (width <= 0 || height <= 0) return
     if (width === this.width && height === this.height && dpr === this.dpr) return
-
     this.width = width
     this.height = height
     this.dpr = dpr
@@ -131,15 +138,15 @@ export class InkHongcunScene {
     this.canvas.style.width = `${width}px`
     this.canvas.style.height = `${height}px`
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    this.grainLayer = this.createGrain()
     this.buildStaticLayer()
   }
 
-  /** 画一帧；timeMs 会按 LOOP_MS 取模 */
   render(timeMs: number): void {
-    if (this.staticLayer === null || this.width === 0) return
+    if (this.staticLayer === null) return
     const ctx = this.ctx
     const { width: w, height: h } = this
-    const waterTop = h * 0.615
+    const waterTop = h * 0.6
     const t = (((timeMs % LOOP_MS) + LOOP_MS) % LOOP_MS) / LOOP_MS
 
     ctx.clearRect(0, 0, w, h)
@@ -147,15 +154,59 @@ export class InkHongcunScene {
 
     this.drawReflection(ctx, t, waterTop)
     this.drawWater(ctx, t, waterTop)
-    this.drawMist(ctx, t)
+    this.drawDrift(ctx, t)
     this.drawSplashes(ctx, t, waterTop)
     this.drawBirds(ctx, t)
-    this.drawVeil(ctx)
+    this.drawGrain(ctx)
+    this.drawVignette(ctx)
   }
 
   dispose(): void {
     this.staticLayer = null
     this.bankLayer = null
+    this.grainLayer = null
+  }
+
+  // ---------- 纸与噪点 ----------
+
+  private createGrain(): HTMLCanvasElement {
+    const tile = document.createElement('canvas')
+    const size = 220
+    tile.width = size
+    tile.height = size
+    const ctx = tile.getContext('2d')
+    if (ctx === null) return tile
+    const random = mulberry32(97531)
+    for (let i = 0; i < 5200; i += 1) {
+      const x = random() * size
+      const y = random() * size
+      ctx.fillStyle = `rgba(${INK}, ${0.02 + random() * 0.05})`
+      ctx.fillRect(x, y, 1, 1)
+    }
+    for (let i = 0; i < 260; i += 1) {
+      const x = random() * size
+      const y = random() * size
+      ctx.strokeStyle = `rgba(${INK}, 0.03)`
+      ctx.lineWidth = 0.6
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.lineTo(x + (random() - 0.5) * 3, y + 8 + random() * 18)
+      ctx.stroke()
+    }
+    return tile
+  }
+
+  private drawGrain(ctx: CanvasRenderingContext2D): void {
+    if (this.grainLayer === null) return
+    const { width: w, height: h } = this
+    const pattern = ctx.createPattern(this.grainLayer, 'repeat')
+    if (pattern === null) return
+    ctx.save()
+    ctx.globalAlpha = 0.55
+    ctx.globalCompositeOperation = 'multiply'
+    ctx.fillStyle = pattern
+    ctx.fillRect(0, 0, w, h)
+    ctx.restore()
   }
 
   // ---------- 静态层 ----------
@@ -171,129 +222,181 @@ export class InkHongcunScene {
     if (ctx === null) return
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-    const waterTop = h * 0.615
-    this.drawPaper(ctx, w, h)
-    this.drawRidges(ctx, w, h, waterTop)
-    this.drawVillage(ctx, w, h)
-    this.drawBridge(ctx, w, h)
-    this.drawBank(ctx, w, waterTop)
-    this.drawReeds(ctx, w, h)
+    const waterTop = h * 0.6
+
+    this.paintPaper(ctx, w, h)
+    this.paintSky(ctx, w, h)
+    this.paintMountains(ctx, w, h, waterTop)
+    this.paintVillage(ctx, w, h)
+    this.paintBridge(ctx, w, h)
+    this.paintShore(ctx, w, waterTop)
 
     this.staticLayer = canvas
-    this.captureBank(w, h, h * 0.47, waterTop)
+    this.captureBank(w, h, h * 0.42, waterTop)
   }
 
-  private drawPaper(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  private paintPaper(ctx: CanvasRenderingContext2D, w: number, h: number): void {
     const gradient = ctx.createLinearGradient(0, 0, 0, h)
-    gradient.addColorStop(0, '#f8f3e9')
-    gradient.addColorStop(0.55, '#f4eee2')
-    gradient.addColorStop(1, '#efe7d8')
+    gradient.addColorStop(0, '#faf5ea')
+    gradient.addColorStop(0.5, PAPER)
+    gradient.addColorStop(1, '#efe8da')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, w, h)
+  }
 
-    const random = mulberry32(20261120)
-    const dots = Math.round((w * h) / 1600)
-    for (let i = 0; i < dots; i += 1) {
-      const x = random() * w
-      const y = random() * h
-      ctx.fillStyle = `rgba(${INK}, ${0.015 + random() * 0.025})`
-      ctx.fillRect(x, y, 1, 1)
-    }
-    for (let i = 0; i < 80; i += 1) {
-      const x = random() * w
-      const y = random() * h
-      ctx.strokeStyle = `rgba(${INK}, 0.02)`
-      ctx.lineWidth = 0.6
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + (random() - 0.5) * 2, y + 20 + random() * 40)
-      ctx.stroke()
+  /** 天空：几团极淡的湿痕，让上半部不是死白 */
+  private paintSky(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    for (const [i, spot] of [
+      { x: 0.22, y: 0.16, r: 0.34, a: 0.05 },
+      { x: 0.72, y: 0.1, r: 0.3, a: 0.04 },
+      { x: 0.5, y: 0.28, r: 0.4, a: 0.03 },
+    ].entries()) {
+      bloom(ctx, w * spot.x, h * spot.y, Math.max(w, h) * spot.r, spot.a, 600 + i)
     }
   }
 
-  private drawRidges(ctx: CanvasRenderingContext2D, w: number, h: number, waterTop: number): void {
+  /** 远山：三层积墨，越远越淡越糊 */
+  private paintMountains(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    waterTop: number,
+  ): void {
     const layers = [
-      { baseY: h * 0.34, amp: h * 0.14, alpha: 0.055, seed: 11 },
-      { baseY: h * 0.42, amp: h * 0.15, alpha: 0.085, seed: 23 },
-      { baseY: h * 0.5, amp: h * 0.16, alpha: 0.12, seed: 37 },
+      { baseY: h * 0.3, amp: h * 0.13, alpha: 0.1, blur: 8, seed: 11, strokes: 150 },
+      { baseY: h * 0.4, amp: h * 0.15, alpha: 0.16, blur: 4, seed: 23, strokes: 190 },
+      { baseY: h * 0.5, amp: h * 0.16, alpha: 0.24, blur: 1.5, seed: 37, strokes: 230 },
     ]
 
-    for (const [index, layer] of layers.entries()) {
+    for (const layer of layers) {
+      const buffer = document.createElement('canvas')
+      buffer.width = Math.round(w * this.dpr)
+      buffer.height = Math.round(h * this.dpr)
+      const bctx = buffer.getContext('2d')
+      if (bctx === null) continue
+      bctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0)
+
       const points = ridge(w, layer.baseY, layer.amp, layer.seed)
-      fillPolygon(ctx, points, waterTop, `rgba(${INK}, ${layer.alpha})`)
 
-      // 皴：沿山脊向下挂短线
-      const random = mulberry32(layer.seed * 7)
-      ctx.strokeStyle = `rgba(${INK}, ${layer.alpha * 1.1})`
-      ctx.lineWidth = 1
-      for (let i = 0; i < 40; i += 1) {
-        const index2 = Math.floor(random() * points.length)
-        const [x, y] = points[index2]!
-        const length = 8 + random() * 22
-        ctx.beginPath()
-        ctx.moveTo(x, y + 1)
-        ctx.quadraticCurveTo(
-          x + (random() - 0.5) * 8,
-          y + length * 0.6,
-          x + (random() - 0.5) * 6,
-          y + length,
+      // 山体：上浓下淡的渐变
+      const gradient = bctx.createLinearGradient(0, layer.baseY - layer.amp, 0, waterTop)
+      gradient.addColorStop(0, `rgba(${INK}, ${layer.alpha})`)
+      gradient.addColorStop(0.55, `rgba(${INK}, ${layer.alpha * 0.7})`)
+      gradient.addColorStop(1, `rgba(${INK}, ${layer.alpha * 0.35})`)
+      bctx.beginPath()
+      bctx.moveTo(0, waterTop)
+      for (const [x, y] of points) bctx.lineTo(x, y)
+      bctx.lineTo(w, waterTop)
+      bctx.closePath()
+      bctx.fillStyle = gradient
+      bctx.fill()
+
+      // 皴：沿着山体往下挂的湿笔
+      const random = mulberry32(layer.seed * 13)
+      for (let i = 0; i < layer.strokes; i += 1) {
+        const index = Math.floor(random() * points.length)
+        const [x, y] = points[index]!
+        const length = 14 + random() * 46
+        const offsetX = (random() - 0.5) * 24
+        wetStroke(
+          bctx,
+          x + offsetX,
+          y + random() * 26,
+          length,
+          Math.PI / 2 + (random() - 0.5) * 0.5,
+          1 + random() * 3.2,
+          layer.alpha * (0.25 + random() * 0.5),
         )
-        ctx.stroke()
       }
 
-      // 山脚的雾：把层与层之间的边界糊开
-      if (index < layers.length - 1) {
-        const mistY = layer.baseY + layer.amp * 0.45
-        const mist = ctx.createLinearGradient(0, mistY - h * 0.05, 0, mistY + h * 0.06)
-        mist.addColorStop(0, 'rgba(248, 243, 233, 0)')
-        mist.addColorStop(0.5, 'rgba(248, 243, 233, 0.75)')
-        mist.addColorStop(1, 'rgba(248, 243, 233, 0)')
-        ctx.fillStyle = mist
-        ctx.fillRect(0, mistY - h * 0.05, w, h * 0.11)
+      // 山脚补几团墨晕，压出层次
+      for (let i = 0; i < 8; i += 1) {
+        bloom(
+          bctx,
+          random() * w,
+          layer.baseY + layer.amp * (0.3 + random() * 0.8),
+          h * (0.05 + random() * 0.08),
+          layer.alpha * 0.18,
+          layer.seed * 31 + i,
+        )
       }
+
+      ctx.save()
+      ctx.filter = `blur(${layer.blur}px)`
+      ctx.drawImage(buffer, 0, 0, w, h)
+      ctx.restore()
+
+      // 层间雾：把山脚糊进下一层
+      const mist = ctx.createLinearGradient(
+        0,
+        layer.baseY + layer.amp * 0.5,
+        0,
+        layer.baseY + layer.amp * 1.6,
+      )
+      mist.addColorStop(0, 'rgba(250, 246, 238, 0)')
+      mist.addColorStop(0.5, 'rgba(250, 246, 238, 0.9)')
+      mist.addColorStop(1, 'rgba(250, 246, 238, 0)')
+      ctx.fillStyle = mist
+      ctx.fillRect(0, layer.baseY + layer.amp * 0.4, w, layer.amp * 1.8)
     }
   }
 
-  /** 岸上屋舍：宏村最有辨识度的一排马头墙 + 白墙黛瓦 */
-  private drawVillage(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  /** 村落：白墙留白，黛瓦积墨，马头墙一级级叠上去 */
+  private paintVillage(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    const band = document.createElement('canvas')
+    band.width = Math.round(w * this.dpr)
+    band.height = Math.round(h * 0.28 * this.dpr)
+    const bctx = band.getContext('2d')
+    if (bctx === null) return
+    bctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0)
+    const bandTop = h * 0.42
+    bctx.translate(0, -bandTop)
+
     const random = mulberry32(4242)
     const baseline = h * 0.612
-    const count = 15
 
-    // 第二排：更小更淡，做纵深
-    for (let i = 0; i < 11; i += 1) {
-      const width = w * (0.028 + random() * 0.026)
-      const x = w * 0.06 + (i / 11) * w * 0.88 + (random() - 0.5) * 10
-      const height = h * (0.03 + random() * 0.03)
-      ctx.globalAlpha = 0.5
-      this.drawHouse(ctx, x, h * 0.585 - height, width, height, random, 2)
-      ctx.globalAlpha = 1
+    // 远景屋舍：更小、更淡
+    for (let i = 0; i < 10; i += 1) {
+      const width = w * (0.03 + random() * 0.03)
+      const x = w * 0.08 + (i / 10) * w * 0.84 + (random() - 0.5) * 12
+      const height = h * (0.035 + random() * 0.03)
+      bctx.globalAlpha = 0.55
+      this.house(bctx, x, h * 0.585 - height, width, height, random, 2)
     }
+    bctx.globalAlpha = 1
 
-    // 第一排：大小错落，留出巷口与树
-    for (let i = 0; i < count; i += 1) {
+    // 主排：错落，留出巷口
+    for (let i = 0; i < 13; i += 1) {
       const gap = i % 4 === 2
-      const width = w * (0.04 + random() * 0.05)
-      const x = w * 0.05 + (i / count) * w * 0.9 + (random() - 0.5) * 8
-      const height = gap ? h * 0.045 : h * (0.07 + random() * 0.075)
-      this.drawHouse(ctx, x, baseline - height, width, height, random, gap ? 2 : 3)
+      const width = w * (0.045 + random() * 0.05)
+      const x = w * 0.04 + (i / 13) * w * 0.92 + (random() - 0.5) * 10
+      const height = gap ? h * 0.05 : h * (0.08 + random() * 0.08)
+      this.house(bctx, x, baseline - height, width, height, random, gap ? 2 : 3)
     }
 
-    // 祠堂：靠中间，屋脊更宽、马头墙三级
-    this.drawHouse(ctx, w * 0.545, baseline - h * 0.13, w * 0.085, h * 0.13, random, 3, true)
+    // 祠堂：屋脊更宽
+    this.house(bctx, w * 0.545, baseline - h * 0.15, w * 0.09, h * 0.15, random, 3, true)
 
-    // 树：白墙之间点几株，避免一整排硬边
-    for (const x of [0.12, 0.36, 0.62, 0.86]) {
-      this.drawTree(
-        ctx,
-        w * x,
-        baseline - h * (0.02 + random() * 0.03),
-        h * (0.06 + random() * 0.05),
-      )
+    // 树：湿笔点叶
+    for (const x of [0.1, 0.34, 0.63, 0.87]) {
+      this.tree(bctx, w * x, baseline - h * 0.03, h * (0.08 + random() * 0.06))
     }
+
+    // 墙根的重墨：让一排屋子落地
+    const shadow = bctx.createLinearGradient(0, baseline - h * 0.035, 0, baseline + h * 0.01)
+    shadow.addColorStop(0, `rgba(${INK}, 0)`)
+    shadow.addColorStop(0.7, `rgba(${INK}, 0.14)`)
+    shadow.addColorStop(1, `rgba(${INK}, 0.02)`)
+    bctx.fillStyle = shadow
+    bctx.fillRect(0, baseline - h * 0.035, w, h * 0.05)
+
+    ctx.save()
+    ctx.filter = 'blur(0.7px)'
+    ctx.drawImage(band, 0, bandTop, w, h * 0.28)
+    ctx.restore()
   }
 
-  private drawHouse(
+  private house(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
@@ -303,209 +406,189 @@ export class InkHongcunScene {
     steps: number,
     hall = false,
   ): void {
-    const wallTop = y + height * 0.24
-    const wallHeight = height * 0.76
+    const wallTop = y + height * 0.22
+    const wallHeight = height * 0.78
 
-    // 墙：纸白 + 墨线
-    ctx.fillStyle = WALL
+    // 白墙：纸白，只在下缘加一点灰，形成圆柱感
+    const wall = ctx.createLinearGradient(x, wallTop, x + width, wallTop + wallHeight)
+    wall.addColorStop(0, 'rgba(253, 250, 243, 0.98)')
+    wall.addColorStop(0.7, 'rgba(249, 244, 234, 0.96)')
+    wall.addColorStop(1, `rgba(${INK}, 0.06)`)
+    ctx.fillStyle = wall
     ctx.fillRect(x, wallTop, width, wallHeight)
-    ctx.strokeStyle = `rgba(${INK}, 0.5)`
-    ctx.lineWidth = 1
-    ctx.strokeRect(x, wallTop, width, wallHeight)
 
-    // 屋面：黛瓦，带一点起翘
-    ctx.fillStyle = `rgba(${INK}, 0.42)`
+    // 瓦顶：厚厚一层积墨，边缘用湿笔带出去
     ctx.beginPath()
-    ctx.moveTo(x - width * 0.1, wallTop + height * 0.02)
+    ctx.moveTo(x - width * 0.14, wallTop + height * 0.03)
     ctx.quadraticCurveTo(
       x + width * 0.5,
-      wallTop + height * (hall ? 0.005 : 0.03),
-      x + width * 1.1,
-      wallTop + height * 0.02,
+      wallTop - height * (hall ? 0.1 : 0.07),
+      x + width * 1.14,
+      wallTop + height * 0.03,
     )
-    ctx.lineTo(x + width * 1.02, wallTop + height * 0.17)
+    ctx.lineTo(x + width * 1.04, wallTop + height * 0.19)
     ctx.quadraticCurveTo(
       x + width * 0.5,
-      y + height * 0.2,
-      x - width * 0.02,
-      wallTop + height * 0.17,
+      wallTop + height * 0.24,
+      x - width * 0.04,
+      wallTop + height * 0.19,
     )
     ctx.closePath()
+    const roof = ctx.createLinearGradient(0, wallTop - height * 0.08, 0, wallTop + height * 0.2)
+    roof.addColorStop(0, `rgba(${INK}, 0.62)`)
+    roof.addColorStop(1, `rgba(${INK}, 0.34)`)
+    ctx.fillStyle = roof
     ctx.fill()
 
-    // 瓦垄
-    ctx.strokeStyle = `rgba(252, 249, 242, 0.28)`
-    ctx.lineWidth = 0.7
-    for (let i = 1; i < 5; i += 1) {
-      const u = i / 5
-      ctx.beginPath()
-      ctx.moveTo(x + width * u, wallTop + height * 0.03)
-      ctx.lineTo(x + width * (u - 0.02), wallTop + height * 0.16)
-      ctx.stroke()
+    // 瓦垄：短促的湿笔
+    const randomRoof = mulberry32(Math.round(x))
+    for (let i = 0; i < 14; i += 1) {
+      const u = i / 14
+      wetStroke(
+        ctx,
+        x + width * u,
+        wallTop + height * 0.04,
+        height * 0.16,
+        Math.PI / 2 + 0.02,
+        0.8,
+        0.1 + randomRoof() * 0.12,
+      )
     }
 
-    // 马头墙：阶梯状山墙——每一级是一块独立的矮墙，越往上越往外收
-    const stepHeight = height * 0.11
-    const stepWidth = width * (hall ? 0.17 : 0.14)
+    // 马头墙：一阶阶往上收的白色山墙，压顶黛瓦
+    const stepH = height * 0.11
+    const stepW = width * (hall ? 0.18 : 0.15)
     for (const side of [-1, 1] as const) {
       const edge = side < 0 ? x : x + width
       for (let i = 0; i < steps; i += 1) {
-        const top = wallTop - stepHeight * (i + 1)
-        const left = side < 0 ? edge - stepWidth - i * width * 0.06 : edge + i * width * 0.06
-        const blockHeight = stepHeight + 1
-
-        ctx.fillStyle = WALL
-        ctx.fillRect(left, top, stepWidth, blockHeight)
-        ctx.strokeStyle = `rgba(${INK}, 0.5)`
-        ctx.lineWidth = 0.9
-        ctx.strokeRect(left, top, stepWidth, blockHeight)
-
-        // 压顶黛瓦：两端微微出头，是马头墙的「头」
-        ctx.fillStyle = `rgba(${INK}, 0.6)`
-        ctx.fillRect(left - 2.5, top - 3, stepWidth + 5, 3.2)
+        const top = wallTop - stepH * (i + 1)
+        const left = side < 0 ? edge - stepW - i * width * 0.05 : edge + i * width * 0.05
+        ctx.fillStyle = 'rgba(252, 249, 242, 0.97)'
+        ctx.fillRect(left, top, stepW, stepH + 1)
+        ctx.fillStyle = `rgba(${INK}, 0.5)`
+        ctx.fillRect(left - 3, top - 2.6, stepW + 6, 3.2)
+        // 檐下阴影
+        ctx.fillStyle = `rgba(${INK}, 0.08)`
+        ctx.fillRect(left, top + stepH - 2, stepW, 2)
       }
     }
 
-    // 门窗
+    // 门窗：窗洞的重墨 + 一点窗棂留白
     const windows = hall ? 3 : 1 + Math.floor(random() * 2)
     for (let i = 0; i < windows; i += 1) {
-      const wx = x + width * (hall ? 0.14 + i * 0.26 : 0.2 + i * 0.36)
-      const wy = wallTop + height * (hall ? 0.3 : 0.34)
-      const ww = width * (hall ? 0.16 : 0.19)
-      const wh = height * (hall ? 0.3 : 0.22)
-      ctx.fillStyle = `rgba(${INK}, 0.42)`
+      const wx = x + width * (hall ? 0.13 + i * 0.27 : 0.2 + i * 0.37)
+      const wy = wallTop + height * (hall ? 0.28 : 0.33)
+      const ww = width * (hall ? 0.17 : 0.2)
+      const wh = height * (hall ? 0.32 : 0.24)
+      const winGradient = ctx.createLinearGradient(wx, wy, wx, wy + wh)
+      winGradient.addColorStop(0, `rgba(${INK}, 0.42)`)
+      winGradient.addColorStop(1, `rgba(${INK}, 0.24)`)
+      ctx.fillStyle = winGradient
       ctx.fillRect(wx, wy, ww, wh)
-      ctx.strokeStyle = `rgba(252, 249, 242, 0.7)`
-      ctx.lineWidth = 0.6
+      ctx.strokeStyle = 'rgba(252, 249, 242, 0.55)'
+      ctx.lineWidth = 0.7
       ctx.beginPath()
       ctx.moveTo(wx + ww / 2, wy)
       ctx.lineTo(wx + ww / 2, wy + wh)
-      ctx.moveTo(wx, wy + wh / 2)
-      ctx.lineTo(wx + ww, wy + wh / 2)
+      ctx.moveTo(wx, wy + wh * 0.5)
+      ctx.lineTo(wx + ww, wy + wh * 0.5)
       ctx.stroke()
     }
 
-    // 门
-    const doorWidth = width * 0.22
-    const doorX = x + width * 0.5 - doorWidth / 2
-    const doorY = wallTop + wallHeight - height * 0.32
-    ctx.fillStyle = `rgba(${INK}, 0.3)`
-    ctx.fillRect(doorX, doorY, doorWidth, height * 0.32)
+    // 门洞
+    const doorW = width * 0.24
+    const doorX = x + width * 0.5 - doorW / 2
+    const doorY = wallTop + wallHeight - height * 0.34
+    ctx.fillStyle = `rgba(${INK}, 0.34)`
+    ctx.fillRect(doorX, doorY, doorW, height * 0.34)
   }
 
-  private drawTree(ctx: CanvasRenderingContext2D, x: number, baseY: number, size: number): void {
-    const random = mulberry32(Math.round(x * 13) + 7)
-    ctx.strokeStyle = `rgba(${INK}, 0.35)`
-    ctx.lineWidth = 1.6
-    ctx.beginPath()
-    ctx.moveTo(x, baseY)
-    ctx.quadraticCurveTo(x - size * 0.1, baseY - size * 0.5, x, baseY - size * 0.85)
-    ctx.stroke()
-
-    for (let i = 0; i < 9; i += 1) {
-      const spread = (random() - 0.5) * size * 1.1
-      const startY = baseY - size * (0.5 + random() * 0.3)
-      ctx.strokeStyle = `rgba(${INK}, ${0.12 + random() * 0.16})`
-      ctx.lineWidth = 0.9
-      ctx.beginPath()
-      ctx.moveTo(x, startY)
-      ctx.quadraticCurveTo(x + spread * 0.5, startY - size * 0.15, x + spread, startY + size * 0.12)
-      ctx.stroke()
+  private tree(ctx: CanvasRenderingContext2D, x: number, baseY: number, size: number): void {
+    const random = mulberry32(Math.round(x * 7) + 3)
+    // 树干
+    wetStroke(ctx, x, baseY, size * 0.9, -Math.PI / 2, 2.4, 0.34)
+    // 树冠：一团团湿笔点出来
+    for (let i = 0; i < 26; i += 1) {
+      const dx = (random() - 0.5) * size * 1.4
+      const dy = -size * (0.55 + random() * 0.7)
+      const radius = size * (0.08 + random() * 0.14)
+      bloom(ctx, x + dx, baseY + dy, radius, 0.06 + random() * 0.1, 900 + i)
     }
   }
 
-  private drawBridge(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-    const left = w * 0.115
-    const right = w * 0.33
-    const deckY = h * 0.6
+  private paintBridge(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    const left = w * 0.11
+    const right = w * 0.32
+    const deckY = h * 0.598
     const span = right - left
-    const rise = h * 0.052
+    const rise = h * 0.055
 
-    // 桥拱（重墨）
+    // 桥身：一条有厚度的墨带
     ctx.strokeStyle = `rgba(${INK}, 0.5)`
-    ctx.lineWidth = 2.4
+    ctx.lineWidth = 3
     ctx.beginPath()
     ctx.moveTo(left, deckY)
     ctx.quadraticCurveTo(left + span / 2, deckY - rise * 2, right, deckY)
     ctx.stroke()
 
-    // 桥面
-    ctx.strokeStyle = `rgba(${INK}, 0.3)`
+    ctx.strokeStyle = `rgba(${INK}, 0.24)`
     ctx.lineWidth = 1.2
     ctx.beginPath()
-    ctx.moveTo(left - 4, deckY + 5)
-    ctx.quadraticCurveTo(left + span / 2, deckY - rise * 2 + 5, right + 4, deckY + 5)
+    ctx.moveTo(left - 6, deckY + 6)
+    ctx.quadraticCurveTo(left + span / 2, deckY - rise * 2 + 6, right + 6, deckY + 6)
     ctx.stroke()
 
-    // 栏杆
-    ctx.strokeStyle = `rgba(${INK}, 0.32)`
-    ctx.lineWidth = 1
-    const posts = 11
-    for (let i = 0; i <= posts; i += 1) {
-      const u = i / posts
+    // 栏杆：细湿笔
+    for (let i = 0; i <= 12; i += 1) {
+      const u = i / 12
       const x = left + span * u
       const y = deckY + 5 - Math.sin(u * Math.PI) * rise * 2
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y - 9)
-      ctx.stroke()
+      wetStroke(ctx, x, y, 9, -Math.PI / 2, 1.1, 0.22)
     }
-    ctx.beginPath()
-    ctx.moveTo(left, deckY - 4)
-    ctx.quadraticCurveTo(left + span / 2, deckY - rise * 2 - 4, right, deckY - 4)
-    ctx.stroke()
 
-    // 桥洞里的影
-    ctx.fillStyle = `rgba(${INK}, 0.12)`
+    // 桥洞阴影
+    const shadow = ctx.createLinearGradient(0, deckY - rise, 0, deckY + 2)
+    shadow.addColorStop(0, `rgba(${INK}, 0)`)
+    shadow.addColorStop(1, `rgba(${INK}, 0.16)`)
+    ctx.fillStyle = shadow
     ctx.beginPath()
-    ctx.moveTo(left + span * 0.05, deckY)
-    ctx.quadraticCurveTo(left + span / 2, deckY - rise * 3.2, right - span * 0.05, deckY)
+    ctx.moveTo(left + span * 0.06, deckY)
+    ctx.quadraticCurveTo(left + span / 2, deckY - rise * 3.4, right - span * 0.06, deckY)
     ctx.closePath()
     ctx.fill()
   }
 
-  private drawBank(ctx: CanvasRenderingContext2D, w: number, waterTop: number): void {
-    // 岸：一条墨色石栏，把墙根与水面分开
-    ctx.fillStyle = `rgba(${INK}, 0.16)`
-    ctx.fillRect(0, waterTop - 5, w, 5)
-    ctx.strokeStyle = `rgba(${INK}, 0.38)`
-    ctx.lineWidth = 1.2
-    ctx.beginPath()
-    ctx.moveTo(0, waterTop - 5)
-    ctx.lineTo(w, waterTop - 5)
-    ctx.stroke()
+  private paintShore(ctx: CanvasRenderingContext2D, w: number, waterTop: number): void {
+    // 石岸：一条深浅不一的墨带
+    const gradient = ctx.createLinearGradient(0, waterTop - 10, 0, waterTop + 2)
+    gradient.addColorStop(0, `rgba(${INK}, 0.05)`)
+    gradient.addColorStop(0.6, `rgba(${INK}, 0.3)`)
+    gradient.addColorStop(1, `rgba(${INK}, 0.1)`)
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, waterTop - 10, w, 12)
 
-    // 水岸碎石
     const random = mulberry32(515)
-    for (let i = 0; i < 90; i += 1) {
+    for (let i = 0; i < 120; i += 1) {
       const x = random() * w
-      const y = waterTop - random() * 4
-      ctx.fillStyle = `rgba(${INK}, ${0.06 + random() * 0.12})`
-      ctx.fillRect(x, y, 1 + random() * 3, 1)
+      bloom(ctx, x, waterTop - random() * 6, 1.5 + random() * 5, 0.06 + random() * 0.12, 400 + i)
     }
-  }
 
-  private drawReeds(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-    const random = mulberry32(3131)
-    for (let i = 0; i < 70; i += 1) {
+    // 前景芦苇：极淡的湿笔
+    for (let i = 0; i < 80; i += 1) {
       const x = random() * w
-      const y = h * (0.93 + random() * 0.07)
-      const height = h * (0.02 + random() * 0.05)
-      ctx.strokeStyle = `rgba(${INK}, ${0.07 + random() * 0.11})`
-      ctx.lineWidth = 0.8 + random()
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.quadraticCurveTo(
-        x + 4 - random() * 8,
-        y - height * 0.6,
-        x + 6 - random() * 12,
-        y - height,
+      const y = waterTop + 60 + random() * 80
+      wetStroke(
+        ctx,
+        x,
+        y,
+        10 + random() * 26,
+        -Math.PI / 2 + (random() - 0.5) * 0.5,
+        1 + random() * 1.6,
+        0.05 + random() * 0.1,
       )
-      ctx.stroke()
     }
   }
 
-  /** 把「岸上屋舍」这段单独存一张图，倒影用它来翻折 */
   private captureBank(w: number, h: number, top: number, bottom: number): void {
     if (this.staticLayer === null) return
     const bandHeight = Math.max(1, Math.round((bottom - top) * this.dpr))
@@ -535,7 +618,7 @@ export class InkHongcunScene {
     if (this.bankLayer === null) return
     const w = this.width
     const bandHeight = this.bankLayer.height / this.dpr
-    const slice = 3
+    const slice = 2
     const rows = Math.ceil(bandHeight / slice)
 
     ctx.save()
@@ -546,10 +629,10 @@ export class InkHongcunScene {
     for (let i = 0; i < rows; i += 1) {
       const sourceY = i * slice
       if (sourceY >= bandHeight) break
-      const destY = waterTop + i * slice
+      const destY = waterTop + i * slice * 0.92
       const progress = i / rows
-      const wobble = Math.sin(t * TAU * 2 + i * 0.2) * (1 + progress * 6)
-      ctx.globalAlpha = Math.max(0, 0.3 * (1 - progress * 1.05))
+      const wobble = Math.sin(t * TAU * 2 + i * 0.22) * (1 + progress * 8)
+      ctx.globalAlpha = Math.max(0, 0.4 * (1 - progress * 1.05))
       ctx.drawImage(
         this.bankLayer,
         0,
@@ -559,126 +642,134 @@ export class InkHongcunScene {
         wobble,
         destY,
         w,
-        slice + 0.6,
+        slice + 1,
       )
     }
     ctx.globalAlpha = 1
     ctx.restore()
+
+    // 倒影上压一层水色，避免太实
+    const tint = ctx.createLinearGradient(0, waterTop, 0, this.height)
+    tint.addColorStop(0, 'rgba(244, 238, 226, 0.18)')
+    tint.addColorStop(1, 'rgba(244, 238, 226, 0.55)')
+    ctx.fillStyle = tint
+    ctx.fillRect(0, waterTop, w, this.height - waterTop)
   }
 
   private drawWater(ctx: CanvasRenderingContext2D, t: number, waterTop: number): void {
     const { width: w, height: h } = this
     const gradient = ctx.createLinearGradient(0, waterTop, 0, h)
-    gradient.addColorStop(0, `rgba(${INK}, 0.05)`)
-    gradient.addColorStop(1, `rgba(${INK}, 0.015)`)
+    gradient.addColorStop(0, `rgba(${INK}, 0.06)`)
+    gradient.addColorStop(0.6, `rgba(${INK}, 0.03)`)
+    gradient.addColorStop(1, `rgba(${INK}, 0.08)`)
     ctx.fillStyle = gradient
     ctx.fillRect(0, waterTop, w, h - waterTop)
 
     const random = mulberry32(9091)
-    const lines = 36
+    const lines = 26
     for (let i = 0; i < lines; i += 1) {
       const depth = i / lines
       const y = waterTop + depth * (h - waterTop) * 0.95
-      const speed = 1 + (i % 3)
-      const phase = t * TAU * speed + i * 0.7
-      const drift = Math.sin(phase) * (3 + depth * 18)
-      const alpha = 0.045 + (1 - depth) * 0.045
-      ctx.strokeStyle = `rgba(${INK}, ${alpha})`
-      ctx.lineWidth = 0.8 + (1 - depth) * 0.7
+      const phase = t * TAU * (1 + (i % 3)) + i * 0.7
+      const drift = Math.sin(phase) * (4 + depth * 22)
+      const alpha = 0.05 + (1 - depth) * 0.06
 
-      const dashes = 6 + Math.round(random() * 4)
+      const dashes = 5 + Math.round(random() * 4)
       for (let d = 0; d < dashes; d += 1) {
-        const x = ((d / dashes + random() * 0.08) * w + drift + w) % w
-        const length = (0.02 + random() * 0.05) * w
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x + length, y)
-        ctx.stroke()
+        const x = ((d / dashes + random() * 0.1) * w + drift + w) % w
+        wetStroke(ctx, x, y, (0.03 + random() * 0.07) * w, 0, 1 + (1 - depth) * 1.4, alpha)
       }
+    }
+
+    // 水面浮光：几团横向的亮斑
+    for (let i = 0; i < 7; i += 1) {
+      const y = waterTop + ((i + 0.5) / 7) * (h - waterTop) * 0.9
+      const x = ((i / 7 + Math.sin(t * TAU + i) * 0.05) * w + w) % w
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, w * 0.18)
+      glow.addColorStop(0, 'rgba(252, 249, 240, 0.18)')
+      glow.addColorStop(1, 'rgba(252, 249, 240, 0)')
+      ctx.fillStyle = glow
+      ctx.fillRect(x - w * 0.18, y - 12, w * 0.36, 24)
     }
   }
 
-  private drawMist(ctx: CanvasRenderingContext2D, t: number): void {
+  private drawDrift(ctx: CanvasRenderingContext2D, t: number): void {
     const { width: w, height: h } = this
     const bands = [
-      { y: 0.42, height: 0.07, alpha: 0.14, speed: 1 },
-      { y: 0.5, height: 0.06, alpha: 0.16, speed: 2 },
-      { y: 0.58, height: 0.04, alpha: 0.1, speed: 1 },
+      { y: 0.4, r: 0.5, alpha: 0.16, speed: 1 },
+      { y: 0.52, r: 0.55, alpha: 0.2, speed: 2 },
+      { y: 0.64, r: 0.45, alpha: 0.12, speed: 1 },
     ]
     for (const band of bands) {
-      const centerY = h * band.y
-      const bandHeight = h * band.height
-      const shift = Math.sin(t * TAU * band.speed) * w * 0.07
+      const shift = Math.sin(t * TAU * band.speed) * w * 0.08
       const gradient = ctx.createRadialGradient(
         w * 0.5 + shift,
-        centerY,
+        h * band.y,
         0,
         w * 0.5 + shift,
-        centerY,
-        w * 0.6,
+        h * band.y,
+        w * band.r,
       )
-      gradient.addColorStop(0, `rgba(250, 246, 238, ${band.alpha})`)
-      gradient.addColorStop(1, 'rgba(250, 246, 238, 0)')
+      gradient.addColorStop(0, `rgba(251, 247, 239, ${band.alpha})`)
+      gradient.addColorStop(1, 'rgba(251, 247, 239, 0)')
       ctx.save()
       ctx.beginPath()
-      ctx.rect(0, centerY - bandHeight, w, bandHeight * 2)
+      ctx.rect(0, h * band.y - h * 0.09, w, h * 0.18)
       ctx.clip()
       ctx.fillStyle = gradient
-      ctx.fillRect(0, centerY - bandHeight, w, bandHeight * 2)
+      ctx.fillRect(0, h * band.y - h * 0.09, w, h * 0.18)
       ctx.restore()
     }
   }
 
   private drawSplashes(ctx: CanvasRenderingContext2D, t: number, waterTop: number): void {
     const { width: w, height: h } = this
-    for (const splash of SPLASHES) {
+    for (const [index, splash] of SPLASHES.entries()) {
       const k = splashPhase(t, splash.offset)
       if (k === null) continue
       const cx = splash.x * w
       const cy = splash.y * h
-      const radius = splash.size * (0.3 + 0.8 * k)
-      const alpha = (1 - k) ** 1.7 * 0.3
+      const radius = splash.size * (0.35 + 0.9 * k)
+      const alpha = (1 - k) ** 1.8 * 0.32
 
-      const random = mulberry32(Math.round(splash.offset * 1000) + 17)
-      ctx.beginPath()
-      const points = 14
-      for (let i = 0; i <= points; i += 1) {
-        const angle = (i / points) * TAU
-        const variation = 0.72 + random() * 0.55
-        const x = cx + Math.cos(angle) * radius * variation
-        const y = cy + Math.sin(angle) * radius * variation * 0.82
-        if (i === 0) ctx.moveTo(x, y)
-        else ctx.lineTo(x, y)
-      }
-      ctx.closePath()
-      const gradient = ctx.createRadialGradient(cx, cy, radius * 0.1, cx, cy, radius)
-      gradient.addColorStop(0, `rgba(${INK}, ${alpha})`)
-      gradient.addColorStop(1, `rgba(${INK}, ${alpha * 0.12})`)
-      ctx.fillStyle = gradient
-      ctx.fill()
+      // 墨在湿纸上化开：三层不同半径的晕
+      bloom(ctx, cx, cy, radius, alpha, index * 97 + 11)
+      bloom(
+        ctx,
+        cx + radius * 0.18,
+        cy - radius * 0.12,
+        radius * 0.62,
+        alpha * 0.8,
+        index * 97 + 29,
+      )
+      bloom(ctx, cx - radius * 0.2, cy + radius * 0.1, radius * 0.5, alpha * 0.6, index * 97 + 43)
 
-      for (let i = 0; i < 8; i += 1) {
+      // 飞溅的小墨点
+      const random = mulberry32(index * 31 + 7)
+      for (let i = 0; i < 9; i += 1) {
         const angle = random() * TAU
-        const distance = radius * (1.1 + random() * 0.9)
-        const dotRadius = (1.2 + random() * 2.4) * (1 - k * 0.6)
-        ctx.beginPath()
-        ctx.arc(
+        const distance = radius * (1.1 + random() * 1.1)
+        bloom(
+          ctx,
           cx + Math.cos(angle) * distance,
-          cy + Math.sin(angle) * distance * 0.8,
-          dotRadius,
-          0,
-          TAU,
+          cy + Math.sin(angle) * distance * 0.85,
+          1.4 + random() * 3.2,
+          alpha * (0.4 + random() * 0.5),
+          index * 53 + i,
         )
-        ctx.fillStyle = `rgba(${INK}, ${alpha * (0.5 + random() * 0.6)})`
-        ctx.fill()
       }
 
-      if (splash.y > 0.3) {
-        const ringY = Math.max(waterTop + 10, cy + radius * 0.8)
-        ctx.strokeStyle = `rgba(${INK}, ${alpha * 0.8})`
-        ctx.lineWidth = 1
+      // 落在水面：晕开的涟漪
+      if (splash.y > 0.28) {
+        const ringY = Math.max(waterTop + 12, cy + radius * 0.85)
+        ctx.strokeStyle = `rgba(${INK}, ${alpha * 0.7})`
+        ctx.lineWidth = 1.1
         ctx.beginPath()
-        ctx.ellipse(cx, ringY, radius * (0.8 + k), radius * 0.22 * (0.8 + k), 0, 0, TAU)
+        ctx.ellipse(cx, ringY, radius * (0.9 + k * 1.2), radius * 0.2 * (0.9 + k), 0, 0, TAU)
+        ctx.stroke()
+        ctx.strokeStyle = `rgba(${INK}, ${alpha * 0.35})`
+        ctx.beginPath()
+        ctx.ellipse(cx, ringY, radius * (0.5 + k * 0.8), radius * 0.12 * (0.5 + k), 0, 0, TAU)
         ctx.stroke()
       }
     }
@@ -691,27 +782,63 @@ export class InkHongcunScene {
       const local = (t + i / 3) % 1
       const alpha = Math.sin(local * Math.PI) * 0.4
       if (alpha <= 0.01) continue
-      const x = local * (w + 120) - 60
-      const y = h * (0.16 + i * 0.05) + Math.sin(local * TAU * 2 + i) * 6
-      const size = 5 - i
-
+      const x = local * (w + 140) - 70
+      const y = h * (0.15 + i * 0.05) + Math.sin(local * TAU * 2 + i) * 7
+      const size = 6 - i
       ctx.strokeStyle = `rgba(${INK}, ${alpha})`
-      ctx.lineWidth = 1.1
+      ctx.lineWidth = 1.2
       ctx.beginPath()
       ctx.moveTo(x - size, y + size * 0.4)
-      ctx.quadraticCurveTo(x - size * 0.4, y - size * 0.3, x, y + size * 0.1)
-      ctx.quadraticCurveTo(x + size * 0.4, y - size * 0.3, x + size, y + size * 0.4)
+      ctx.quadraticCurveTo(x - size * 0.45, y - size * 0.35, x, y + size * 0.05)
+      ctx.quadraticCurveTo(x + size * 0.45, y - size * 0.35, x + size, y + size * 0.4)
       ctx.stroke()
     }
   }
 
-  private drawVeil(ctx: CanvasRenderingContext2D): void {
+  private drawVignette(ctx: CanvasRenderingContext2D): void {
     const { width: w, height: h } = this
-    const gradient = ctx.createLinearGradient(0, 0, 0, h)
-    gradient.addColorStop(0, 'rgba(248, 244, 236, 0.2)')
-    gradient.addColorStop(0.45, 'rgba(248, 244, 236, 0.04)')
-    gradient.addColorStop(1, 'rgba(244, 238, 226, 0.18)')
+    const gradient = ctx.createRadialGradient(
+      w * 0.5,
+      h * 0.45,
+      Math.min(w, h) * 0.35,
+      w * 0.5,
+      h * 0.45,
+      Math.max(w, h) * 0.75,
+    )
+    gradient.addColorStop(0, 'rgba(244, 238, 226, 0)')
+    gradient.addColorStop(1, 'rgba(238, 231, 216, 0.22)')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, w, h)
   }
 }
+
+interface SplashEvent {
+  x: number
+  y: number
+  size: number
+  offset: number
+}
+
+const SPLASHES: SplashEvent[] = [
+  { x: 0.26, y: 0.22, size: 78, offset: 0.03 },
+  { x: 0.64, y: 0.15, size: 52, offset: 0.22 },
+  { x: 0.46, y: 0.3, size: 104, offset: 0.45 },
+  { x: 0.82, y: 0.26, size: 44, offset: 0.68 },
+]
+
+const SPLASH_LIFE = 0.16
+
+/**
+ * 滴溅在循环里的相位：返回 0–1 表示正在扩散，null 表示这一刻没有滴溅。
+ * 半开区间，正好落在结束点上视为已消失，避免浮点误差把最后一帧算进来。
+ */
+export function splashPhase(t: number, offset: number): number | null {
+  const local = t - offset
+  if (local < 0 || local >= SPLASH_LIFE) return null
+  return local / SPLASH_LIFE
+}
+
+/** 每个滴溅在循环里的可见区间，必须落在 [0,1) 内，否则循环接缝会断 */
+export const SPLASH_WINDOWS: ReadonlyArray<{ offset: number; end: number }> = SPLASHES.map(
+  (splash) => ({ offset: splash.offset, end: splash.offset + SPLASH_LIFE }),
+)
