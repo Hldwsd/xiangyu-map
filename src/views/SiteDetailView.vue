@@ -166,9 +166,10 @@ function markBroken(url: string): void {
 <style scoped>
 .detail {
   width: 100%;
-  max-width: 820px;
+  /* 栏宽用 rem：html 基准随视口放大，这里跟着变宽，不再固定 820px */
+  max-width: 56rem;
   margin: 0 auto;
-  padding: 0 var(--space-5) var(--space-7);
+  padding: 0 clamp(1.1rem, 3vw, 2.6rem) var(--space-7);
 }
 
 /* ---- 返回 ---- */
@@ -189,6 +190,15 @@ function markBroken(url: string): void {
 }
 
 /* ---- 头部 ---- */
+
+.detail__header {
+  padding: clamp(1.1rem, 2.2vw, 1.7rem);
+  margin-top: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
 
 .detail__meta {
   display: flex;
@@ -238,8 +248,8 @@ function markBroken(url: string): void {
 .detail__cover {
   display: block;
   width: 100%;
-  /* 16:9 在 820px 栏宽下高 461px，会把「简介」整个推出首屏；限高后正文能露出来 */
-  max-height: 380px;
+  /* 16:9 在宽栏下会很高，把「简介」推出首屏；用视口高度限高，宽屏大屏也稳 */
+  max-height: min(46vh, 30rem);
   margin: var(--space-5) 0 0;
   aspect-ratio: 16 / 9;
   object-fit: cover;
@@ -251,9 +261,12 @@ function markBroken(url: string): void {
 /* ---- 小节：细线 + 大间距，形成阅读节奏 ---- */
 
 .detail__section {
-  margin-top: var(--space-5);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--line);
+  padding: clamp(1.1rem, 2.2vw, 1.6rem);
+  margin-top: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
 
 .detail__section h2 {
@@ -354,7 +367,7 @@ function markBroken(url: string): void {
   padding: 0.7rem 0.85rem;
   color: var(--ink);
   text-decoration: none;
-  background: rgb(var(--surface-rgb) / 88%);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   transition:
@@ -397,5 +410,30 @@ function markBroken(url: string): void {
 
 .detail--missing {
   padding-top: var(--space-6);
+}
+
+@media (width <= 720px) {
+  .detail__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .detail__facts dt {
+    padding-bottom: 0.1rem;
+    border-bottom: 0;
+  }
+
+  .detail__facts dd {
+    padding-top: 0.1rem;
+    padding-bottom: 0.7rem;
+  }
+
+  .detail__pager {
+    grid-template-columns: 1fr;
+  }
+
+  .detail__pager-item--next {
+    align-items: flex-start;
+    text-align: left;
+  }
 }
 </style>
