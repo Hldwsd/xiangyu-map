@@ -2,6 +2,8 @@ import type { GeoJsonFeatureCollection } from '@/types/geo'
 
 /** ECharts 里注册的地图名，geo.map / series.map 必须与它一致 */
 export const ANHUI_MAP_NAME = 'anhui'
+/** 市域 + 水域 + 区县的合并底图（区县是后加载的，所以用第二个名字重新注册） */
+export const ANHUI_FULL_MAP_NAME = 'anhui-full'
 /** 区县界（只做底图纹理，不参与交互） */
 export const ANHUI_DISTRICTS_MAP_NAME = 'anhui-districts'
 /** 主要湖泊水面 */

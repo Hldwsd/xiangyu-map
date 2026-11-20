@@ -18,6 +18,7 @@ import {
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
 import {
+  ANHUI_FULL_MAP_NAME,
   ANHUI_MAP_NAME,
   loadAnhuiDistricts,
   loadAnhuiMap,
@@ -79,6 +80,8 @@ let mapFeatures: TaggedFeature[] = []
 let layerRegions: MapRegionStyle[] = []
 /** 长江/淮河的折线段，画成 lines 系列 */
 let riverLines: RiverLine[] = []
+/** 当前注册的底图名：区县到达后从 ANHUI_MAP_NAME 切到 ANHUI_FULL_MAP_NAME */
+let activeMapName = ANHUI_MAP_NAME
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
@@ -328,6 +331,7 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
     themePalette(),
     layerRegions,
     riverLines,
+    activeMapName,
   )
 }
 
@@ -467,15 +471,41 @@ function blurMarker(index: number): void {
   instance.dispatchAction({ type: 'hideTip' })
 }
 
+/**
+ * 区县界后加载。
+ *
+ * 104 个区县 660KB，跟首屏一起等会让地图空白好几秒；这里先画市界 + 水系，
+ * 区县到了再注册成 `anhui-full` 并重建一次 option。
+ * 重建前记下 center/zoom，重建后写回去——否则用户的缩放会被打回默认。
+ */
+async function attachDistricts(
+  city: Parameters<typeof mergeMapLayers>[0],
+  water: Parameters<typeof mergeMapLayers>[2],
+): Promise<void> {
+  const districts = await loadAnhuiDistricts().catch(() => null)
+  if (districts === null || disposed || chart.value === null || status.value !== 'ready') return
+
+  const { center, zoom } = geoState()
+  const merged = mergeMapLayers(city, districts, water)
+  mapFeatures = merged.features
+  layerRegions = buildLayerRegions(mapFeatures, layerMode)
+  activeMapName = ANHUI_FULL_MAP_NAME
+
+  echarts.registerMap(ANHUI_FULL_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
+  chart.value.setOption(currentOption(), { notMerge: true })
+  chart.value.setOption({ geo: { center, zoom } })
+  zoomLevel.value = Number(zoom.toFixed(2))
+  refreshMarkers()
+}
+
 async function render(): Promise<void> {
   status.value = 'loading'
   errorMessage.value = ''
 
   try {
-    // 区县界与水域是装饰层：失败就少一层纹理，不应该让整张地图报错
-    const [city, districts, water, rivers] = await Promise.all([
+    // 首屏只等市界 + 水系：区县界 660KB，等它一起会白屏好几秒（实测线上 5s 以上）
+    const [city, water, rivers] = await Promise.all([
       loadAnhuiMap(),
-      loadAnhuiDistricts().catch(() => null),
       loadAnhuiWater().catch(() => null),
       loadAnhuiRivers().catch(() => null),
     ])
@@ -484,7 +514,7 @@ async function render(): Promise<void> {
     // "Cannot read properties of null (reading '0')"。等 ResizeObserver 给出真实尺寸再画。
     if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
 
-    const merged = mergeMapLayers(city, districts, water)
+    const merged = mergeMapLayers(city, null, water)
     mapFeatures = merged.features
     riverLines = buildRiverLines(rivers)
     layerMode = 'city'
@@ -506,6 +536,9 @@ async function render(): Promise<void> {
     zoomLevel.value = Number(zoom.toFixed(2))
     currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
     refreshMarkers()
+
+    // 区县界在首屏之后补：到了就重注册地图并保留当前视野
+    void attachDistricts(city, water)
   } catch (error: unknown) {
     status.value = 'error'
     errorMessage.value = error instanceof Error ? error.message : '底图加载失败'

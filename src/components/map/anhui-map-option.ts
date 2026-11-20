@@ -306,6 +306,7 @@ export function buildAnhuiMapOption(
   palette: ThemePalette = DEFAULT_PALETTE,
   regions: MapRegionStyle[] = [],
   rivers: RiverLine[] = [],
+  mapName: string = ANHUI_MAP_NAME,
 ): EChartsOption {
   const data = toScatterData(sites, selectedId, groups, palette)
 
@@ -325,7 +326,7 @@ export function buildAnhuiMapOption(
       formatter: formatSiteTooltip,
     },
     geo: {
-      map: ANHUI_MAP_NAME,
+      map: mapName,
       // 拖动会让人误以为整张图可以随便拖走，而且省域在视野里本来就固定；
       // 缩放交给组件自己的滚轮/缩放条（带动画），所以这里既不开拖动也不开滚轮。
       // 拖动与滚轮/双指缩放都交给 ECharts 原生 roam：同一套变换、同一个渲染帧，
