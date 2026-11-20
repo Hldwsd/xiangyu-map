@@ -40,13 +40,14 @@ const GOLD = '#b08a4a'
 /** 48 单位画布上的圆钉与图形比例 */
 const SIZE = 48
 const RING_RADIUS = 21
-const GLYPH_SCALE = 0.6
+const GLYPH_SCALE = 0.68
 const GLYPH_OFFSET = (SIZE - 48 * GLYPH_SCALE) / 2
 /**
- * 线宽：按原版 S1 样张（.tmp/ink-paper/final/s1-icons.png）的细线来。
- * 之前 5.2 × 0.6 = 3.1 单位，比样张粗一档，六类在小尺寸下会糊成一样重。
+ * 线宽与图形占比按原版 S1 样张（.tmp/ink-paper/final/s1-icons.png）来：
+ * 0.68 缩放让图形占满圆钉内径的 ~2/3，3.3 × 0.68 ≈ 2.24 单位，
+ * 在 34px 圆钉上约 1.6px。再粗就会把「鼓」「折扇」这类细节糊成一团。
  */
-const GLYPH_STROKE = 4.2
+const GLYPH_STROKE = 3.3
 
 function glyphMarkup(category: SiteCategory, stroke: string): string {
   const paths = CATEGORY_GLYPHS[category].map((path) => `<path d="${path}"/>`).join('')
