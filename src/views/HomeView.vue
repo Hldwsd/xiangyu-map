@@ -63,9 +63,6 @@ function selectFromList(id: string): void {
 
 <template>
   <div class="map-shell">
-    <!-- 地图与背景之间的一圈渐隐边框：靠里最深，越往外越浅 -->
-    <div class="map-shell__frame" aria-hidden="true" />
-
     <div class="map-shell__map">
       <AnhuiMap
         :sites="filteredSites"
@@ -177,40 +174,9 @@ function selectFromList(id: string): void {
 /*
  * 地图内缩一圈：四周露出背景（宣纸 + 书法），再用一圈渐隐描边把地图与背景分开。
  */
-.map-shell__frame {
-  position: absolute;
-  inset: 22px;
-  z-index: 6;
-  pointer-events: none;
-  border-radius: 22px;
-  box-shadow:
-    0 0 0 2px rgb(28 26 23 / 32%),
-    0 0 0 7px rgb(28 26 23 / 17%),
-    0 0 0 15px rgb(28 26 23 / 8%),
-    0 0 0 26px rgb(28 26 23 / 3.5%);
-}
-
 .map-shell__map {
   position: absolute;
-  inset: 22px;
-  overflow: hidden;
-  border-radius: 22px;
-  background: var(--surface);
-  box-shadow: inset 0 0 32px rgb(28 26 23 / 7%);
-}
-
-/*
- * 地图纸面下面再铺一层淡书法：画布本身透明，字从地图里透出来。
- * 60% 让字「看得见但不抢」，比直接透 body 背景更可控（body 那层边缘更重）。
- */
-.map-shell__map::before {
-  position: absolute;
   inset: 0;
-  z-index: 0;
-  content: '';
-  pointer-events: none;
-  background: url('/images/bg-anhui-calligraphy.svg') center / cover no-repeat;
-  opacity: 0.55;
 }
 
 /* ---- 桌面：右上动作 / 右侧栏 / 底部状态 ---- */

@@ -13,6 +13,7 @@ export const ANHUI_WATER_MAP_NAME = 'anhui-water'
 export const ANHUI_MAP_URL = `${import.meta.env.BASE_URL}maps/anhui.json`
 export const ANHUI_DISTRICTS_URL = `${import.meta.env.BASE_URL}maps/anhui-districts.json`
 export const ANHUI_WATER_URL = `${import.meta.env.BASE_URL}maps/anhui-water.json`
+export const ANHUI_OUTLINE_URL = `${import.meta.env.BASE_URL}maps/anhui-outline.json`
 export const ANHUI_RIVERS_URL = `${import.meta.env.BASE_URL}maps/anhui-rivers.json`
 
 export class MapDataError extends Error {
@@ -84,6 +85,11 @@ export function loadAnhuiWater(): Promise<GeoJsonFeatureCollection> {
 /** 长江/淮河河道线：同上，缺了只是少一层纹理 */
 export function loadAnhuiRivers(): Promise<GeoJsonFeatureCollection> {
   return load(ANHUI_RIVERS_URL, '河道')
+}
+
+/** 省界轮廓：给省域画一圈向外渐隐的边框，缺了只是少一圈托底 */
+export function loadAnhuiOutline(): Promise<GeoJsonFeatureCollection> {
+  return load(ANHUI_OUTLINE_URL, '省界')
 }
 
 /** 仅供测试使用：清空模块级缓存 */

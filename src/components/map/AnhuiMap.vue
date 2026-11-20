@@ -22,6 +22,7 @@ import {
   ANHUI_MAP_NAME,
   loadAnhuiDistricts,
   loadAnhuiMap,
+  loadAnhuiOutline,
   loadAnhuiRivers,
   loadAnhuiWater,
 } from '@/services/anhui-map-loader'
@@ -86,6 +87,7 @@ let activeMapName = ANHUI_MAP_NAME
 /** 首屏加载的市界与水域，切换区县图层时复用，不再重复请求 */
 let cachedCity: Parameters<typeof mergeMapLayers>[0] | null = null
 let cachedWater: Parameters<typeof mergeMapLayers>[2] = null
+let cachedOutline: Parameters<typeof mergeMapLayers>[3] = null
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
@@ -410,6 +412,27 @@ function buildLayerRegions(
       continue
     }
 
+    if (layer === 'outline') {
+      // 1 = 最外圈（最粗最浅），3 = 最内圈（最细最深）
+      const ring = feature.properties.ring === 2 ? 2 : feature.properties.ring === 3 ? 3 : 1
+      const style = {
+        1: { width: 20, alpha: '6%' },
+        2: { width: 9, alpha: '15%' },
+        3: { width: 2.5, alpha: '42%' },
+      }[ring]
+      regions.push({
+        name,
+        itemStyle: {
+          areaColor: 'transparent',
+          borderColor: `rgb(28 26 23 / ${style.alpha})`,
+          borderWidth: style.width,
+        },
+        silent: true,
+        label: { show: false },
+      })
+      continue
+    }
+
     if (layer === 'water') {
       regions.push({
         name,
@@ -491,7 +514,7 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
   if (disposed || chart.value === null) return
 
   const { center, zoom } = geoState()
-  const merged = mergeMapLayers(cachedCity, districts, cachedWater)
+  const merged = mergeMapLayers(cachedCity, districts, cachedWater, cachedOutline)
   mapFeatures = merged.features
   layerMode = zoom >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
   layerRegions = buildLayerRegions(mapFeatures, layerMode)
@@ -510,10 +533,11 @@ async function render(): Promise<void> {
 
   try {
     // 首屏只等市界 + 水系：区县界 660KB，等它一起会白屏好几秒（实测线上 5s 以上）
-    const [city, water, rivers] = await Promise.all([
+    const [city, water, rivers, outline] = await Promise.all([
       loadAnhuiMap(),
       loadAnhuiWater().catch(() => null),
       loadAnhuiRivers().catch(() => null),
+      loadAnhuiOutline().catch(() => null),
     ])
     if (disposed || container.value === null) return
     // 容器尺寸为 0 时不要 setOption：geo 投影拿不到绘图区，ECharts 会抛
@@ -522,7 +546,8 @@ async function render(): Promise<void> {
 
     cachedCity = city
     cachedWater = water
-    const merged = mergeMapLayers(city, null, water)
+    cachedOutline = outline
+    const merged = mergeMapLayers(city, null, water, outline)
     mapFeatures = merged.features
     riverLines = buildRiverLines(rivers)
     layerMode = 'city'
