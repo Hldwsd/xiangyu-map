@@ -55,24 +55,24 @@ function toggle(city: AnhuiCity): void {
 
 .city-index__head span {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--ink-soft);
   letter-spacing: 0.18em;
 }
 
 .city-index__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+  column-gap: 10px;
 }
 
 .city {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  padding: 2px 0;
+  padding: 3px 0;
   font: inherit;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink-soft);
   text-align: left;
   cursor: pointer;
@@ -98,7 +98,7 @@ function toggle(city: AnhuiCity): void {
 .city__n {
   margin-left: auto;
   font-family: var(--font-display);
-  font-size: 9.5px;
+  font-size: 11px;
   color: inherit;
   font-variant-numeric: tabular-nums;
 }
