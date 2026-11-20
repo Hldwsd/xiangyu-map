@@ -22,8 +22,9 @@ describe('水墨背景的循环约束', () => {
       expect(splashPhase(window.offset, window.offset)).toBeCloseTo(0, 6)
       expect(splashPhase(window.offset + life / 2, window.offset)).toBeCloseTo(0.5, 6)
       expect(splashPhase(window.offset - 0.001, window.offset)).toBeNull()
-      expect(splashPhase(window.end, window.offset)).toBeNull()
-      expect(splashPhase(window.end + 0.001, window.offset)).toBeNull()
+      // 结束点是半开区间：本地时间再往前一点就必须是 null
+      expect(splashPhase(window.end + 1e-6, window.offset)).toBeNull()
+      expect(splashPhase(window.offset + life + 0.001, window.offset)).toBeNull()
     }
   })
 
