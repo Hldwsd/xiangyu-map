@@ -5,8 +5,12 @@ import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useFocusTrap } from '@/composables/use-focus-trap'
 
-const props = defineProps<{ open: boolean; siteCount: number }>()
-const emit = defineEmits<{ close: []; 'open-list': [] }>()
+const props = defineProps<{ open: boolean; siteCount: number; showDistricts: boolean }>()
+const emit = defineEmits<{
+  close: []
+  'open-list': []
+  'update:show-districts': [value: boolean]
+}>()
 
 const panel = ref<HTMLElement | null>(null)
 useFocusTrap(
@@ -63,6 +67,21 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
       </nav>
 
       <section class="drawer__section">
+        <h2>地图图层</h2>
+        <label class="drawer__toggle">
+          <input
+            type="checkbox"
+            :checked="showDistricts"
+            @change="emit('update:show-districts', ($event.target as HTMLInputElement).checked)"
+          />
+          <span>
+            显示区县界
+            <small>默认关闭：官方标准图只画 16 个地级市（皖S(2025)71号）</small>
+          </span>
+        </label>
+      </section>
+
+      <section class="drawer__section">
         <h2>关于</h2>
         <p>
           「乡遇安徽」把安徽省 16
@@ -72,6 +91,10 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
         <p class="drawer__note">
           当前为示例数据：文案、图片与来源仍在逐条替换，底图数据来源见
           <code>public/maps/README.md</code>。
+        </p>
+        <p class="drawer__note">
+          行政区划依据：安徽省自然资源厅《安徽省示意图（一）》（审图号
+          皖S(2025)71号）——该标准图只划分 16 个地级市，因此默认不显示区县界。
         </p>
       </section>
 
@@ -201,6 +224,28 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
   font-size: var(--text-2xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
+  color: var(--ink-soft);
+}
+
+.drawer__toggle {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.drawer__toggle input {
+  margin-top: 0.2rem;
+  accent-color: var(--accent);
+}
+
+.drawer__toggle small {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: var(--text-2xs);
+  line-height: 1.6;
   color: var(--ink-soft);
 }
 

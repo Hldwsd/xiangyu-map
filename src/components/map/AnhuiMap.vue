@@ -53,6 +53,8 @@ const CENTER_MAX: [number, number] = [119.1, 33.9]
 const props = defineProps<{
   sites: Site[]
   selectedId: string | null
+  /** 是否显示区县界。默认关闭：官方标准图（皖S(2025)71号）只有 16 个地级市 */
+  showDistricts?: boolean
 }>()
 
 const emit = defineEmits<{ select: [id: string] }>()
@@ -80,8 +82,10 @@ let mapFeatures: TaggedFeature[] = []
 let layerRegions: MapRegionStyle[] = []
 /** 长江/淮河的折线段，画成 lines 系列 */
 let riverLines: RiverLine[] = []
-/** 当前注册的底图名：区县到达后从 ANHUI_MAP_NAME 切到 ANHUI_FULL_MAP_NAME */
 let activeMapName = ANHUI_MAP_NAME
+/** 首屏加载的市界与水域，切换区县图层时复用，不再重复请求 */
+let cachedCity: Parameters<typeof mergeMapLayers>[0] | null = null
+let cachedWater: Parameters<typeof mergeMapLayers>[2] = null
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
@@ -472,28 +476,30 @@ function blurMarker(index: number): void {
 }
 
 /**
- * 区县界后加载。
+ * 切换区县界图层。
  *
- * 104 个区县 660KB，跟首屏一起等会让地图空白好几秒；这里先画市界 + 水系，
- * 区县到了再注册成 `anhui-full` 并重建一次 option。
+ * 默认不显示：官方标准图（皖S(2025)71号「安徽省示意图（一）」）只画 16 个地级市，
+ * 没有县区界；区县一层留作可选细节，需要时才请求（660KB）。
  * 重建前记下 center/zoom，重建后写回去——否则用户的缩放会被打回默认。
  */
-async function attachDistricts(
-  city: Parameters<typeof mergeMapLayers>[0],
-  water: Parameters<typeof mergeMapLayers>[2],
-): Promise<void> {
-  const districts = await loadAnhuiDistricts().catch(() => null)
-  if (districts === null || disposed || chart.value === null || status.value !== 'ready') return
+async function applyDistrictLayer(include: boolean): Promise<void> {
+  const instance = chart.value
+  if (cachedCity === null || instance === null || disposed || status.value !== 'ready') return
+
+  const districts = include ? await loadAnhuiDistricts().catch(() => null) : null
+  if (include && districts === null) return
+  if (disposed || chart.value === null) return
 
   const { center, zoom } = geoState()
-  const merged = mergeMapLayers(city, districts, water)
+  const merged = mergeMapLayers(cachedCity, districts, cachedWater)
   mapFeatures = merged.features
+  layerMode = zoom >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
   layerRegions = buildLayerRegions(mapFeatures, layerMode)
-  activeMapName = ANHUI_FULL_MAP_NAME
+  activeMapName = districts === null ? ANHUI_MAP_NAME : ANHUI_FULL_MAP_NAME
 
-  echarts.registerMap(ANHUI_FULL_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
-  chart.value.setOption(currentOption(), { notMerge: true })
-  chart.value.setOption({ geo: { center, zoom } })
+  echarts.registerMap(activeMapName, merged as Parameters<typeof echarts.registerMap>[1])
+  instance.setOption(currentOption(), { notMerge: true })
+  instance.setOption({ geo: { center, zoom } })
   zoomLevel.value = Number(zoom.toFixed(2))
   refreshMarkers()
 }
@@ -514,6 +520,8 @@ async function render(): Promise<void> {
     // "Cannot read properties of null (reading '0')"。等 ResizeObserver 给出真实尺寸再画。
     if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
 
+    cachedCity = city
+    cachedWater = water
     const merged = mergeMapLayers(city, null, water)
     mapFeatures = merged.features
     riverLines = buildRiverLines(rivers)
@@ -537,8 +545,8 @@ async function render(): Promise<void> {
     currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
     refreshMarkers()
 
-    // 区县界在首屏之后补：到了就重注册地图并保留当前视野
-    void attachDistricts(city, water)
+    // 区县界默认不加载；打开开关时在首屏之后补（重注册地图并保留当前视野）
+    if (props.showDistricts === true) void applyDistrictLayer(true)
   } catch (error: unknown) {
     status.value = 'error'
     errorMessage.value = error instanceof Error ? error.message : '底图加载失败'
@@ -577,6 +585,14 @@ onBeforeUnmount(() => {
   chart.value?.dispose()
   chart.value = null
 })
+
+watch(
+  () => props.showDistricts,
+  (include) => {
+    if (status.value !== 'ready' || chart.value === null) return
+    void applyDistrictLayer(include === true)
+  },
+)
 
 watch(
   () => [props.sites, props.selectedId] as const,

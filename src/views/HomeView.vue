@@ -25,6 +25,13 @@ const menuOpen = ref(false)
 const filterOpen = ref(false)
 const listOpen = ref(false)
 
+/*
+ * 区县界默认关闭：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界。
+ * 留一个开关给需要看细节的人，选择记在本地。
+ */
+const showDistricts = ref(localStorage.getItem('xy-show-districts') === '1')
+watch(showDistricts, (value) => localStorage.setItem('xy-show-districts', value ? '1' : '0'))
+
 /** 桌面首屏给一个「已经选中」的样子；窄屏不自动弹卡，避免挡地图 */
 onMounted(() => {
   if (window.matchMedia('(min-width: 1200px)').matches && store.selectedId === null) {
@@ -67,7 +74,12 @@ function selectFromList(id: string): void {
 <template>
   <div class="map-shell">
     <div class="map-shell__map">
-      <AnhuiMap :sites="filteredSites" :selected-id="selectedId" @select="store.selectSite" />
+      <AnhuiMap
+        :sites="filteredSites"
+        :selected-id="selectedId"
+        :show-districts="showDistricts"
+        @select="store.selectSite"
+      />
     </div>
 
     <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
@@ -187,6 +199,8 @@ function selectFromList(id: string): void {
     <MenuDrawer
       :open="menuOpen"
       :site-count="total"
+      :show-districts="showDistricts"
+      @update:show-districts="showDistricts = $event"
       @close="menuOpen = false"
       @open-list="
         () => {
