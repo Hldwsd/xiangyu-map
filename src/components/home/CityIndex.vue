@@ -22,6 +22,7 @@ function toggle(city: AnhuiCity): void {
         type="button"
         class="city"
         :class="{ 'city--on': store.city === city }"
+        :aria-pressed="store.city === city"
         :disabled="store.cityCounts[city] === 0"
         @click="toggle(city)"
       >
