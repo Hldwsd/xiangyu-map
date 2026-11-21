@@ -95,6 +95,12 @@ export interface ClusterScatterDatum {
 
 export type MapScatterDatum = SiteScatterDatum | ClusterScatterDatum
 
+/** 水域图层：用第二个 geo 叠在主图之上，hover 重绘城市时不会盖到它 */
+export interface WaterLayer {
+  mapName: string
+  boundingCoords: [[number, number], [number, number]]
+}
+
 /** 省界光晕：同一圈轮廓按不同线宽/浓度画三遍，越外越浅 */
 export interface OutlineRing {
   coords: [number, number][]
@@ -380,6 +386,7 @@ export function buildAnhuiMapOption(
   outlineRings: OutlineRing[] = [],
   featuredIds: ReadonlySet<string> = new Set<string>(),
   animateIn = false,
+  waterLayer: WaterLayer | null = null,
 ): EChartsOption {
   const data = toScatterData(sites, selectedId, groups, palette, featuredIds)
 
@@ -398,62 +405,89 @@ export function buildAnhuiMapOption(
       extraCssText: 'z-index: 12; box-shadow: 0 10px 24px -16px rgba(28,26,23,.45);',
       formatter: formatSiteTooltip,
     },
-    geo: {
-      map: mapName,
-      // 拖动会让人误以为整张图可以随便拖走，而且省域在视野里本来就固定；
-      // 缩放交给组件自己的滚轮/缩放条（带动画），所以这里既不开拖动也不开滚轮。
-      // 拖动与滚轮/双指缩放都交给 ECharts 原生 roam：同一套变换、同一个渲染帧，
-      // 不会出现「地图/河道/地标谁慢半拍」。缩放条与点簇仍是组件直接设置 zoom。
-      // 拖动范围由组件在 georoam 里夹住，不能把省域拖出视野。
-      roam: true,
-      // 省界光晕是 lines 系列（z 1），geo 抬到 z 2 才能盖住描边向内的那一半
-      z: 2,
-      // geo 自己的形变动画会让「地图」比「地标」晚一截：散点位置按目标变换立即计算，
-      // 而 polygons 还在 300–400ms 的补间里。平滑由组件的 rAF 补间负责，这里必须关掉。
-      animation: false,
-      // 默认按底图完整范围自适应：16 个市必须全部在视野内，
-      // 否则「某个市没有项目」会被误读成「那个市不存在」。
-      scaleLimit: { min: 0.9, max: 8 },
-      selectedMode: false,
-      /**
-       * 留 8% 内边距。省界正好贴住画布边缘时，边界上地标的圆点会被裁掉一半，
-       * 视觉上像「半个点」，点击命中区也随之变小——这是 M1「贴边地标也要点得中」的直接前提。
-       */
-      layoutCenter: ['50%', '50%'],
-      layoutSize: '92%',
-      label: {
-        show: true,
-        // 市名是地名本身的文化资产，升为墨色宋体加大：市名从「灰色注记」
-        // 变成构图的一部分，纸色描边负责把它从河道与地标上抬起来
-        color: INK,
-        fontSize: 13,
-        fontWeight: 500,
-        fontFamily: MAP_FONT,
-        textBorderColor: PAPER,
-        textBorderWidth: 2,
-      },
-      itemStyle: {
-        areaColor: palette.mapArea,
-        borderColor: palette.mapBorder,
-        borderWidth: 0.8,
-      },
-      // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
-      regions,
-      emphasis: {
+    geo: [
+      {
+        map: mapName,
+        boundingCoords: waterLayer?.boundingCoords,
+        // 拖动会让人误以为整张图可以随便拖走，而且省域在视野里本来就固定；
+        // 缩放交给组件自己的滚轮/缩放条（带动画），所以这里既不开拖动也不开滚轮。
+        // 拖动与滚轮/双指缩放都交给 ECharts 原生 roam：同一套变换、同一个渲染帧，
+        // 不会出现「地图/河道/地标谁慢半拍」。缩放条与点簇仍是组件直接设置 zoom。
+        // 拖动范围由组件在 georoam 里夹住，不能把省域拖出视野。
+        roam: true,
+        // 省界光晕是 lines 系列（z 1），geo 抬到 z 2 才能盖住描边向内的那一半
+        z: 2,
+        // geo 自己的形变动画会让「地图」比「地标」晚一截：散点位置按目标变换立即计算，
+        // 而 polygons 还在 300–400ms 的补间里。平滑由组件的 rAF 补间负责，这里必须关掉。
+        animation: false,
+        // 默认按底图完整范围自适应：16 个市必须全部在视野内，
+        // 否则「某个市没有项目」会被误读成「那个市不存在」。
+        scaleLimit: { min: 0.9, max: 8 },
+        selectedMode: false,
         /**
-         * 悬停只加深描边、**不填任何颜色**。
-         *
-         * ECharts 会把 hover 的区域重新画在兄弟区域之上：哪怕填的是同一档底色，
-         * 也会把压在城市里的湖面（巢湖等）盖成纸色。填透明才能保证水系颜色不被覆盖。
+         * 留 8% 内边距。省界正好贴住画布边缘时，边界上地标的圆点会被裁掉一半，
+         * 视觉上像「半个点」，点击命中区也随之变小——这是 M1「贴边地标也要点得中」的直接前提。
          */
-        itemStyle: {
-          areaColor: 'transparent',
-          borderColor: palette.mapLabel,
-          borderWidth: 1.2,
+        layoutCenter: ['50%', '50%'],
+        layoutSize: '92%',
+        label: {
+          show: true,
+          // 市名是地名本身的文化资产，升为墨色宋体加大：市名从「灰色注记」
+          // 变成构图的一部分，纸色描边负责把它从河道与地标上抬起来
+          color: INK,
+          fontSize: 13,
+          fontWeight: 500,
+          fontFamily: MAP_FONT,
+          textBorderColor: PAPER,
+          textBorderWidth: 2,
         },
-        label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
+        itemStyle: {
+          areaColor: palette.mapArea,
+          borderColor: palette.mapBorder,
+          borderWidth: 0.8,
+        },
+        // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
+        regions,
+        emphasis: {
+          /**
+           * 悬停只加深描边、**不填任何颜色**。
+           *
+           * ECharts 会把 hover 的区域重新画在兄弟区域之上：哪怕填的是同一档底色，
+           * 也会把压在城市里的湖面（巢湖等）盖成纸色。填透明才能保证水系颜色不被覆盖。
+           */
+          itemStyle: {
+            // 填回原色而不是透明：透明会让悬停的城市变成一个洞、露出页面背景
+            areaColor: palette.mapArea,
+            borderColor: palette.mapLabel,
+            borderWidth: 1.2,
+          },
+          label: { show: true, color: palette.mapLabel, fontWeight: 'bold' },
+        },
       },
-    },
+      ...(waterLayer === null
+        ? []
+        : [
+            {
+              map: waterLayer.mapName,
+              boundingCoords: waterLayer.boundingCoords,
+              // 与主 geo 完全相同的布局与投影，两层才重叠
+              layoutCenter: ['50%', '50%'],
+              layoutSize: '92%',
+              // z 必须高于主 geo：同为 1 时会被市域的白底盖住（实测只有显式提高才画出来）
+              z: 6,
+              // 只画、不交互：roam 关闭，靠主 geo 的 georoam 同步 center/zoom
+              roam: false,
+              silent: true,
+              label: { show: false },
+              itemStyle: {
+                areaColor: palette.waterFill,
+                borderColor: palette.waterBorder,
+                borderWidth: 0.6,
+              },
+              emphasis: { disabled: true },
+            },
+          ]),
+    ],
     series: [
       {
         id: 'province-outline',

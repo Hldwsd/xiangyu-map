@@ -26,6 +26,13 @@ function siteData(
   return toScatterData(subset, selectedId, undefined, undefined, featuredIds) as SiteScatterDatum[]
 }
 
+/** geo 现在是 [主图, 水域?]：断言都取第一层 */
+function geoOf(option: EChartsOption): Record<string, unknown> {
+  const geo = option.geo
+  const first = Array.isArray(geo) ? geo[0] : geo
+  return (first ?? {}) as Record<string, unknown>
+}
+
 function scatterDataOf(option: EChartsOption): unknown[] {
   const series = Array.isArray(option.series) ? option.series : []
   // series 里现在还有河道线，按 id 找散点，不依赖顺序
@@ -111,13 +118,14 @@ describe('toScatterData', () => {
 })
 
 describe('按市上墨（choropleth）', () => {
-  it('hover 不填色：ECharts 会把悬停区域重绘在城市之上，填色会盖住湖面', () => {
-    const geo = buildAnhuiMapOption(sites, null).geo as {
+  it('hover 用不透明底色：透明会让悬停的城市变成洞、露出页面背景', () => {
+    const geo = geoOf(buildAnhuiMapOption(sites, null)) as {
       emphasis?: { itemStyle?: { areaColor?: string } }
     }
 
-    // 实测：填 palette.mapArea 时，合肥 hover 会把巢湖盖成纸色（220,228,225 → 245,237,219）
-    expect(geo.emphasis?.itemStyle?.areaColor).toBe('transparent')
+    // 湖面已改成画在 geo 之上的 custom 系列，所以这里不需要靠透明来避让湖水；
+    // 透明反而会让城市区域变成 alpha=0 的洞，露出页面背景图。
+    expect(geo.emphasis?.itemStyle?.areaColor).not.toBe('transparent')
   })
 
   it('项目数分三档：0–1 原色、2–3 一档、≥4 两档', () => {
@@ -179,7 +187,7 @@ describe('落墨入场动画', () => {
     expect(sitesSeries?.animationDelay?.(0)).toBe(0)
     expect(sitesSeries?.animationDelay?.(5)).toBeGreaterThan(0)
     // geo 与河道仍然不参与补间（缩放同步性的老约束）
-    expect((option.geo as { animation?: boolean }).animation).toBe(false)
+    expect((geoOf(option) as { animation?: boolean }).animation).toBe(false)
   })
 })
 
@@ -220,12 +228,12 @@ describe('buildAnhuiMapOption', () => {
   it('使用已注册的 anhui 地图与 scatter 系列', () => {
     const option = buildAnhuiMapOption(sites, null)
 
-    expect(option.geo).toMatchObject({ map: 'anhui', roam: true })
+    expect(geoOf(option)).toMatchObject({ map: 'anhui', roam: true })
     expect(scatterDataOf(option)).toHaveLength(sites.length)
   })
 
   it('拖动与缩放都交给 ECharts 原生 roam', () => {
-    const geo = buildAnhuiMapOption(sites, null).geo as { roam?: boolean | string }
+    const geo = geoOf(buildAnhuiMapOption(sites, null)) as { roam?: boolean | string }
 
     // 'move'：只开平移，滚轮/双指/缩放条都走组件的缓动实现
     expect(geo.roam).toBe(true)
@@ -233,7 +241,7 @@ describe('buildAnhuiMapOption', () => {
 
   it('打开 geo 标签，市级划分才看得见', () => {
     const option = buildAnhuiMapOption(sites, null)
-    const geo = option.geo as {
+    const geo = geoOf(option) as {
       label?: { show?: boolean; color?: string }
       emphasis?: { label?: unknown }
     }
@@ -245,14 +253,14 @@ describe('buildAnhuiMapOption', () => {
   })
 
   it('不写死 center/zoom，视野跟着底图自适应', () => {
-    const geo = buildAnhuiMapOption(sites, null).geo as Record<string, unknown>
+    const geo = geoOf(buildAnhuiMapOption(sites, null))
 
     expect(geo['center']).toBeUndefined()
     expect(geo['zoom']).toBeUndefined()
   })
 
   it('省界内缩 8%，贴边地标不被画布裁掉', () => {
-    const geo = buildAnhuiMapOption(sites, null).geo as {
+    const geo = geoOf(buildAnhuiMapOption(sites, null)) as {
       layoutCenter?: unknown
       layoutSize?: unknown
     }
@@ -266,7 +274,7 @@ describe('buildAnhuiMapOption', () => {
     const series = (option.series as Array<{ id?: string; cursor?: string }>).find(
       (item) => item.id === 'sites',
     )
-    const geo = option.geo as { scaleLimit?: { min?: number; max?: number } }
+    const geo = geoOf(option) as { scaleLimit?: { min?: number; max?: number } }
 
     expect(series?.cursor).toBe('pointer')
     expect(geo.scaleLimit?.min).toBeGreaterThan(0)
