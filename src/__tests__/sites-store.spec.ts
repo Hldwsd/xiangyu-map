@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(51)
-    expect(store.filteredSites).toHaveLength(51)
+    expect(store.sites).toHaveLength(60)
+    expect(store.filteredSites).toHaveLength(60)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -49,6 +49,11 @@ describe('useSitesStore', () => {
         'fuyang-ecopark',
         'caocao-park',
         'jiuzi-yan',
+        // data-round8 新增的自然类
+        'zhashan-park',
+        'shengjin-lake',
+        'sikong-mountain',
+        'baimajian',
       ].sort(),
     )
   })
@@ -57,7 +62,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setQuery('池州市')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['jiuhuashan', 'xinghuacun', 'guniujiang', 'jiuzi-yan'].sort(),
+      ['jiuhuashan', 'xinghuacun', 'guniujiang', 'jiuzi-yan', 'shengjin-lake'].sort(),
     )
 
     store.setQuery('古城')
@@ -94,7 +99,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     const sum = Object.values(store.categoryCounts).reduce((total, count) => total + count, 0)
     expect(sum).toBe(store.sites.length)
-    expect(store.categoryCounts['古镇']).toBe(7)
+    expect(store.categoryCounts['古镇']).toBe(9)
   })
 
   it('getSiteById 找不到时返回 null', () => {
