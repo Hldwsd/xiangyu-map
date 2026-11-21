@@ -92,3 +92,23 @@ describe('界面图标', () => {
     expect(wrapper.findAll('path')).toHaveLength(UI_ICON_PATHS.search.length)
   })
 })
+
+describe('精选地标圆钉', () => {
+  it('精选态保持纸白钉墨线，只在钉外加金色虚线环', () => {
+    const normal = categoryMarkerSymbol('古镇')
+    const featured = categoryMarkerSymbol('古镇', false, true)
+
+    expect(featured.startsWith('image://data:image/svg+xml')).toBe(true)
+    expect(featured).not.toBe(normal)
+    const svg = decodeURIComponent(featured).toLowerCase()
+    // 仍是纸白底 + 墨线图形，金环只出现在钉外
+    expect(svg).toContain('fill="#fbf6ea"')
+    expect(svg).toContain('stroke="#b08a4a"')
+    // 与选中态不同：选中是墨底反转
+    expect(featured).not.toBe(categoryMarkerSymbol('古镇', true))
+  })
+
+  it('选中优先于精选：两个标记同时命中时用选中态', () => {
+    expect(categoryMarkerSymbol('古镇', true, true)).toBe(categoryMarkerSymbol('古镇', true))
+  })
+})

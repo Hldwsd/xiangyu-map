@@ -61,15 +61,27 @@ function glyphMarkup(category: SiteCategory, stroke: string): string {
 /**
  * 生成 ECharts 可用的图片符号：`image://data:image/svg+xml,...`
  *
- * 圆钉是纸白底 + 墨线图形；选中态反转为墨底纸线，并加金色虚线环。
+ * 圆钉是纸白底 + 墨线图形；选中态反转为墨底纸线，并加金色虚线环；
+ * 精选态保持纸白钉墨线，只在钉外加一圈金色虚线环——「重点但未选中」
+ * 与「已选中」共享金色环语言，靠底色反转区分。
  * 用图片而不是 `path://`：图片能同时画「圆底 + 图形 + 虚线环」三层，
  * 且命中区是整个方框，比只覆盖描边的符号更稳。
  */
-export function categoryMarkerSymbol(category: SiteCategory, selected = false): string {
+export function categoryMarkerSymbol(
+  category: SiteCategory,
+  selected = false,
+  featured = false,
+): string {
+  const goldRing = `<circle cx="24" cy="24" r="23" fill="none" stroke="${GOLD}" stroke-width="1.3" stroke-dasharray="3 2.4"/>`
+  // 精选环要自己带墨衬边：金色对纸白只有 2.9:1，直接画在纸钉外沿会「看不见」；
+  // 先铺一圈墨环再叠金环，金线在任何底色上都有轮廓
+  const featuredRing =
+    `<circle cx="24" cy="24" r="22.6" fill="none" stroke="${INK}" stroke-width="2.8" stroke-dasharray="3.4 2.7"/>` +
+    `<circle cx="24" cy="24" r="22.6" fill="none" stroke="${GOLD}" stroke-width="1.4" stroke-dasharray="3.4 2.7"/>`
   const body = selected
-    ? `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${INK}"/>` +
-      `<circle cx="24" cy="24" r="23" fill="none" stroke="${GOLD}" stroke-width="1.3" stroke-dasharray="3 2.4"/>`
-    : `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${PAPER}" stroke="${INK}" stroke-width="1.6"/>`
+    ? `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${INK}"/>` + goldRing
+    : `<circle cx="24" cy="24" r="${RING_RADIUS}" fill="${PAPER}" stroke="${INK}" stroke-width="1.6"/>` +
+      (featured ? featuredRing : '')
   const glyph = glyphMarkup(category, selected ? PAPER : INK)
   // 极轻的投影：纸白圆钉压在接近纸白的陆地上时，只靠细圈会「粘」在底图上
   const shadow =

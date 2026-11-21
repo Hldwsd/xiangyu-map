@@ -126,26 +126,60 @@ export interface MapRegionStyle {
 
 const SELECTED_SYMBOL_SIZE = 48
 /**
- * 圆钉尺寸。34 在省域视野下既能辨认 S1 线条、命中区也够大；
- * 46 只给选中项，配金色虚线环，不靠颜色也能一眼找到。
+ * 圆钉尺寸。36 在省域视野下既能辨认 S1 线条、命中区也够大；
+ * 精选项目（本期精选）用 42 并加金色虚线环，制造「重点」的视觉层级；
+ * 48 只给选中项，配金色虚线环，不靠颜色也能一眼找到。
  */
 const DEFAULT_SYMBOL_SIZE = 36
+const FEATURED_SYMBOL_SIZE = 42
+
+/**
+ * 按市收录项目数分三档：0–1 个保持原色，2–3 个一档，≥4 个最深一档。
+ * 纸本语言里「浓墨对淡墨」才成立——全市一个颜色时地图像没上墨的底稿，
+ * 按数据深浅上墨后，「皖南最密」这一眼可读的空间信息不需要任何交互就能看到。
+ */
+export function cityAreaTier(count: number): 0 | 1 | 2 {
+  if (count >= 4) return 2
+  if (count >= 2) return 1
+  return 0
+}
+
+/**
+ * 16 个市的市名 → 底色。0 档（原色）不返回，region 缺省即原色，
+ * 这样 hover/emphasis 的原色兜底逻辑不用关心档位。
+ */
+export function buildCityAreaColors(
+  sites: Site[],
+  palette: ThemePalette = DEFAULT_PALETTE,
+): Map<string, string> {
+  const counts = new Map<string, number>()
+  for (const site of sites) counts.set(site.city, (counts.get(site.city) ?? 0) + 1)
+
+  const colors = new Map<string, string>()
+  for (const [city, count] of counts) {
+    const tier = cityAreaTier(count)
+    if (tier === 1) colors.set(city, palette.mapTier1)
+    if (tier === 2) colors.set(city, palette.mapTier2)
+  }
+  return colors
+}
 
 /** 聚合点的基础直径与上限：数量靠标签表达，尺寸只给一个「这坨更大」的暗示 */
 const CLUSTER_BASE_SIZE = 18
 const CLUSTER_MAX_SIZE = 30
 
-/** 把项目列表转成散点数据；选中的点放大，方便在密集区域里认出来 */
+/** 把项目列表转成散点数据；选中项放大，精选项加金环，方便在密集区域里认出来 */
 export function toScatterData(
   sites: Site[],
   selectedId: string | null,
   groups?: MarkerGroup[],
   palette: ThemePalette = DEFAULT_PALETTE,
+  featuredIds: ReadonlySet<string> = new Set<string>(),
 ): MapScatterDatum[] {
   // 没给分组时按「每个项目一颗」处理：默认视野下不聚合，
   // 聚合是组件拿到像素坐标之后的决定（见 refreshMarkers）。
   if (groups === undefined) {
-    return sites.map((site) => toSiteDatum(site, selectedId, palette))
+    return sites.map((site) => toSiteDatum(site, selectedId, palette, featuredIds))
   }
 
   const byId = new Map(sites.map((site) => [site.id, site]))
@@ -157,20 +191,35 @@ export function toScatterData(
     const ids = group.ids
     if (ids.length === 1) {
       const site = byId.get(ids[0] ?? '')
-      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette))
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette, featuredIds))
       continue
     }
 
-    const containsSelected = selectedId !== null && ids.includes(selectedId)
-    const remainingIds = containsSelected ? ids.filter((id) => id !== selectedId) : ids
-    if (containsSelected && selectedId !== null) {
+    // 选中与精选项都不进簇：选中项消失会让「卡片有、图上无」；
+    // 精选被折叠成一个数字则推荐位等于失效——两者都拆出来单独绘制。
+    const pulledOut: string[] = []
+    const remainingIds = ids.filter((id) => {
+      if (id === selectedId || featuredIds.has(id)) {
+        pulledOut.push(id)
+        return false
+      }
+      return true
+    })
+    if (selectedId !== null && pulledOut.includes(selectedId)) {
       const site = byId.get(selectedId)
-      if (site !== undefined) selectedDatum = toSiteDatum(site, selectedId, palette)
+      if (site !== undefined) {
+        selectedDatum = toSiteDatum(site, selectedId, palette, featuredIds)
+      }
+    }
+    for (const id of pulledOut) {
+      if (id === selectedId) continue
+      const site = byId.get(id)
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette, featuredIds))
     }
 
     if (remainingIds.length === 1) {
       const site = byId.get(remainingIds[0] ?? '')
-      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette))
+      if (site !== undefined) data.push(toSiteDatum(site, selectedId, palette, featuredIds))
       continue
     }
     if (remainingIds.length === 0) continue
@@ -218,8 +267,11 @@ function toSiteDatum(
   site: Site,
   selectedId: string | null,
   palette: ThemePalette,
+  featuredIds: ReadonlySet<string> = new Set<string>(),
 ): SiteScatterDatum {
   const selected = site.id === selectedId
+  // 选中优先于精选：一个点同时命中两种状态时，用选中态（更强调）
+  const featured = !selected && featuredIds.has(site.id)
   const color = palette.category[site.category]
 
   return {
@@ -229,8 +281,12 @@ function toSiteDatum(
     category: site.category,
     summary: site.summary,
     // 选中态是另一张图（墨底白线），所以符号要按状态取，不能共用一张
-    symbol: categoryMarkerSymbol(site.category, selected),
-    symbolSize: selected ? SELECTED_SYMBOL_SIZE : DEFAULT_SYMBOL_SIZE,
+    symbol: categoryMarkerSymbol(site.category, selected, featured),
+    symbolSize: selected
+      ? SELECTED_SYMBOL_SIZE
+      : featured
+        ? FEATURED_SYMBOL_SIZE
+        : DEFAULT_SYMBOL_SIZE,
     itemStyle: {
       // 圆钉自身已有纸底与细圈，不再加 canvas 阴影：阴影会溢出到河道上，把水系盖出灰边
       color,
@@ -315,8 +371,10 @@ export function buildAnhuiMapOption(
   rivers: RiverLine[] = [],
   mapName: string = ANHUI_MAP_NAME,
   outlineRings: OutlineRing[] = [],
+  featuredIds: ReadonlySet<string> = new Set<string>(),
+  animateIn = false,
 ): EChartsOption {
-  const data = toScatterData(sites, selectedId, groups, palette)
+  const data = toScatterData(sites, selectedId, groups, palette, featuredIds)
 
   return {
     backgroundColor: 'transparent',
@@ -358,10 +416,12 @@ export function buildAnhuiMapOption(
       layoutSize: '92%',
       label: {
         show: true,
-        color: palette.mapLabel,
-        fontSize: 10.5,
+        // 市名是地名本身的文化资产，升为墨色宋体加大：市名从「灰色注记」
+        // 变成构图的一部分，纸色描边负责把它从河道与地标上抬起来
+        color: INK,
+        fontSize: 13,
+        fontWeight: 500,
         fontFamily: MAP_FONT,
-        // 纸色描边把市名从地标与河道上「抬」起来，16 个市名才读得清
         textBorderColor: PAPER,
         textBorderWidth: 2,
       },
@@ -433,8 +493,15 @@ export function buildAnhuiMapOption(
         z: 3,
         data,
         cursor: 'pointer',
-        // 聚合/散开时数据项整体换位置，开动画会出现「两个合并点互换」的错觉
-        animation: false,
+        /**
+         * 首帧「落墨」入场：按数据下标逐点错开淡入，像墨点依次落纸。
+         * 只在首次渲染开启（animateIn）；之后的更新（筛选/聚合/散开）必须关——
+         * 数据项整体换位置，开动画会出现「两个合并点互换」的错觉。
+         */
+        animation: animateIn,
+        animationDuration: 460,
+        animationDelay: (idx: number): number => idx * 28,
+        animationEasing: 'cubicOut',
         emphasis: {
           // 圆钉自带 1.6px 墨圈，hover 只轻微放大；白描边在纸白钉上不可见，已去掉
           scale: 1.12,
