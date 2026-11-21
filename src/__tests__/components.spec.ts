@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
+import SiteListSheet from '@/components/layout/SiteListSheet.vue'
 import TopBar from '@/components/layout/TopBar.vue'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
@@ -104,6 +105,45 @@ describe('TopBar', () => {
     await wrapper.get('[aria-label="项目列表"]').trigger('click')
     expect(wrapper.emitted('menu')).toHaveLength(1)
     expect(wrapper.emitted('list')).toHaveLength(1)
+  })
+})
+
+describe('SiteListSheet', () => {
+  const first = sites[0]
+  if (first === undefined) throw new Error('测试数据为空')
+
+  it('渲染全部条目、标题带数量，选中项高亮', () => {
+    const wrapper = mount(SiteListSheet, {
+      props: { sites, selectedId: first.id },
+    })
+
+    expect(wrapper.findAll('.sheet__item')).toHaveLength(sites.length)
+    expect(wrapper.get('.sheet__title').text()).toContain(String(sites.length))
+    expect(wrapper.get('.sheet__item--on').text()).toContain(first.name)
+    expect(wrapper.get('.sheet').attributes('aria-modal')).toBe('true')
+  })
+
+  it('点条目抛 select、点关闭抛 close', async () => {
+    const wrapper = mount(SiteListSheet, {
+      props: { sites, selectedId: null },
+    })
+
+    const second = sites[1]
+    if (second === undefined) throw new Error('测试数据不足两条')
+    await wrapper.findAll('.sheet__item')[1]?.trigger('click')
+    expect(wrapper.emitted('select')?.[0]).toEqual([second.id])
+
+    await wrapper.get('.sheet__close').trigger('click')
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('筛选为空时给空状态提示', () => {
+    const wrapper = mount(SiteListSheet, {
+      props: { sites: [], selectedId: null },
+    })
+
+    expect(wrapper.findAll('.sheet__item')).toHaveLength(0)
+    expect(wrapper.get('.sheet__empty').text()).toContain('没有匹配的项目')
   })
 })
 
