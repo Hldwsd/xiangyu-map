@@ -324,11 +324,10 @@ describe('buildAnhuiMapOption 的聚合点', () => {
     expect(data[data.length - 1]).toBe(selected)
   })
 
-  it('精选项在簇里时同样被拆出来单独绘制，金环推荐位不被折叠', () => {
-    // 黄山市三条聚成一簇，其中宏村是精选
-    const trio = ['hongcun', 'xidi', 'tunxi-old-street'].map((id) =>
-      sites.find((site) => site.id === id)!,
-    )
+  it('精选项和别的点挤在一起时留在簇里，簇描金环提示「这里有精选」', () => {
+    // 之前精选会被无条件拆出来单独画：黄山/宏村只差 28px、宏村/西递 15px，
+    // 拆出来会互相压住，点谁都可能选错（Issue #16 的命中率复测里就是这样误点的）。
+    const trio = sites.filter((site) => ['hongcun', 'xidi', 'tunxi-old-street'].includes(site.id))
     const data = toScatterData(
       trio,
       null,
@@ -337,15 +336,25 @@ describe('buildAnhuiMapOption 的聚合点', () => {
       new Set(['hongcun']),
     )
 
-    expect(data).toHaveLength(2)
-    const featured = data.find(
-      (datum): datum is SiteScatterDatum => 'siteId' in datum && datum.siteId === 'hongcun',
-    )
-    const cluster = data.find((datum): datum is ClusterScatterDatum => 'count' in datum)
+    expect(data).toHaveLength(1)
+    const cluster = data[0] as ClusterScatterDatum
+    expect(cluster.count).toBe(3)
+    expect(cluster.featured).toBe(true)
+    expect(cluster.itemStyle.borderColor).toBe('#b08a4a')
+  })
 
-    expect(featured?.symbolSize).toBe(42)
-    expect(cluster?.count).toBe(2)
-    expect(cluster?.clusterIds).toEqual(['xidi', 'tunxi-old-street'])
+  it('精选独占一个点时仍然单独绘制，保留 42px 金环', () => {
+    const solo = sites.filter((site) => site.id === 'hongcun')
+    const data = toScatterData(
+      solo,
+      null,
+      [{ ids: ['hongcun'], lng: 118, lat: 29.9 }],
+      undefined,
+      new Set(['hongcun']),
+    )
+
+    expect(data).toHaveLength(1)
+    expect((data[0] as SiteScatterDatum).symbolSize).toBe(42)
   })
 
   it('簇的 tooltip 先说数量、再列名字', () => {

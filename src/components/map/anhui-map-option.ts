@@ -72,6 +72,8 @@ export interface ClusterScatterDatum {
   value: [number, number]
   clusterIds: string[]
   clusterNames: string[]
+  /** 簇里是否含「本期精选」：含则描金环，避免折叠后推荐位完全看不出来 */
+  featured: boolean
   count: number
   symbol: string
   symbolSize: number
@@ -195,11 +197,13 @@ export function toScatterData(
       continue
     }
 
-    // 选中与精选项都不进簇：选中项消失会让「卡片有、图上无」；
-    // 精选被折叠成一个数字则推荐位等于失效——两者都拆出来单独绘制。
+    // 选中项一定要拆出来：它消失了会出现「卡片有、图上无」。
+    // 精选只在「独占一个簇」时才单独画；如果它和别的点挤在 36px 内，硬拆出来会互相压住、
+    // 点谁都可能选错（黄山/宏村 28px、宏村/西递 15px 就是实测到的误点来源），
+    // 这种情况让它留在簇里，并用金环提示「这簇里有精选」。
     const pulledOut: string[] = []
     const remainingIds = ids.filter((id) => {
-      if (id === selectedId || featuredIds.has(id)) {
+      if (id === selectedId) {
         pulledOut.push(id)
         return false
       }
@@ -230,11 +234,13 @@ export function toScatterData(
     if (members.length === 0) continue
 
     const count = members.length
+    const hasFeatured = members.some((site) => featuredIds.has(site.id))
     data.push({
       name: `${count} 个文旅项目`,
       value: [group.lng, group.lat],
       clusterIds: remainingIds,
       clusterNames: members.map((site) => site.name),
+      featured: hasFeatured,
       count,
       symbol: 'circle',
       // 数字越大点越大，但按对数增长：20 个目标的簇不该吃掉半张地图
@@ -243,8 +249,9 @@ export function toScatterData(
         // 聚合点比地标「轻」：纸色圆盘 + 墨圈，数字用墨色；
         // 早期用纯黑圆 + 白字，远看黑簇先跳出来，把地标压住了。
         color: PAPER,
-        borderColor: INK,
-        borderWidth: 1.2,
+        // 含精选的簇描金环：折叠之后仍能看出「这簇里有推荐位」
+        borderColor: hasFeatured ? GOLD : INK,
+        borderWidth: hasFeatured ? 1.8 : 1.2,
         shadowBlur: 6,
         shadowColor: 'rgba(28, 26, 23, 0.18)',
       },
