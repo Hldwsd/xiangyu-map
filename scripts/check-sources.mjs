@@ -25,7 +25,8 @@ import { sites } from '../src/data/sites.ts'
 
 const PLACEHOLDER_HOSTS = new Set(['example.com', 'www.example.com'])
 // 405 也是政府站 WAF 的常用反爬码（huangshan.gov.cn 实测在 412/405 间漂移）
-const BLOCKED_STATUS = new Set([403, 405, 412, 429, 999])
+// 521 是 Cloudflare「源站异常」码，hefei.gov.cn 实测用它挡脚本（浏览器可开）
+const BLOCKED_STATUS = new Set([403, 405, 412, 421, 429, 521, 999])
 const CONCURRENCY = 4
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'

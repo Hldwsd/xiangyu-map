@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(42)
-    expect(store.filteredSites).toHaveLength(42)
+    expect(store.sites).toHaveLength(51)
+    expect(store.filteredSites).toHaveLength(51)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -43,6 +43,12 @@ describe('useSitesStore', () => {
         'jiaogang-lake',
         'mingtang-mountain',
         'guniujiang',
+        // data-round7 新增的自然类
+        'baogong-park',
+        'zhanggong-park',
+        'fuyang-ecopark',
+        'caocao-park',
+        'jiuzi-yan',
       ].sort(),
     )
   })
@@ -51,7 +57,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setQuery('池州市')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['jiuhuashan', 'xinghuacun', 'guniujiang'].sort(),
+      ['jiuhuashan', 'xinghuacun', 'guniujiang', 'jiuzi-yan'].sort(),
     )
 
     store.setQuery('古城')
@@ -88,7 +94,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     const sum = Object.values(store.categoryCounts).reduce((total, count) => total + count, 0)
     expect(sum).toBe(store.sites.length)
-    expect(store.categoryCounts['古镇']).toBe(6)
+    expect(store.categoryCounts['古镇']).toBe(7)
   })
 
   it('getSiteById 找不到时返回 null', () => {
@@ -115,7 +121,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setCity('黄山市')
 
-    expect(store.filteredSites).toHaveLength(5)
+    expect(store.filteredSites).toHaveLength(7)
     expect(store.filteredSites.every((site) => site.city === '黄山市')).toBe(true)
   })
 
@@ -139,9 +145,9 @@ describe('useSitesStore', () => {
   it('城市与分类组合没有结果时筛出空列表，不回退到全量', () => {
     const store = useSitesStore()
     // 16 个市现在都至少有 1 条数据，所以「空结果」要靠组合条件造出来：
-    // 亳州市只有花戏楼（非遗），没有自然类项目
+    // 亳州市只有花戏楼（非遗）与曹操公园（自然），没有红色类项目
     store.setCity('亳州市')
-    store.setCategory('自然')
+    store.setCategory('红色')
 
     expect(store.filteredSites).toHaveLength(0)
   })
@@ -152,7 +158,7 @@ describe('useSitesStore', () => {
 
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
-    expect(store.cityCounts['黄山市']).toBe(5)
+    expect(store.cityCounts['黄山市']).toBe(7)
     expect(store.cityCounts['铜陵市']).toBe(2)
   })
 
@@ -186,13 +192,16 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setQuery('黄山')
 
-    // 黄山风景区命中名称（权重 4）；其余四条只命中所在城市（权重 2），保持数据文件顺序
+    // 黄山风景区命中名称（权重 4）；其余六条只命中所在城市（权重 2），保持数据文件顺序
     expect(store.filteredSites.map((site) => site.id)).toEqual([
       'huangshan-scenic',
       'huizhou-ancient-city',
       'hongcun',
       'xidi',
       'tunxi-old-street',
+      // data-round7 新增的黄山市条目
+      'yuliang-dam',
+      'qiankou-mansion',
     ])
   })
 
