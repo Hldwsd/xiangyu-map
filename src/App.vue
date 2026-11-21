@@ -1,27 +1,16 @@
 <script setup lang="ts">
-import { computed, watchEffect } from 'vue'
+import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
-import InkHongcun from '@/components/scene/InkHongcun.vue'
-import { useBackgroundPreference } from '@/composables/use-background-preference'
 
 const route = useRoute()
-// 动态水墨背景默认开启；关掉后回到静态纸本（书法背景图）
-const { mode: backgroundMode } = useBackgroundPreference()
-
-// 动态背景是不透明画布，body 的书法图会被完全盖住——挂个类名省掉那次下载
-watchEffect(() => {
-  document.body.classList.toggle('has-ink-bg', backgroundMode.value === 'ink')
-})
 /** 首页是全屏地图，导航与页脚都收进菜单；其余页面保留常规头部与页脚 */
 const chromeHidden = computed(() => route.name === 'home')
 </script>
 
 <template>
   <div class="app">
-    <InkHongcun v-if="backgroundMode === 'ink'" />
-
     <header v-if="!chromeHidden" class="app__header">
       <RouterLink class="app__brand" :to="{ name: 'home' }">
         <span class="app__brand-name">乡遇安徽</span>
@@ -54,7 +43,7 @@ const chromeHidden = computed(() => route.name === 'home')
   min-height: 100vh;
 }
 
-/* 内容整体在动态背景（z 0）之上；背景不参与交互 */
+/* 内容整体在页面背景之上 */
 .app__content {
   position: relative;
   z-index: 1;
