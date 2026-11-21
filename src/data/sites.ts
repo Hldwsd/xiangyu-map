@@ -208,7 +208,7 @@ export const sites: Site[] = [
     tags: ['湖泊', '城市公园', '散步'],
     bestSeason: '4-5 月、9-10 月',
     transport: '蚌埠南站打车约 20 分钟',
-    sources: ['http://www.bengbu.gov.cn/'],
+    sources: ['https://www.bblzh.gov.cn/', 'http://www.bengbu.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -226,7 +226,7 @@ export const sites: Site[] = [
     tags: ['长江', '李白', '矶头'],
     bestSeason: '4-5 月、9-11 月',
     transport: '马鞍山东站打车约 30 分钟',
-    sources: ['http://www.caishiji.com/'],
+    sources: ['https://www.csjfjq.com', 'https://www.mas.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -244,7 +244,7 @@ export const sites: Site[] = [
     tags: ['茶馆', '集市', '皖北'],
     bestSeason: '3-5 月、9-11 月',
     transport: '淮北站打车约 50 分钟',
-    sources: ['https://www.huaibei.gov.cn/'],
+    sources: ['https://www.sxx.gov.cn/mhsx/sxgk/zrzy/59280411.html', 'https://www.huaibei.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -262,7 +262,10 @@ export const sites: Site[] = [
     tags: ['长江', '盐运', '老街'],
     bestSeason: '4-5 月、10-11 月',
     transport: '铜陵站打车约 40 分钟',
-    sources: ['https://www.tl.gov.cn/'],
+    sources: [
+      'https://www.tljq.gov.cn/jqrmzf/tpxw/pc/content/content_1844898936227946496.html',
+      'https://www.tl.gov.cn/',
+    ],
     updatedAt: '2026-11-19',
   },
   {
@@ -280,7 +283,10 @@ export const sites: Site[] = [
     tags: ['农村改革', '纪念馆', '凤阳'],
     bestSeason: '3-5 月、9-11 月',
     transport: '滁州站转乘至凤阳，再打车约 40 分钟',
-    sources: ['https://www.chuzhou.gov.cn/'],
+    sources: [
+      'https://www.fengyang.gov.cn/',
+      'https://www.qstheory.cn/2021-03/17/c_1127220686.htm',
+    ],
     updatedAt: '2026-11-19',
   },
   {
@@ -316,7 +322,7 @@ export const sites: Site[] = [
     tags: ['森林', '山谷', '避暑'],
     bestSeason: '5-10 月',
     transport: '萧县北站打车约 40 分钟',
-    sources: ['https://www.ahsz.gov.cn/'],
+    sources: ['http://www.chinahcy.net', 'https://www.ahsz.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -334,7 +340,7 @@ export const sites: Site[] = [
     tags: ['大别山', '将军县', '纪念馆'],
     bestSeason: '全年',
     transport: '金寨站打车约 20 分钟',
-    sources: ['https://www.luan.gov.cn/'],
+    sources: ['https://www.luan.gov.cn/zjla/lyla/gjslgy/10031901.html'],
     updatedAt: '2026-11-19',
   },
   {
@@ -352,7 +358,7 @@ export const sites: Site[] = [
     tags: ['醉翁亭', '山林', '人文'],
     bestSeason: '4-5 月、10-11 月',
     transport: '滁州站打车约 20 分钟',
-    sources: ['http://www.langyashan.com/'],
+    sources: ['https://www.lysfjq.cn', 'https://www.chuzhou.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -370,7 +376,7 @@ export const sites: Site[] = [
     tags: ['大别山', '瀑布', '避暑'],
     bestSeason: '5-10 月',
     transport: '金寨站转乘至景区约 1.5 小时',
-    sources: ['http://www.ttz.com.cn/'],
+    sources: ['https://www.luan.gov.cn/zjla/lyla/index.html'],
     updatedAt: '2026-11-19',
   },
   {
@@ -388,7 +394,7 @@ export const sites: Site[] = [
     tags: ['豆腐', '淮河', '低山'],
     bestSeason: '4-5 月、9-10 月',
     transport: '淮南站打车约 30 分钟',
-    sources: ['https://www.huainan.gov.cn/'],
+    sources: ['https://baike.baidu.com/item/八公山风景区/167471', 'https://www.huainan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -406,7 +412,7 @@ export const sites: Site[] = [
     tags: ['杏花', '诗酒', '春游'],
     bestSeason: '3-4 月',
     transport: '池州站打车约 20 分钟',
-    sources: ['https://www.chizhou.gov.cn/'],
+    sources: ['https://baike.baidu.com/item/杏花村风景区/9824443', 'https://www.chizhou.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -424,7 +430,7 @@ export const sites: Site[] = [
     tags: ['徽派', '古村落', '世界遗产'],
     bestSeason: '3-4 月、10-11 月',
     transport: '黄山北站转乘至黟县，再换乘至西递',
-    sources: ['http://www.huangshan.gov.cn/'],
+    sources: ['https://whc.unesco.org/zh/list/1002', 'http://www.huangshan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -442,7 +448,7 @@ export const sites: Site[] = [
     tags: ['老街', '徽派', '市井'],
     bestSeason: '全年',
     transport: '黄山站打车约 10 分钟',
-    sources: ['http://www.huangshan.gov.cn/'],
+    sources: ['https://baike.baidu.com/item/屯溪老街/1171830', 'http://www.huangshan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -460,7 +466,7 @@ export const sites: Site[] = [
     tags: ['黄梅戏', '戏曲', '驻场演出'],
     bestSeason: '全年',
     transport: '安庆站打车约 20 分钟',
-    sources: ['https://www.anqing.gov.cn/'],
+    sources: ['https://baike.baidu.com/item/再芬黄梅公馆/13208208', 'https://www.anqing.gov.cn/'],
     updatedAt: '2026-11-19',
   },
   {
@@ -478,7 +484,10 @@ export const sites: Site[] = [
     tags: ['水库', '骑行', '湖湾'],
     bestSeason: '4-6 月、9-10 月',
     transport: '舒城东站打车约 40 分钟',
-    sources: ['https://www.luan.gov.cn/'],
+    sources: [
+      'https://www.shucheng.gov.cn/mlsc/dmsc/lyzy/33733691.html',
+      'https://www.luan.gov.cn/',
+    ],
     updatedAt: '2026-11-19',
   },
   {
@@ -496,7 +505,7 @@ export const sites: Site[] = [
     tags: ['青弋江', '古渡', '诗酒'],
     bestSeason: '3-4 月、9-10 月',
     transport: '泾县站打车约 50 分钟',
-    sources: ['http://www.jingxian.gov.cn/'],
+    sources: ['https://www.xuancheng.gov.cn/News/show/625444.html'],
     updatedAt: '2026-11-19',
   },
   {
@@ -514,7 +523,10 @@ export const sites: Site[] = [
     tags: ['古村落', '徽派', '溪流'],
     bestSeason: '3-4 月、10-11 月',
     transport: '泾县站打车约 50 分钟',
-    sources: ['http://www.jingxian.gov.cn/'],
+    sources: [
+      'https://wlj.xuancheng.gov.cn/News/show/1184553.html',
+      'https://www.ahjx.gov.cn/Jxwl',
+    ],
     updatedAt: '2026-11-19',
   },
   {
@@ -532,7 +544,10 @@ export const sites: Site[] = [
     tags: ['溪谷', '竹林', '避暑'],
     bestSeason: '5-9 月',
     transport: '泾县站打车约 1 小时',
-    sources: ['http://www.jingxian.gov.cn/'],
+    sources: [
+      'https://www.xuancheng.gov.cn/News/show/1582085.html',
+      'https://www.ahjx.gov.cn/Jxwl',
+    ],
     updatedAt: '2026-11-19',
   },
   {
@@ -550,7 +565,10 @@ export const sites: Site[] = [
     tags: ['皖南事变', '旧址', '山地'],
     bestSeason: '全年',
     transport: '泾县站打车约 50 分钟',
-    sources: ['http://www.jingxian.gov.cn/'],
+    sources: [
+      'https://wlj.xuancheng.gov.cn/News/show/1600987.html',
+      'https://www.ahjx.gov.cn/Jxwl',
+    ],
     updatedAt: '2026-11-19',
   },
 ]
