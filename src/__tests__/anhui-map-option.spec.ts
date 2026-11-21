@@ -128,6 +128,15 @@ describe('按市上墨（choropleth）', () => {
     expect(geo.emphasis?.itemStyle?.areaColor).not.toBe('transparent')
   })
 
+  it('省界光晕与河道都关掉补间：否则点簇放大时阴影/河线会比地图慢半拍', () => {
+    const option = buildAnhuiMapOption(sites, null)
+    const series = option.series as { id?: string; animation?: boolean }[]
+    const animated = series.filter((item) => item.id === 'province-outline' || item.id === 'rivers')
+
+    expect(animated).toHaveLength(2)
+    for (const item of animated) expect(item.animation).toBe(false)
+  })
+
   it('项目数分三档：0–1 原色、2–3 一档、≥4 两档', () => {
     expect(cityAreaTier(0)).toBe(0)
     expect(cityAreaTier(1)).toBe(0)

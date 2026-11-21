@@ -457,6 +457,9 @@ export function buildAnhuiMapOption(
         zlevel: 0,
         z: 1,
         silent: true,
+        // 必须和 geo 一样关掉补间：geo 的 zoom 是每帧瞬时的，lines 若还按 420ms 补间，
+        // 点簇放大时省界光晕就会比地图慢半拍（阴影拖在外面）
+        animation: false,
         polyline: true,
         // 圆角拐点：省界不再按多边形的直线交点切出尖角
         lineStyle: { color: '#1c1a17', opacity: 1, cap: 'round' as const, join: 'round' as const },
