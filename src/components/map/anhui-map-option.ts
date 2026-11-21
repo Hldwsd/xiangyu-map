@@ -479,7 +479,8 @@ export function buildAnhuiMapOption(
         coordinateSystem: 'geo',
         // 与 geo/散点同处 zlevel 0：分层画布在缩放时会出现「地标与地图不同步」
         zlevel: 0,
-        z: 2,
+        // 必须高于 geo（z=2）：同 z 时谁在上取决于组件注册顺序，生产构建里河道会被市域白底盖住
+        z: 2.5,
         silent: true,
         // 和散点一样必须关掉补间：geo 的 zoom 是瞬时生效的，lines 若还按 420ms 补间，
         // 缩放时河道就会比地图与地标晚半拍（用户实测到的那一条）。

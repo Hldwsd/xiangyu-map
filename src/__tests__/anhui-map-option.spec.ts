@@ -128,6 +128,18 @@ describe('按市上墨（choropleth）', () => {
     expect(geo.emphasis?.itemStyle?.areaColor).not.toBe('transparent')
   })
 
+  it('河道画在市域之上：同级 z 在生产构建里会被地图白底盖住', () => {
+    const option = buildAnhuiMapOption(sites, null)
+    const geo = geoOf(option) as { z?: number }
+    const series = option.series as { id?: string; z?: number }[]
+    const rivers = series.find((item) => item.id === 'rivers')
+    const sitesSeries = series.find((item) => item.id === 'sites')
+
+    // 实测：rivers 与 geo 同为 z=2 时，构建产物里的长江/淮河被市域盖掉一大半（2200 → 4895 px）
+    expect(Number(rivers?.z)).toBeGreaterThan(Number(geo.z))
+    expect(Number(rivers?.z)).toBeLessThan(Number(sitesSeries?.z))
+  })
+
   it('省界光晕与河道都关掉补间：否则点簇放大时阴影/河线会比地图慢半拍', () => {
     const option = buildAnhuiMapOption(sites, null)
     const series = option.series as { id?: string; animation?: boolean }[]
