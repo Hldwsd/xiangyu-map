@@ -44,6 +44,7 @@ yarn-error.log*
 
 # 本地临时产物（截图、验证脚手架等，不入库）
 .tmp/
+covers-review/
 
 # 桌面端（M4，Tauri）
 src-tauri/target/
