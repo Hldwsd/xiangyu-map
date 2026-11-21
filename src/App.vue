@@ -30,7 +30,15 @@ const chromeHidden = computed(() => route.name === 'home')
       </main>
 
       <footer v-if="!chromeHidden" class="app__footer">
-        <span>示例数据，仅供演示 · 底图数据来源见 public/maps/README.md</span>
+        <span>
+          示例数据，仅供演示 · 水系与河道 ©
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            >OpenStreetMap contributors</a
+          >（ODbL） · 底图：DataV.GeoAtlas · 来源见 public/maps/README.md
+        </span>
       </footer>
     </div>
   </div>

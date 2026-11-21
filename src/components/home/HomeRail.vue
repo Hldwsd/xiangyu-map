@@ -47,6 +47,12 @@ const picks = computed(() =>
     <div class="rail__meta">
       <b>安徽省 · 16 个地级市</b>
       <span>底图：DataV.GeoAtlas · 示例数据</span>
+      <span class="rail__credit">
+        水系与河道 ©
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
+          >OpenStreetMap contributors</a
+        >（ODbL）
+      </span>
       <button type="button" class="rail__menu" @click="emit('menu')">
         <AppIcon name="menu" :size="13" />菜单 / 关于
       </button>
@@ -198,6 +204,12 @@ const picks = computed(() =>
   color: var(--ink-soft);
   letter-spacing: 0.08em;
   border-top: 1px solid var(--rule);
+}
+
+.rail__credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .rail__meta b {

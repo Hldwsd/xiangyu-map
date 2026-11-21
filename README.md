@@ -17,11 +17,17 @@
 
 ## 当前状态
 
-**M0 基建已落地**（脚手架、地图渲染、数据契约、CI）。现在跑起来能看到：安徽省 16 个地级市的分区轮廓与市名、10 个可点击的分类地标、点击后侧栏摘要、`/site/:id` 详情页、分类筛选与关键词搜索、窄屏自动切单列。
+**M0、M1 已上线，M2 进行中**（2026-11-21）。线上是可直接用的开发版：全屏安徽省地图（16 个地级市）+
+30 条可核验的文旅项目、分类图例、关键词搜索、列表抽屉、城市索引、详情页、区县界开关
+（默认关闭）、9 个湖泊与长江/淮河水道、省界渐隐光晕。
 
-- 地标数据是 **10 条示例占位数据**（坐标近似、文案为编辑示例、`sources` 指向 example.com），图上与详情页都有「示例数据」标注，正式内容在 M1–M2 替换；
-- 底图用 DataV.GeoAtlas 的公开安徽省 GeoJSON（16 个市级要素）做开发期示意，来源、sha256 与合规待办记在 [public/maps/README.md](public/maps/README.md)，**上线前必须确认审图号**；
-- 部署链路已接通（见下节），线上是开发版，内容仍是示例数据。
+- 视觉走「纸本墨线」：米白纸、墨线、宋体标题、金色点睛，分类靠形状区分（[ADR 0007](docs/adr/0007-ink-paper-home.md)），
+  背景是邓石如《少学琴书册》的墨迹（清代，公有领域）；
+- 区划以**安徽省自然资源厅官方标准图（审图号 皖S(2025)71号）**为准：该图只划分 16 个地级市，
+  所以区县界默认不显示，需要时在菜单里打开；
+- 底图几何仍是 DataV.GeoAtlas 的公开 GeoJSON（开发期示意，来源与 sha256 见
+  [public/maps/README.md](public/maps/README.md)），**公开上线前仍须完成地图审核与审图号标注**；
+- 部署链路已接通（见下节），PR 各自有预览地址。
 
 进度以 [规划文档的里程碑表](docs/PROJECT_PLAN.md#里程碑与排期) 为准，本文件不重复排期，避免两处漂移。
 
@@ -60,6 +66,10 @@ pnpm dev          # http://localhost:5173
 | `pnpm lint`                      | ESLint（`lint:fix` 自动修）                                           |
 | `pnpm format`                    | Prettier 格式化（`format:check` 只校验）                              |
 | `pnpm data:anhui-map`            | 重新抓取底图到 `public/maps/anhui.json`                               |
+| `pnpm data:anhui-outline`        | 重新抓取省界轮廓到 `public/maps/anhui-outline.json`                   |
+| `pnpm data:anhui-water`          | 重新抓取 9 个湖泊水面到 `public/maps/anhui-water.json`（OSM）         |
+| `pnpm data:anhui-rivers`         | 重新抓取长江/淮河河道线到 `public/maps/anhui-rivers.json`（OSM）      |
+| `pnpm data:anhui-districts`      | 重新抓取区县界线到 `public/maps/anhui-districts.json`（默认不加载）   |
 | `node scripts/check-sources.mjs` | 检查每条数据的 `sources` 是否可达（加 `--strict` 有不可达时退出码 1） |
 
 首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
@@ -80,7 +90,19 @@ pnpm dev          # http://localhost:5173
 
 - **地标数据**：`src/data/sites.ts`，字段契约在 `src/types/site.ts`（改字段需双方在 PR 确认）。新增一个项目 = 加一条数据 + 放图，不动组件代码；`province` 固定为安徽省，`city` 必须是 16 个地级市之一（联合类型，写错编译期就报错）。
 - **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、城市属于 16 个地级市、坐标落在安徽省内、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
-- **底图**：`public/maps/anhui.json`，由 `pnpm data:anhui-map` 从 DataV.GeoAtlas 抓取并校验（16 个市级要素），详见 [public/maps/README.md](public/maps/README.md)。
+- **底图与专题图层**（都在 `public/maps/`，来源、字段与 sha256 见 [public/maps/README.md](public/maps/README.md)）：
+
+  | 文件                   | 内容                                     | 来源                            | 生成命令                    |
+  | ---------------------- | ---------------------------------------- | ------------------------------- | --------------------------- |
+  | `anhui.json`           | 16 个地级市面（主底图）                  | DataV.GeoAtlas                  | `pnpm data:anhui-map`       |
+  | `anhui-outline.json`   | 省界轮廓（用来做渐隐光晕）               | DataV.GeoAtlas                  | `pnpm data:anhui-outline`   |
+  | `anhui-water.json`     | 9 个主要湖泊水面                         | OpenStreetMap（Overpass，ODbL） | `pnpm data:anhui-water`     |
+  | `anhui-rivers.json`    | 长江、淮河在省域内的河道线               | OpenStreetMap（Overpass，ODbL） | `pnpm data:anhui-rivers`    |
+  | `anhui-districts.json` | 区县界线（104 个，默认不加载，菜单可开） | 公开数据集                      | `pnpm data:anhui-districts` |
+
+  区划口径以安徽省自然资源厅官方标准图（审图号 皖S(2025)71号）为准，该标准图只到 16 个地级市，
+  所以区县界默认关闭。
+
 - **来源核验**：`node scripts/check-sources.mjs` 把每条数据的 `sources` 跑一遍，按「可达 / 反爬 / 不可达 / 占位」分类；政府站点常对脚本请求返回 403/412，这类单列为「反爬」不算失败（`.github/workflows/sources.yml` 在数据变更时跑它，非阻断）。
 - **图片来源**：正式图片放 `public/images/sites/<id>/`（WebP，单张 ≤ 300 KB），示例数据统一用 `public/images/placeholder.svg`。数据里写的是站点根路径（`/images/...`），渲染时由 `src/utils/asset-url.ts` 套上部署基地址 —— 部署在 `/xiangyu-map/` 这类子路径下也不会 404。
 
@@ -98,7 +120,22 @@ pnpm dev          # http://localhost:5173
 
 ## 地图合规提示
 
-在中国境内公开登载地图涉及地图审核与审图号要求（《地图管理条例》及自然资源部相关规定）。上线前须确认底图来源与审图号，不得使用来源不明的边界数据；详见规划文档「风险与对策」一节。
+在中国境内公开登载地图涉及地图审核与审图号要求（《地图管理条例》及自然资源部相关规定）。本项目：
+
+- **区划口径**采用安徽省自然资源厅官方标准图（审图号 **皖S(2025)71号**，只到 16 个地级市）；
+- **底图几何**目前仍是 DataV.GeoAtlas 的公开数据，属开发期示意，**公开上线前必须换成经审核的矢量数据并标注审图号**；
+- 湖泊与河道来自 OpenStreetMap（ODbL），已在页面署名，见下节。
+
+详见规划文档「风险与对策」一节与 [public/maps/README.md](public/maps/README.md)。
+
+## 素材与署名
+
+| 素材                   | 来源                                              | 许可                                                |
+| ---------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| 湖泊水面 / 河道线      | © OpenStreetMap contributors（Overpass API 抓取） | ODbL，页面已署名（页脚、首页版记、「菜单 → 关于」） |
+| 省与市轮廓             | DataV.GeoAtlas                                    | 见其仓库说明，公开上线前替换为经审核数据            |
+| 背景书法《少学琴书册》 | 邓石如（清，1743–1805），项目所有者提供的扫描件   | 作品为公有领域；扫描件授权待确认                    |
+| 分类图标               | 项目内自绘（`src/components/icons/`，S1 线稿）    | 随项目 MIT                                          |
 
 ## 许可
 
