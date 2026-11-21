@@ -74,3 +74,8 @@
 另：实现期发现 `writing-mode: vertical-rl` 在部分内核 + 大字号 + letter-spacing
 下退化为「每字一列」的横向排列，主标题改为逐字 span 堆叠的伪竖排（副题、引言
 小字号不受影响，继续用 writing-mode）。
+
+## 补充（2026-11-21）：响应式断点按 1200
+
+版头改竖排题字后，桌面起点由规划里的 1440 调整为实际实现的 **1200**（HomeView.vue 的 min-width: 1200px）。
+docs/PROJECT_PLAN.md 已同步；六个视口的实测见 [docs/research/2026-11-21-responsive-audit.md](../research/2026-11-21-responsive-audit.md)。
