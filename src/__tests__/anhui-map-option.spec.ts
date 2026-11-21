@@ -121,13 +121,15 @@ describe('按市上墨（choropleth）', () => {
   })
 
   it('档位色取自 palette，0 档不返回（region 缺省即原色）', () => {
-    // 依赖真实数据分布：黄山市与宣城市各有 5 条（两档），合肥市只有 1 条（原色）
+    // 依赖真实数据分布：黄山市与宣城市各有 5 条（两档），
+    // 合肥市 3 条、六安市 3 条（一档），阜阳市只有 1 条（原色）
     const colors = buildCityAreaColors(sites, DEFAULT_PALETTE)
 
     expect(colors.get('黄山市')).toBe(DEFAULT_PALETTE.mapTier2)
     expect(colors.get('宣城市')).toBe(DEFAULT_PALETTE.mapTier2)
-    expect(colors.get('合肥市')).toBeUndefined()
+    expect(colors.get('合肥市')).toBe(DEFAULT_PALETTE.mapTier1)
     expect(colors.get('六安市')).toBe(DEFAULT_PALETTE.mapTier1)
+    expect(colors.get('阜阳市')).toBeUndefined()
   })
 })
 
