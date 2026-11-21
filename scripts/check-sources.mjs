@@ -84,6 +84,30 @@ function isRelatedToSomeOwner(title, ownerIds) {
   })
 }
 
+/**
+ * 停放页 / 待售页的痕迹。
+ *
+ * 200 不等于「这个来源有用」：域名过期后常被域名商挂成待售页或跳转页，状态码照样 200，
+ * 只看状态码会把「域名出售」这类页面判成可达。这里只嗅前 4KB 正文，不下载整站。
+ */
+const PARKED_SIGNS = [
+  '域名出售',
+  'domain for sale',
+  '域名转让',
+  '域名停放',
+  '正在跳转',
+  '阿里云万网虚机',
+  'west.cn',
+  'parking',
+]
+
+const SNIFF_BYTES = 4096
+
+function parkedSign(html) {
+  const head = html.slice(0, SNIFF_BYTES).toLowerCase()
+  return PARKED_SIGNS.find((sign) => head.includes(sign.toLowerCase()))
+}
+
 function classify(url, status) {
   if (PLACEHOLDER_HOSTS.has(new URL(url).host)) return 'placeholder'
   if (status >= 200 && status < 400) return 'ok'
@@ -102,15 +126,16 @@ async function probe(url) {
       signal: controller.signal,
     })
     const base = classify(url, response.status)
-    const title = extractTitle(await response.text())
+    const html = await response.text()
+    const title = extractTitle(html)
+    const parked = parkedSign(html)
     // 可达但内容与引用它的项目都对不上 → 停放/过期域名的典型特征；
     // 归为独立 kind，排序/图标/计数才会把它单独归组
     const exempt = TITLE_EXEMPT.has(url)
-    const kind =
-      base === 'ok' && !exempt && !isRelatedToSomeOwner(title, sourceMap.get(url) ?? [])
-        ? 'unrelated'
-        : base
-    return { url, status: response.status, kind, title }
+    // 停放页优先判：即使标题碰巧含项目名，正文出现「域名出售」也不能算可达
+    const unrelated = parked !== undefined || !isRelatedToSomeOwner(title, sourceMap.get(url) ?? [])
+    const kind = base === 'ok' && !exempt && unrelated ? 'unrelated' : base
+    return { url, status: response.status, kind, title, parked }
   } catch (error) {
     const reason = error instanceof Error && error.name === 'AbortError' ? '超时' : '连接失败'
     return { url, status: 0, kind: 'dead', reason }
