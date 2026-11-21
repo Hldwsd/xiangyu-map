@@ -87,7 +87,7 @@ export const sites: Site[] = [
     tags: ['世界遗产', '山岳', '云海'],
     bestSeason: '4-5 月、9-11 月',
     transport: '黄山北站转乘景区班车至汤口，再换乘上山',
-    sources: ['https://whc.unesco.org/zh/list/779', 'http://www.hsly.com/'],
+    sources: ['https://whc.unesco.org/zh/list/547', 'http://www.hsly.com/'],
     updatedAt: '2026-11-21',
   },
   {
