@@ -70,15 +70,18 @@ if (features.length < MIN_FEATURES) {
 }
 
 /**
- * 几何处理：**保留 DataV 的原始拓扑，只做每顶点四舍五入到 4 位小数（约 11 米）**。
+ * 几何处理：**保留 DataV 的原始拓扑，只做每顶点四舍五入到 3 位小数（约 111 米）**。
  *
  * 之前为了省体积做过「按多边形抽稀」，相邻区县共享的边界会各简一次、落点不一致，
  * 画出来既有缝隙又有压线——这就是用户说的「几何切割感」。
  * 逐顶点四舍五入是确定性的：共享顶点在两边得到完全相同的值，边界依然严丝合缝。
  *
- * 属性只留 name 与 layer（adcode、city 在渲染里用不到）。
+ * 3 位小数在省域默认视野下约 0.2px、放到最大 8 倍约 1.8px：
+ * 区县界只是 0.7px 的底图纹理，这个量化步长看不出来；4 位小数则要多 60KB 传输。
+ *
+ * 属性只留 name 与 level（adcode、city 在渲染里用不到）。
  */
-const PRECISION = 4
+const PRECISION = 3
 const SCALE = 10 ** PRECISION
 
 function roundCoord(value) {

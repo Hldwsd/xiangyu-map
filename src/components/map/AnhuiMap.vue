@@ -586,7 +586,10 @@ async function render(): Promise<void> {
   errorMessage.value = ''
 
   try {
-    // 首屏只等市界 + 水系：区县界 660KB，等它一起会白屏好几秒（实测线上 5s 以上）
+    // 区县界与底图**并行**拉：默认开启后它要跟着首屏用，晚一步就多等一个 RTT。
+    // 加载器按 URL 做了 Promise 缓存，稍后 applyDistrictLayer() 再取是同一个请求，不会重复下载。
+    if (props.showDistricts === true) void loadAnhuiDistricts().catch(() => null)
+
     const [city, water, rivers, outline] = await Promise.all([
       loadAnhuiMap(),
       loadAnhuiWater().catch(() => null),
@@ -630,7 +633,7 @@ async function render(): Promise<void> {
     )
     refreshMarkers()
 
-    // 区县界默认不加载；打开开关时在首屏之后补（重注册地图并保留当前视野）
+    // 区县界已在开头并行预取，这里直接合并进底图（重注册地图并保留当前视野）
     if (props.showDistricts === true) void applyDistrictLayer(true)
   } catch (error: unknown) {
     status.value = 'error'
