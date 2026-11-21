@@ -424,9 +424,11 @@ function buildLayerRegions(
         },
         // hover 只加深描边、保持档位底色：铺灰底会把压在上面的河道盖成一片灰，
         // 变回原色则会让深色市在悬停时「变浅」，两者都会破坏 choropleth 的读法
+        // hover 不填色：ECharts 把悬停区域重绘在城市之上，填档位色会把湖面盖掉；
+        // 反馈靠更深的描边 + 市名加粗，水系颜色保持不变。
         emphasis: {
           itemStyle: {
-            areaColor,
+            areaColor: 'transparent',
             borderColor: paletteNow.mapLabel,
             borderWidth: 1.4,
           },
