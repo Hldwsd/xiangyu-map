@@ -13,7 +13,7 @@ ECharts 从 5.0 起不再内置地图数据（见 [官方 FAQ](https://echarts.a
 | 来源         | 阿里云 DataV.GeoAtlas `https://geo.datav.aliyun.com/areas_v3/bound/340000_full.json` |
 | 正式获取方式 | `pnpm data:anhui-map`（`scripts/fetch-anhui-map.mjs`）                               |
 | 要素数       | 16（安徽省 16 个地级市，全部 `level=city`）                                          |
-| 体积         | 原始 124.3 KB / gzip 39.8 KB（预算 250 KB）                                          |
+| 体积         | 原始 124 KB / gzip 41 KB（预算 250 KB）                                              |
 | sha256       | `7ca3290e0458f34086df4d61fa9804e2c624d55dfe5f8f6a841844b5dcd43207`                   |
 | 抓取时间     | 2026-11-19                                                                           |
 
@@ -45,11 +45,11 @@ ECharts 从 5.0 起不再内置地图数据（见 [官方 FAQ](https://echarts.a
 
 地图不再只有 16 条市界，另外三层是「底图纹理」，都由脚本生成、可复现：
 
-| 文件                   | 内容                                                                                     | 来源                                        | 生成方式                    | 体积                       |
-| ---------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------- | --------------------------- | -------------------------- |
-| `anhui-districts.json` | 104 个区县边界（line-only：区域透明、只画线）                                            | 阿里云 DataV.GeoAtlas（按市逐个取 `_full`） | `pnpm data:anhui-districts` | 原始 596 KB / gzip 47.5 KB |
-| `anhui-water.json`     | 9 个主要湖泊水面（巢湖、太平湖、花亭湖、升金湖、菜子湖、焦岗湖、女山湖、龙子湖、八里河） | OpenStreetMap（Overpass API）               | `pnpm data:anhui-water`     | 原始 34 KB / gzip 9.4 KB   |
-| `anhui-rivers.json`    | 长江、淮河在省域内的河道线（193 段）                                                     | OpenStreetMap（Overpass API）               | `pnpm data:anhui-rivers`    | 原始 67 KB / gzip 12 KB    |
+| 文件                   | 内容                                                                                     | 来源                                        | 生成方式                    | 体积                      |
+| ---------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------- | --------------------------- | ------------------------- |
+| `anhui-districts.json` | 104 个区县边界（line-only：区域透明、只画线）                                            | 阿里云 DataV.GeoAtlas（按市逐个取 `_full`） | `pnpm data:anhui-districts` | 原始 593 KB / gzip 126 KB |
+| `anhui-water.json`     | 9 个主要湖泊水面（巢湖、太平湖、花亭湖、升金湖、菜子湖、焦岗湖、女山湖、龙子湖、八里河） | OpenStreetMap（Overpass API）               | `pnpm data:anhui-water`     | 原始 56 KB / gzip 11 KB   |
+| `anhui-rivers.json`    | 长江、淮河在省域内的河道线（193 段）                                                     | OpenStreetMap（Overpass API）               | `pnpm data:anhui-rivers`    | 原始 25 KB / gzip 3 KB    |
 
 两层 OSM 数据是 **ODbL** 许可：公开上线时页面必须署名 `© OpenStreetMap contributors`，
 这条与审图号一并处理，不能只写「数据来源见 README」。
