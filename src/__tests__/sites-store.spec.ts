@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(30)
-    expect(store.filteredSites).toHaveLength(30)
+    expect(store.sites).toHaveLength(42)
+    expect(store.filteredSites).toHaveLength(42)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -34,6 +34,15 @@ describe('useSitesStore', () => {
         'bagongshan',
         'wanfohu',
         'shuimo-tingxi',
+        // data-round6 新增的自然类
+        'chaohu',
+        'jinghu-park',
+        'tongling-fenghuangshan',
+        'xiangshan-huaibei',
+        'jiushan-cave',
+        'jiaogang-lake',
+        'mingtang-mountain',
+        'guniujiang',
       ].sort(),
     )
   })
@@ -42,7 +51,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setQuery('池州市')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['jiuhuashan', 'xinghuacun'].sort(),
+      ['jiuhuashan', 'xinghuacun', 'guniujiang'].sort(),
     )
 
     store.setQuery('古城')
@@ -144,7 +153,7 @@ describe('useSitesStore', () => {
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
     expect(store.cityCounts['黄山市']).toBe(5)
-    expect(store.cityCounts['铜陵市']).toBe(1)
+    expect(store.cityCounts['铜陵市']).toBe(2)
   })
 
   it('城市筛选把当前选中项排除后，选中状态被清空', () => {

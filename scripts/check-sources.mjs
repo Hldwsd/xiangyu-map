@@ -59,7 +59,8 @@ const nameById = new Map(
  */
 const TITLE_EXEMPT = new Set([
   'https://www.ahjx.gov.cn/Jxwl', // 泾县文旅板块（查济 / 水墨汀溪 / 茂林）
-  'https://www.fengyang.gov.cn/', // 凤阳县政府（小岗村，县属滁州市）
+  'https://www.fengyang.gov.cn/', // 凤阳县政府（小岗村、韭山洞，县属滁州市）
+  'http://paper.people.com.cn/rmrbhwb/html/2017-03/16/content_1757786.htm', // 人民日报海外版（湖上升明月）
 ])
 
 function extractTitle(html) {
