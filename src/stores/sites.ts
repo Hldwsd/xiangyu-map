@@ -95,6 +95,7 @@ export const useSitesStore = defineStore('sites', () => {
       自然: 0,
       演艺: 0,
       乡村: 0,
+      场馆: 0,
     }
     for (const site of sites.value) counts[site.category] += 1
     return counts

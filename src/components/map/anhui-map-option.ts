@@ -7,7 +7,7 @@ import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
 import type { Site, SiteCategory } from '@/types/site'
 
 /**
- * 分类配色。单色方向下六类同色（分类靠形状区分）；
+ * 分类配色。单色方向下七类同色（分类靠形状区分）；
  * 实际渲染时由组件从 CSS 变量读当前主题（见 services/theme 的 readThemePalette）。
  */
 export const CATEGORY_COLORS: Record<SiteCategory, string> = DEFAULT_PALETTE.category
@@ -23,6 +23,7 @@ export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
   自然: categoryMarkerSymbol('自然'),
   演艺: categoryMarkerSymbol('演艺'),
   乡村: categoryMarkerSymbol('乡村'),
+  场馆: categoryMarkerSymbol('场馆'),
 }
 
 /** 与 tokens.css / 纸本样张一致：纸、墨、金 */

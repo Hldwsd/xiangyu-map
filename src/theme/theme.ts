@@ -33,6 +33,7 @@ export const DEFAULT_PALETTE: ThemePalette = {
     自然: '#1c1a17',
     演艺: '#1c1a17',
     乡村: '#1c1a17',
+    场馆: '#1c1a17',
   },
   mapArea: '#fcf8ee',
   mapTier1: '#f5eddb',
@@ -54,6 +55,7 @@ const CATEGORY_VARS: Record<SiteCategory, string> = {
   自然: '--cat-nature',
   演艺: '--cat-performance',
   乡村: '--cat-village',
+  场馆: '--cat-venue',
 }
 
 /**

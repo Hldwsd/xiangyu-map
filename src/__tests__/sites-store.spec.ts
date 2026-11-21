@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(60)
-    expect(store.filteredSites).toHaveLength(60)
+    expect(store.sites).toHaveLength(64)
+    expect(store.filteredSites).toHaveLength(64)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -126,7 +126,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setCity('黄山市')
 
-    expect(store.filteredSites).toHaveLength(7)
+    expect(store.filteredSites).toHaveLength(8)
     expect(store.filteredSites.every((site) => site.city === '黄山市')).toBe(true)
   })
 
@@ -163,7 +163,7 @@ describe('useSitesStore', () => {
 
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
-    expect(store.cityCounts['黄山市']).toBe(7)
+    expect(store.cityCounts['黄山市']).toBe(8)
     expect(store.cityCounts['铜陵市']).toBe(2)
   })
 
@@ -204,9 +204,10 @@ describe('useSitesStore', () => {
       'hongcun',
       'xidi',
       'tunxi-old-street',
-      // data-round7 新增的黄山市条目
+      // data-round7/8 新增的黄山市条目
       'yuliang-dam',
       'qiankou-mansion',
+      'huizhou-culture-museum',
     ])
   })
 

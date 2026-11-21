@@ -8,11 +8,11 @@ import { UI_ICON_PATHS, type UiIconName } from '@/components/icons/ui-icon-paths
 import { SITE_CATEGORIES } from '@/types/site'
 
 describe('地标圆钉', () => {
-  it('六类各有自己的线条图标，且互不相同', () => {
+  it('七类各有自己的线条图标，且互不相同', () => {
     const glyphs = SITE_CATEGORIES.map((category) => CATEGORY_GLYPHS[category].join('|'))
 
-    expect(glyphs).toHaveLength(6)
-    expect(new Set(glyphs).size).toBe(6)
+    expect(glyphs).toHaveLength(7)
+    expect(new Set(glyphs).size).toBe(7)
     for (const paths of SITE_CATEGORIES.map((c) => CATEGORY_GLYPHS[c])) {
       expect(paths.length).toBeGreaterThan(0)
       for (const path of paths) expect(path.startsWith('M')).toBe(true)
@@ -31,10 +31,10 @@ describe('地标圆钉', () => {
     expect(decodeURIComponent(selected).toLowerCase()).toContain('fill="#1c1a17"')
   })
 
-  it('六个分类的符号互不相同', () => {
+  it('七个分类的符号互不相同', () => {
     const symbols = SITE_CATEGORIES.map((category) => categoryMarkerSymbol(category))
 
-    expect(new Set(symbols).size).toBe(6)
+    expect(new Set(symbols).size).toBe(7)
   })
 
   it('界面图标与地图圆钉共用同一套线条', () => {

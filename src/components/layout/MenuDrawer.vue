@@ -104,7 +104,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
         <h2>关于</h2>
         <p>
           「乡遇安徽」把安徽省 16
-          个地级市的文旅项目放在一张地图上：古镇、非遗、红色、自然、演艺、乡村六类，
+          个地级市的文旅项目放在一张地图上：古镇、非遗、红色、自然、演艺、乡村、场馆七类，
           按形状区分，点开看详情。
         </p>
         <p class="drawer__note">
