@@ -23,6 +23,7 @@ export const CATEGORY_SYMBOLS: Record<SiteCategory, string> = {
   自然: categoryMarkerSymbol('自然'),
   演艺: categoryMarkerSymbol('演艺'),
   乡村: categoryMarkerSymbol('乡村'),
+  场馆: categoryMarkerSymbol('场馆'),
 }
 
 /** 与 tokens.css / 纸本样张一致：纸、墨、金 */

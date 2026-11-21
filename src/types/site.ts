@@ -10,8 +10,12 @@
  * 写错一个字的城市名会在编译期就被拦下，而不是等到筛选时静默落空。
  */
 
-/** 分类枚举。新增分类需同步 CATEGORY_COLORS（映射颜色）与筛选组件。 */
-export const SITE_CATEGORIES = ['古镇', '非遗', '红色', '自然', '演艺', '乡村'] as const
+/**
+ * 分类枚举。新增分类需同步 CATEGORY_COLORS（映射颜色）与筛选组件。
+ * 「场馆」是 2026-11-21 应所有者要求新增的第七类（博物馆 / 科技馆等室内展馆），
+ * 契约变更记录见 docs/adr/0010-venue-category.md。
+ */
+export const SITE_CATEGORIES = ['古镇', '非遗', '红色', '自然', '演艺', '乡村', '场馆'] as const
 
 export type SiteCategory = (typeof SITE_CATEGORIES)[number]
 

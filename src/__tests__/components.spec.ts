@@ -24,6 +24,7 @@ const counts: Record<SiteCategory, number> = {
   自然: 12,
   演艺: 1,
   乡村: 6,
+  场馆: 0,
 }
 
 function findSite(id: string): Site {
@@ -57,13 +58,13 @@ describe('SitePanel', () => {
 })
 
 describe('CategoryFilter', () => {
-  it('渲染「全部」加 6 个分类，并显示数量', () => {
+  it('渲染「全部」加 7 个分类，并显示数量', () => {
     const wrapper = mount(CategoryFilter, {
       props: { category: '全部', counts, total: 30 },
     })
 
     const chips = wrapper.findAll('.filter__chip')
-    expect(chips).toHaveLength(7)
+    expect(chips).toHaveLength(8)
     expect(chips[0]?.text()).toContain('全部')
     expect(chips[0]?.text()).toContain('30')
   })
@@ -181,13 +182,13 @@ describe('SiteListSheet', () => {
 })
 
 describe('HomeRail', () => {
-  it('渲染「全部」加 6 个分类，点击分类写入 store', async () => {
+  it('渲染「全部」加 7 个分类，点击分类写入 store', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const wrapper = mount(HomeRail, { global: { plugins: [pinia] } })
 
     const rows = wrapper.findAll('.lrow')
-    expect(rows).toHaveLength(7)
+    expect(rows).toHaveLength(8)
     expect(rows[0]?.text()).toContain('全部')
 
     await rows[1]?.trigger('click')

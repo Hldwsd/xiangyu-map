@@ -7,17 +7,17 @@ afterEach(() => {
 })
 
 describe('readThemePalette', () => {
-  it('CSS 变量缺失时回落到默认值，且六个分类都有颜色', () => {
+  it('CSS 变量缺失时回落到默认值，且七个分类都有颜色', () => {
     const palette = readThemePalette()
 
     expect(palette.mapArea).toBe(DEFAULT_PALETTE.mapArea)
-    expect(Object.keys(palette.category)).toHaveLength(6)
+    expect(Object.keys(palette.category)).toHaveLength(7)
     for (const color of Object.values(palette.category)) {
       expect(color).toMatch(/^#[0-9a-f]{6}$/i)
     }
   })
 
-  it('单色方向下六类同色——分类靠形状而不是颜色区分', () => {
+  it('单色方向下七类同色——分类靠形状而不是颜色区分', () => {
     const colors = new Set(Object.values(DEFAULT_PALETTE.category))
 
     expect(colors.size).toBe(1)
