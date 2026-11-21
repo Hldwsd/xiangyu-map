@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>版头样张对比（探索产物，不提交）</title>
+    <style>
+      /* 样张只做视觉对比：值来自 tokens.css，确认方向后才动真组件 */
+      :root {
+        --paper: #f4eee2;
+        --surface: #fbf6ea;
+        --ink: #1c1a17;
+        --ink-soft: #5a544b;
+        --line: #d8cebc;
+        --seal: #b08a4a;
+        --seal-red: #9e2a22; /* 方案 C/D 新增：朱砂印泥色 */
+        --font-serif: 'Songti SC', 'STSong', 'SimSun', 'Noto Serif CJK SC', serif;
+        --font-sans:
+          'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', system-ui,
+          sans-serif;
+        --shadow-panel: 0 18px 36px -24px rgb(28 26 23 / 45%);
+        --tracking-brand: 0.14em;
+      }
+      body {
+        margin: 0;
+        padding: 2rem;
+        font-family: var(--font-sans);
+        background: radial-gradient(circle at 12% 8%, #faf5eb 0%, transparent 45%), var(--paper);
+        color: var(--ink);
+      }
+      .deck {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+      .scene {
+        width: 340px;
+        padding: 1rem;
+        background: rgb(28 26 23 / 4%);
+        border-radius: 8px;
+      }
+      .scene h2 {
+        margin: 0 0 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--ink-soft);
+        letter-spacing: 0.16em;
+      }
+      .rail {
+        width: 300px;
+        padding: 1.1rem;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-panel);
+      }
+      /* ———— 方案 A：现状基线（横排 + 金印） ———— */
+      .rail--a .brand {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .rail--a h1 {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        font-weight: 600;
+        letter-spacing: var(--tracking-brand);
+      }
+      .rail--a .seal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        font-family: var(--font-serif);
+        font-size: 1.15rem;
+        color: var(--seal);
+        background: var(--ink);
+        border: 1px solid var(--seal);
+      }
+      /* ———— 方案 B：竖排大字（金印不变） ———— */
+      .rail--b .brand,
+      .rail--d .brand {
+        display: flex;
+        flex-direction: row-reverse; /* 竖排读序从右起：主标题在右 */
+        justify-content: flex-end;
+        min-height: 10.5rem;
+        gap: 18px;
+      }
+      /* 主标题列：标题在上、落款印紧随其下——传统题字的位置 */
+      .brand-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+      .rail--b h1,
+      .rail--d h1 {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: 2.4rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        writing-mode: vertical-rl;
+        line-height: 1;
+      }
+      .rail--b .sub,
+      .rail--d .sub {
+        writing-mode: vertical-rl;
+        font-size: 0.68rem;
+        line-height: 2;
+        letter-spacing: 0.2em;
+        color: var(--ink-soft);
+        margin: 0;
+        padding-top: 6px;
+      }
+      .rail--b .seal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        color: var(--seal);
+        background: var(--ink);
+        border: 1px solid var(--seal);
+      }
+      /* ———— 方案 C：朱砂印（横排不变，只换印） ———— */
+      .rail--c .brand {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .rail--c h1 {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        font-weight: 600;
+        letter-spacing: var(--tracking-brand);
+      }
+      .rail--c .seal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.6rem;
+        height: 2.6rem;
+        font-family: var(--font-serif);
+        font-size: 1.35rem;
+        color: var(--surface);
+        background: var(--seal-red);
+        border: 1px solid rgb(0 0 0 / 18%);
+        box-shadow: 0 1px 2px rgb(28 26 23 / 18%);
+      }
+      /* ———— 方案 D：竖排 + 朱砂印（组合） ———— */
+      .rail--d .seal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.6rem;
+        height: 2.6rem;
+        font-family: var(--font-serif);
+        font-size: 1.35rem;
+        color: var(--surface);
+        background: var(--seal-red);
+        border: 1px solid rgb(0 0 0 / 18%);
+        box-shadow: 0 1px 2px rgb(28 26 23 / 18%);
+      }
+      /* 各方案共用的版头下半部分（不参与对比，只为还原真实上下文） */
+      .tag {
+        margin: 0.6rem 0 0;
+        font-size: 0.68rem;
+        line-height: 1.8;
+        color: var(--ink-soft);
+        letter-spacing: 0.14em;
+      }
+      .label {
+        margin: 1.5rem 0 0.6rem;
+        font-size: 0.64rem;
+        font-weight: 500;
+        color: var(--ink-soft);
+        letter-spacing: 0.26em;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        height: 30px;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--ink-soft);
+        border-bottom: 1px solid rgb(216 206 188 / 45%);
+      }
+      .row b {
+        font-weight: 500;
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <div class="scene">
+        <h2>A · 现状基线</h2>
+        <div class="rail rail--a">
+          <div class="brand">
+            <h1>乡遇安徽</h1>
+            <span class="seal">徽</span>
+          </div>
+          <p class="tag">在地图上，遇见一个文旅项目<br />十六市 · 三十处</p>
+          <p class="label">分类 · 图例</p>
+          <div class="row"><b>古镇</b><span>6</span></div>
+          <div class="row"><b>非遗</b><span>2</span></div>
+          <div class="row"><b>自然</b><span>12</span></div>
+        </div>
+      </div>
+
+      <div class="scene">
+        <h2>B · 竖排大字（印不变）</h2>
+        <div class="rail rail--b">
+          <div class="brand">
+            <div class="brand-col">
+              <h1>乡遇安徽</h1>
+              <span class="seal">徽</span>
+            </div>
+            <p class="sub">在地图上，遇见一个文旅项目</p>
+          </div>
+          <p class="label">分类 · 图例</p>
+          <div class="row"><b>古镇</b><span>6</span></div>
+          <div class="row"><b>非遗</b><span>2</span></div>
+          <div class="row"><b>自然</b><span>12</span></div>
+        </div>
+      </div>
+
+      <div class="scene">
+        <h2>C · 朱砂印（横排不变）</h2>
+        <div class="rail rail--c">
+          <div class="brand">
+            <h1>乡遇安徽</h1>
+            <span class="seal">徽</span>
+          </div>
+          <p class="tag">在地图上，遇见一个文旅项目<br />十六市 · 三十处</p>
+          <p class="label">分类 · 图例</p>
+          <div class="row"><b>古镇</b><span>6</span></div>
+          <div class="row"><b>非遗</b><span>2</span></div>
+          <div class="row"><b>自然</b><span>12</span></div>
+        </div>
+      </div>
+
+      <div class="scene">
+        <h2>D · 竖排 + 朱砂印（组合）</h2>
+        <div class="rail rail--d">
+          <div class="brand">
+            <div class="brand-col">
+              <h1>乡遇安徽</h1>
+              <span class="seal">徽</span>
+            </div>
+            <p class="sub">在地图上，遇见一个文旅项目</p>
+          </div>
+          <p class="label">分类 · 图例</p>
+          <div class="row"><b>古镇</b><span>6</span></div>
+          <div class="row"><b>非遗</b><span>2</span></div>
+          <div class="row"><b>自然</b><span>12</span></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
