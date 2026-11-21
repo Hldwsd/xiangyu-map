@@ -159,16 +159,18 @@ describe('按市上墨（choropleth）', () => {
   })
 
   it('档位色取自 palette，0 档不返回（region 缺省即原色）', () => {
-    // 依赖真实数据分布（51 条）：黄山市 7、合肥/池州/蚌埠 4（两档）；
-    // 宣城 5（两档）；六安/淮南/滁州/安庆/马鞍山 3、其余 2（一档）；没有 0–1 条的市
+    // 依赖真实数据分布（60 条）：黄山 7、宣城 6、池州/安庆 5、合肥/蚌埠/马鞍山/滁州/六安 4（两档）；
+    // 芜湖/淮南/淮北 3、亳州/铜陵/阜阳/宿州 2（一档）；没有 0–1 条的市
     const colors = buildCityAreaColors(sites, DEFAULT_PALETTE)
 
     expect(colors.get('黄山市')).toBe(DEFAULT_PALETTE.mapTier2)
-    expect(colors.get('合肥市')).toBe(DEFAULT_PALETTE.mapTier2)
-    expect(colors.get('池州市')).toBe(DEFAULT_PALETTE.mapTier2)
-    expect(colors.get('蚌埠市')).toBe(DEFAULT_PALETTE.mapTier2)
     expect(colors.get('宣城市')).toBe(DEFAULT_PALETTE.mapTier2)
-    expect(colors.get('六安市')).toBe(DEFAULT_PALETTE.mapTier1)
+    expect(colors.get('池州市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('安庆市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('合肥市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('蚌埠市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('六安市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('淮南市')).toBe(DEFAULT_PALETTE.mapTier1)
     expect(colors.get('阜阳市')).toBe(DEFAULT_PALETTE.mapTier1)
   })
 })
