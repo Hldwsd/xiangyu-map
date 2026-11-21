@@ -22,10 +22,11 @@ const picks = computed(() =>
 <template>
   <aside class="rail" aria-label="地图版头">
     <div class="rail__brand">
-      <h1>乡遇安徽</h1>
+      <h1><span>乡</span><span>遇</span><span>安</span><span>徽</span></h1>
       <span class="rail__seal" aria-hidden="true">徽</span>
+      <p class="rail__sub">在地图上，遇见一个文旅项目</p>
+      <p class="rail__quote">一生痴绝处，无梦到徽州</p>
     </div>
-    <p class="rail__tag">在地图上，遇见一个文旅项目<br />十六市 · 三十处</p>
 
     <p class="rail__label">分类 · 图例</p>
     <CategoryLegend />
@@ -91,42 +92,110 @@ const picks = computed(() =>
   display: none;
 }
 
+/*
+ * 品牌区：竖排题字 + 落款朱砂印（ADR 0008，方案 D）。
+ * 用 grid 而不是 flex：行高由内容直接决定，不经过 flex 收缩机制——
+ * 嵌套 flex 曾把标题压成「每字一列」的横向排列（实测踩坑）。
+ * 读序从右起：标题右上、落款印右下、副题中列、引言贴左缘。
+ * 引言（汤显祖写徽州的名句，公有领域）是为填满标题左侧留白补的第三列。
+ */
 .rail__brand {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto;
+  column-gap: 18px;
+  align-items: start;
+  /* 版头是可滚动的 column flex：矮屏下空间不足会按比例收缩子项，
+     brand 被压到 min-height 后落款印溢出叠进图例（实测踩坑），禁收缩 */
+  flex-shrink: 0;
 }
 
 .rail__brand h1 {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: 2.4rem;
   font-weight: 600;
   line-height: 1.15;
-  letter-spacing: var(--tracking-brand);
+  /*
+   * 伪竖排：每字一个 span 纵向堆叠。不走 writing-mode: vertical-rl——
+   * 实测它在部分内核 + 大字号 + letter-spacing 组合下会退化成
+   * 「每字一列」的横向排列（副题小字正常、标题大字异常，无法通过
+   * 宽度/高度约束修复），逐字堆叠在所有内核行为一致。
+   */
 }
 
+/* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */
 .rail__seal {
+  grid-column: 3;
+  grid-row: 2;
+  justify-self: center;
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  margin-top: 1px;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin-top: 14px;
   font-family: var(--font-serif);
-  font-size: 1.15rem;
-  color: var(--seal);
-  background: var(--ink);
-  border: 1px solid var(--seal);
+  font-size: 1.35rem;
+  color: var(--surface);
+  background: var(--seal-red);
+  border: 1px solid rgb(0 0 0 / 18%);
+  box-shadow: var(--shadow-soft);
 }
 
-.rail__tag {
-  margin: 0.6rem 0 0;
+/* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */
+
+/* 竖排副题：细字、低对比，像题画诗的位置；跨两行贴在标题列左侧 */
+.rail__sub {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  margin: 0;
+  padding-top: 6px;
+  writing-mode: vertical-rl;
   font-size: 0.68rem;
-  line-height: 1.8;
+  line-height: 2;
+  letter-spacing: 0.2em;
   color: var(--ink-soft);
-  letter-spacing: 0.14em;
+}
+
+/*
+ * 竖排引言：汤显祖写徽州的名句，公有领域。深金小字（--seal-ink）
+ * 是 0007 里「小字号金」的合法用法，提亮而不抢主标题。
+ * 贴卡片左缘，与下方图例的左对齐呼应——填掉标题左侧的大片留白。
+ */
+.rail__quote {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  justify-self: start;
+  margin: 0;
+  padding-top: 8px;
+  writing-mode: vertical-rl;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  line-height: 2;
+  letter-spacing: 0.34em;
+  color: var(--seal-ink);
+}
+
+/* 矮屏（1284×685 这类）版头原本就要滚动，品牌区收一档减少挤出量 */
+@media (max-height: 760px) {
+  .rail__brand {
+    min-height: 8rem;
+  }
+
+  .rail__brand h1 {
+    font-size: 2rem;
+    min-height: 10rem;
+  }
 }
 
 .rail__label {
