@@ -59,6 +59,8 @@ const props = defineProps<{
   selectedId: string | null
   /** 是否显示区县界。默认关闭：官方标准图（皖S(2025)71号）只有 16 个地级市 */
   showDistricts?: boolean
+  /** 是否把靠得近的地标合并成一个数字标签。关掉后每个项目单独画，便于逐个点选 */
+  cluster?: boolean
 }>()
 
 const emit = defineEmits<{ select: [id: string] }>()
@@ -286,6 +288,9 @@ function onZoomInput(event: Event): void {
 
 /** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
 function computeGroups(instance: EChartsType): MarkerGroup[] | undefined {
+  // 关掉合并时返回 undefined：toScatterData 按「每个项目一颗」处理
+  if (props.cluster === false) return undefined
+
   const pixels = new Map<string, readonly [number, number] | null>()
 
   for (const site of props.sites) {
@@ -671,6 +676,14 @@ watch(
   (include) => {
     if (status.value !== 'ready' || chart.value === null) return
     void applyDistrictLayer(include === true)
+  },
+)
+
+watch(
+  () => props.cluster,
+  () => {
+    if (status.value !== 'ready' || chart.value === null) return
+    refreshMarkers()
   },
 )
 

@@ -5,11 +5,17 @@ import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useFocusTrap } from '@/composables/use-focus-trap'
 
-const props = defineProps<{ open: boolean; siteCount: number; showDistricts: boolean }>()
+const props = defineProps<{
+  open: boolean
+  siteCount: number
+  showDistricts: boolean
+  mergeMarkers: boolean
+}>()
 const emit = defineEmits<{
   close: []
   'open-list': []
   'update:show-districts': [value: boolean]
+  'update:merge-markers': [value: boolean]
 }>()
 
 const panel = ref<HTMLElement | null>(null)
@@ -79,6 +85,17 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
             <small>默认关闭：官方标准图只画 16 个地级市（皖S(2025)71号）</small>
           </span>
         </label>
+        <label class="drawer__toggle">
+          <input
+            type="checkbox"
+            :checked="mergeMarkers"
+            @change="emit('update:merge-markers', ($event.target as HTMLInputElement).checked)"
+          />
+          <span>
+            合并重叠标签
+            <small>默认开启：靠得近的项目合成一个数字。关掉后每个项目单独画，方便逐个点选</small>
+          </span>
+        </label>
       </section>
 
       <section class="drawer__section">
@@ -89,7 +106,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           按形状区分，点开看详情。
         </p>
         <p class="drawer__note">
-          当前 30 条数据的来源可逐条核验；图片仍用统一占位图，底图与图层来源见
+          当前 {{ siteCount }} 条数据的来源可逐条核验；图片仍用统一占位图，底图与图层来源见
           <code>public/maps/README.md</code>。
         </p>
         <p class="drawer__note">

@@ -29,7 +29,10 @@ const cityOpen = ref(false)
  * 留一个开关给需要看细节的人，选择记在本地。
  */
 const showDistricts = ref(localStorage.getItem('xy-show-districts') === '1')
+/** 默认合并；关掉后每个地标单独画 */
+const mergeMarkers = ref(localStorage.getItem('xy-merge-markers') !== '0')
 watch(showDistricts, (value) => localStorage.setItem('xy-show-districts', value ? '1' : '0'))
+watch(mergeMarkers, (value) => localStorage.setItem('xy-merge-markers', value ? '1' : '0'))
 
 /** 桌面首屏给一个「已经选中」的样子；窄屏不自动弹卡，避免挡地图 */
 onMounted(() => {
@@ -68,6 +71,7 @@ function selectFromList(id: string): void {
         :sites="filteredSites"
         :selected-id="selectedId"
         :show-districts="showDistricts"
+        :cluster="mergeMarkers"
         @select="store.selectSite"
       />
     </div>
@@ -150,6 +154,8 @@ function selectFromList(id: string): void {
       :site-count="total"
       :show-districts="showDistricts"
       @update:show-districts="showDistricts = $event"
+      :merge-markers="mergeMarkers"
+      @update:merge-markers="mergeMarkers = $event"
       @close="menuOpen = false"
       @open-list="
         () => {

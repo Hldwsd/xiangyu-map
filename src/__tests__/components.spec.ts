@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
+import MenuDrawer from '@/components/layout/MenuDrawer.vue'
 import SiteListSheet from '@/components/layout/SiteListSheet.vue'
 import TopBar from '@/components/layout/TopBar.vue'
 import CategoryFilter from '@/components/site/CategoryFilter.vue'
@@ -76,6 +77,38 @@ describe('CategoryFilter', () => {
     await chips[1]?.trigger('click')
 
     expect(wrapper.emitted('update:category')?.[0]).toEqual(['古镇'])
+  })
+})
+
+describe('MenuDrawer', () => {
+  const mountDrawer = (overrides: { mergeMarkers?: boolean } = {}) =>
+    mount(MenuDrawer, {
+      props: {
+        open: true,
+        siteCount: sites.length,
+        showDistricts: false,
+        mergeMarkers: true,
+        ...overrides,
+      },
+      global: { stubs: { RouterLink: routerLinkStub } },
+    })
+
+  it('两个图层开关：区县界 + 合并重叠标签', () => {
+    const wrapper = mountDrawer()
+
+    expect(wrapper.findAll('.drawer__toggle input')).toHaveLength(2)
+    expect(wrapper.text()).toContain('合并重叠标签')
+  })
+
+  it('关掉合并时开关呈未选中，切换时抛 update:merge-markers', async () => {
+    const wrapper = mountDrawer({ mergeMarkers: false })
+    const toggles = wrapper.findAll('.drawer__toggle input')
+    const merge = toggles[1]
+    if (merge === undefined) throw new Error('找不到合并开关')
+    expect((merge.element as HTMLInputElement).checked).toBe(false)
+
+    await merge.setValue(true)
+    expect(wrapper.emitted('update:merge-markers')?.[0]).toEqual([true])
   })
 })
 
