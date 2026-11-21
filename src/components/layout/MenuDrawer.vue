@@ -82,7 +82,9 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           />
           <span>
             显示区县界
-            <small>默认关闭：官方标准图只画 16 个地级市（皖S(2025)71号）</small>
+            <small
+              >默认开启：按区县看项目分布更准；官方标准图（皖S(2025)71号）只有 16 个地级市</small
+            >
           </span>
         </label>
         <label class="drawer__toggle">
@@ -93,7 +95,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           />
           <span>
             合并重叠标签
-            <small>默认开启：靠得近的项目合成一个数字。关掉后每个项目单独画，方便逐个点选</small>
+            <small>默认关闭：每个项目单独画，方便逐个点选；打开后靠得近的项目会合成一个数字</small>
           </span>
         </label>
       </section>
@@ -111,7 +113,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
         </p>
         <p class="drawer__note">
           行政区划依据：安徽省自然资源厅《安徽省示意图（一）》（审图号
-          皖S(2025)71号）——该标准图只划分 16 个地级市，因此默认不显示区县界。
+          皖S(2025)71号）——该标准图只划分 16 个地级市，因此区县界只是补充图层，可在上方按需关掉。
         </p>
         <p class="drawer__note">背景书法：邓石如《少学琴书册》（清代，公有领域）。</p>
         <p class="drawer__note">
