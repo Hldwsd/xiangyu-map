@@ -39,15 +39,29 @@ body {
   line-height: 1.6;
   color: var(--ink);
   /*
-   * 背景：宣纸底 + 邓石如《少学琴书册》墨迹（清代，公有领域）。
-   * 全屏 cover 铺满，只留约 1/4 的浓度；地图与卡片仍是视觉最前面的一层。
+   * 背景：宣纸底 + 两团纸光。书法墨迹只在 ≥1200px 的宽屏铺（见下），
+   * 窄屏回到纯纸：横披在竖屏上物理放不下。
    */
   background:
-    url('/images/bg-calligraphy.webp') center / cover no-repeat fixed,
     radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
-    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
-    var(--paper);
+    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%), var(--paper);
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * 书法背景（邓石如《少学琴书册》，清代，公有领域）只给宽屏：
+ * cover 在 390px 竖屏上会把横披放大到只剩中部几个大字——字比地图还大，
+ * 喧宾夺主；contain 又缩成一条细带。1200px 分界与首页宽窄屏布局一致。
+ * 附带收益：窄屏首屏少下载 280KB 的背景图。
+ */
+@media (min-width: 1200px) {
+  body {
+    background:
+      url('/images/bg-calligraphy.webp') center / cover no-repeat fixed,
+      radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
+      radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
+      var(--paper);
+  }
 }
 
 #app {
