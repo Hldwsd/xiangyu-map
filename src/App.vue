@@ -31,7 +31,7 @@ const chromeHidden = computed(() => route.name === 'home')
 
       <footer v-if="!chromeHidden" class="app__footer">
         <span>
-          示例数据，仅供演示 · 水系与河道 ©
+          64 条数据已核验 · 封面暂为占位 · 水系与河道 ©
           <a
             href="https://www.openstreetmap.org/copyright"
             target="_blank"

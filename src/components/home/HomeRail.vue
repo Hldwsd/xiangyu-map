@@ -49,7 +49,7 @@ const picks = computed(() =>
 
     <div class="rail__meta">
       <b>安徽省 · 16 个地级市</b>
-      <span>底图：DataV.GeoAtlas · 示例数据</span>
+      <span>底图：DataV.GeoAtlas · 封面为占位图</span>
       <span class="rail__credit">
         水系与河道 ©
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
