@@ -28,7 +28,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '水乡', '古镇'],
     bestSeason: '3-5 月、9-11 月',
     transport: '合肥市区自驾约 1 小时，或乘至肥西的班车后转乘',
-    sources: ['https://www.ah.gov.cn/'],
+    sources: ['https://www.ah.gov.cn/zwyw/jryw/565343031.html'],
     updatedAt: '2026-11-19',
   },
   {
@@ -46,7 +46,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '徽派', '古城'],
     bestSeason: '3-4 月、10-11 月',
     transport: '黄山北站转乘至歙县，县城内步行可达',
-    sources: ['http://www.shexian.gov.cn/'],
+    sources: ['https://www.huangshan.gov.cn/content/article/8297412'],
     updatedAt: '2026-11-19',
   },
   {
@@ -136,7 +136,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '红色', '纪念馆'],
     bestSeason: '全年',
     transport: '泾县县城自驾约 40 分钟',
-    sources: ['http://www.jingxian.gov.cn/'],
+    sources: ['https://www.ahjx.gov.cn/OpennessContent/show/1314813.html'],
     updatedAt: '2026-11-19',
   },
   {
@@ -190,7 +190,7 @@ export const sites: Site[] = [
     tags: ['示例数据', '徽派', '村落'],
     bestSeason: '3-4 月、11 月',
     transport: '黄山北站转乘至黟县，再换乘至宏村',
-    sources: ['http://www.hongcun.com.cn/'],
+    sources: ['https://www.yixian.gov.cn/mlyx/ywy/jq/9237160.html'],
     updatedAt: '2026-11-19',
   },
   {
