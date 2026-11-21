@@ -89,7 +89,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           按形状区分，点开看详情。
         </p>
         <p class="drawer__note">
-          当前为示例数据：文案、图片与来源仍在逐条替换，底图数据来源见
+          当前 30 条数据的来源可逐条核验；图片仍用统一占位图，底图与图层来源见
           <code>public/maps/README.md</code>。
         </p>
         <p class="drawer__note">
@@ -97,6 +97,15 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           皖S(2025)71号）——该标准图只划分 16 个地级市，因此默认不显示区县界。
         </p>
         <p class="drawer__note">背景书法：邓石如《少学琴书册》（清代，公有领域）。</p>
+        <p class="drawer__note">
+          湖泊与河道数据 ©
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            >OpenStreetMap contributors</a
+          >，按 ODbL 授权；底图轮廓来自 DataV.GeoAtlas。
+        </p>
       </section>
 
       <footer class="drawer__footer">

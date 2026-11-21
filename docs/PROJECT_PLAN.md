@@ -1,6 +1,6 @@
 # 乡遇安徽 · 项目规划
 
-> 版本：v1.2 ｜ 制定日期：2026-11-18 ｜ 修订：2026-11-19 范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)）、项目中文名定为「乡遇安徽」 ｜ 维护人：Hldwsd（A）、xc3122（B）
+> 版本：v1.3 ｜ 制定日期：2026-11-18 ｜ 修订：2026-11-19 范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)）、项目中文名定为「乡遇安徽」；2026-11-21 同步进度（M1 已交付、M2 进行中、视觉改「纸本墨线」、OSM 署名落地） ｜ 维护人：Hldwsd（A）、xc3122（B）
 > 本文件是排期、分工与验收标准的**唯一准绳**；README 只做摘要，不复制排期。
 
 ## 项目定位
@@ -78,24 +78,37 @@
 xiangyu-map/
 ├─ docs/                          # 规划、协作规范、ADR
 ├─ public/
-│  ├─ maps/anhui.json             # 安徽省 GeoJSON（16 个市级要素，124.3 KB / gzip 39.8 KB）
-│  ├─ maps/README.md              # 底图来源、sha256、合规提示
-│  └─ images/placeholder.svg      # 示例数据统一占位图；正式图放 images/sites/<id>/
-├─ scripts/fetch-anhui-map.mjs    # 重新抓取底图（pnpm data:anhui-map）
+│  ├─ maps/anhui.json             # 主底图：16 个地级市面（gzip 39.8 KB）
+│  ├─ maps/anhui-outline.json     # 省界轮廓，用于渐隐光晕（gzip 15 KB）
+│  ├─ maps/anhui-water.json       # 9 个湖泊水面（OSM / ODbL）
+│  ├─ maps/anhui-rivers.json      # 长江、淮河河道线（OSM / ODbL）
+│  ├─ maps/anhui-districts.json   # 区县界线 104 个（默认不加载，菜单可开）
+│  ├─ maps/README.md              # 图层来源、sha256、ODbL 与审图号提示
+│  ├─ images/bg-calligraphy.webp  # 背景书法（邓石如《少学琴书册》墨迹）
+│  └─ images/placeholder.svg      # 占位图；正式图放 images/sites/<id>/
+├─ scripts/fetch-anhui-*.mjs      # 四个图层抓取脚本（pnpm data:anhui-*）
 ├─ src/
-│  ├─ assets/main.css             # 设计变量与全局样式
+│  ├─ assets/main.css、tokens.css # 全局样式与设计变量（纸本墨线）
 │  ├─ components/
 │  │  ├─ map/AnhuiMap.vue         # 唯一创建/销毁 ECharts 实例的地方
 │  │  ├─ map/anhui-map-option.ts  # 纯函数构建 option（可直接单测）
-│  │  └─ site/CategoryFilter.vue、site/SitePanel.vue
-│  ├─ data/sites.ts               # 地标数据（当前 10 条示例）
+│  │  ├─ map/merge-map-layers.ts  # 市界/水域/区县合并成一张底图
+│  │  ├─ map/cluster-sites.ts     # 密集地标的屏幕像素聚合
+│  │  ├─ home/HomeRail.vue        # 左侧版头（图例、精选、版记）
+│  │  ├─ home/CategoryLegend.vue  # 分类图例（版头与左抽屉共用）
+│  │  ├─ layout/TopBar.vue        # 常显顶栏：菜单/搜索/列表
+│  │  ├─ layout/MenuDrawer.vue    # 菜单：图层开关、关于与署名
+│  │  ├─ layout/EdgeDrawer.vue    # 窄屏左右抽拉（分类/城市）
+│  │  ├─ icons/                   # S1 线稿图标与分类字形
+│  │  └─ site/SitePanel.vue       # 选中地标摘要卡
+│  ├─ data/sites.ts               # 地标数据（当前 30 条，可核验来源）
 │  ├─ router/index.ts             # / 与 /site/:id（详情页按需加载）
-│  ├─ services/anhui-map-loader.ts # 底图加载与缓存，全站唯一的 fetch 出口
+│  ├─ services/anhui-map-loader.ts # 底图与图层加载、缓存，全站唯一 fetch 出口
 │  ├─ stores/sites.ts             # 数据 + 筛选 + 选中态
 │  ├─ types/site.ts               # 数据契约（双方评审后冻结）
 │  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
 │  ├─ views/HomeView.vue、views/SiteDetailView.vue
-│  ├─ __tests__/                  # Vitest 单测（4 个文件 / 48 个用例）
+│  ├─ __tests__/                  # Vitest 单测（8 个文件 / 99 个用例）
 │  ├─ App.vue
 │  └─ main.ts
 ├─ .github/workflows/ci.yml       # PR 上跑 lint / format / typecheck / test / build
@@ -242,6 +255,17 @@ export interface Site {
 
 > W7 含元旦假期，排期已按 3 天余额估算；春节（2027-02-06）在窗口之外，不影响。
 
+**进度快照（2026-11-21，可直接对照线上版）**
+
+| 项               | 目标              | 现状                                              |
+| ---------------- | ----------------- | ------------------------------------------------- |
+| 地标数据         | 60 条（M1）       | **30 条**，来源可核验，示例占位 0                 |
+| 单元测试         | 覆盖率 ≥ 70%      | **99 个用例 / 8 个文件**，全绿                    |
+| 首屏 JS（gzip）  | ≤ 300 KB          | **247.8 KB**                                      |
+| 底图体积（gzip） | ≤ 250 KB          | 市级 39.8 + 省界 15 + 湖泊 9.4 + 河道 12 KB       |
+| 线上             | main 自动发布     | https://hldwsd.github.io/xiangyu-map/ 已部署      |
+| 合规             | 审图号 + OSM 署名 | OSM ODbL 已署名（页脚/版记/关于）；**审图号待办** |
+
 ### M0 基建（W1）
 
 目标：一条命令起服务，一条命令出构建，地图能画出来，数据有契约。
@@ -272,13 +296,21 @@ export interface Site {
 
 **DoD**：60 个地标同时在线不掉帧；点击命中率 100%（含边缘地标）；筛选后地图与数据一致；移动端两指缩放可用且不与页面滚动打架。
 
-**M1 进度**（截至 2026-11-19）：分类形状 + 配色、命中尺寸 13px、双击还原视野、键盘与读屏入口、密集聚合（`src/components/map/cluster-sites.ts` + 点击放大）已落地。剩余：真实 60 条数据（[Issue #17](https://github.com/Hldwsd/xiangyu-map/issues/17)）、聚合后命中率复测、FPS 在真实前台窗口实测（ego 会话里 rAF 被节流到 1fps，测不出来）、移动端手势（M1 后半段）。
+**M1 进度**（截至 2026-11-21，**M1 交付项已完成**）：
+
+- 已落地：分类形状 + 配色、命中尺寸、双击还原视野、键盘与读屏入口、密集聚合
+  （`cluster-sites.ts` + 点击放大）、ECharts 原生 roam（滚轮/双指/拖动 + 中心夹取）、
+  缩放条、区县界开关（默认关）、省界渐隐光晕、湖泊 9 个、长江/淮河河道 193 段。
+- 数据：**30 条可核验**（示例占位 0），等 B 的下一批补到 60（[Issue #17](https://github.com/Hldwsd/xiangyu-map/issues/17)）。
+- 剩余：**聚合后命中率与 FPS 在真实前台窗口复测**（[Issue #16](https://github.com/Hldwsd/xiangyu-map/issues/16)；
+  ego 会话里 rAF 被节流，测不准）、移动端手势（M1 后半段，已在真机手测中）。
 
 ### M2 内容与交互（W4–W5）
 
 目标：从"看到点"到"看懂一个项目"。
 
-- 视觉语言：黑白 / 现代简约，颜色与字号统一走 `src/assets/tokens.css`，分类靠形状而非颜色区分，见 [ADR 0004](adr/0004-visual-language.md)
+- 视觉语言：**纸本墨线**——米白纸、墨线、宋体标题、金色点睛，颜色与字号统一走 `src/assets/tokens.css`，
+  分类靠形状区分（[ADR 0007](adr/0007-ink-paper-home.md) 取代早先的黑白极简方向；[ADR 0004](adr/0004-visual-language.md) 保留为历史理由）
 - `/site/:id` 详情页：图文排版、画廊、位置小图、交通与预约、上下一条导航
 - 深链与分享：直达详情、回退保持地图选中态
 - 搜索：名称/标签/城市检索，命中后地图定位并高亮
@@ -287,6 +319,14 @@ export interface Site {
 - 响应式：≥1440 / 768–1439 / <768 三档布局
 
 **DoD**：任一地标可通过 URL 直达；移动端可完成"发现 → 详情"全流程；断网时有明确错误提示而非白屏。
+
+**M2 进度**（截至 2026-11-21）：
+
+- 详情页、深链、搜索、列表抽屉、城市索引、三档响应式（≥1200 双栏 + 左右抽拉、<1200 边签）已落地；
+- 顶栏融合了搜索/菜单/列表，筛选收进菜单与图例，去掉独立筛选浮层；
+- 视觉完成两轮：纸本墨线 → 「版式融合 + 省界光晕 + cover 背景」；
+- 剩余：加载骨架与错误态的细粒度打磨、图片懒加载在真实图片上验证（占位图阶段测不到）、
+  列表 ↔ 地图的 hover（目前只做选中联动）。
 
 ### M3 质量与上线（W6）
 
