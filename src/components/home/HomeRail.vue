@@ -25,6 +25,7 @@ const picks = computed(() =>
       <h1><span>乡</span><span>遇</span><span>安</span><span>徽</span></h1>
       <span class="rail__seal" aria-hidden="true">徽</span>
       <p class="rail__sub">在地图上，遇见一个文旅项目</p>
+      <p class="rail__quote">一生痴绝处，无梦到徽州</p>
     </div>
 
     <p class="rail__label">分类 · 图例</p>
@@ -93,13 +94,14 @@ const picks = computed(() =>
 
 /*
  * 品牌区：竖排题字 + 落款朱砂印（ADR 0008，方案 D）。
- * 用 grid 而不是 flex：两行两列的网格里，行高由内容（含 h1 的 min-height）
- * 直接决定，不经过 flex 收缩机制——嵌套 flex 曾把标题压成「每字一列」的
- * 横向排列（实测踩坑）。读序从右起：标题右上、落款印右下、副题竖排在左。
+ * 用 grid 而不是 flex：行高由内容直接决定，不经过 flex 收缩机制——
+ * 嵌套 flex 曾把标题压成「每字一列」的横向排列（实测踩坑）。
+ * 读序从右起：标题右上、落款印右下、副题中列、引言贴左缘。
+ * 引言（汤显祖写徽州的名句，公有领域）是为填满标题左侧留白补的第三列。
  */
 .rail__brand {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-rows: auto auto;
   column-gap: 18px;
   align-items: start;
@@ -109,7 +111,7 @@ const picks = computed(() =>
 }
 
 .rail__brand h1 {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
   justify-self: center;
   display: flex;
@@ -131,7 +133,7 @@ const picks = computed(() =>
 
 /* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */
 .rail__seal {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 2;
   justify-self: center;
   display: flex;
@@ -149,9 +151,11 @@ const picks = computed(() =>
   box-shadow: var(--shadow-soft);
 }
 
+/* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */
+
 /* 竖排副题：细字、低对比，像题画诗的位置；跨两行贴在标题列左侧 */
 .rail__sub {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1 / span 2;
   justify-self: end;
   margin: 0;
@@ -163,20 +167,23 @@ const picks = computed(() =>
   color: var(--ink-soft);
 }
 
-/* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */
-.rail__seal {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.6rem;
-  height: 2.6rem;
+/*
+ * 竖排引言：汤显祖写徽州的名句，公有领域。深金小字（--seal-ink）
+ * 是 0007 里「小字号金」的合法用法，提亮而不抢主标题。
+ * 贴卡片左缘，与下方图例的左对齐呼应——填掉标题左侧的大片留白。
+ */
+.rail__quote {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  justify-self: start;
+  margin: 0;
+  padding-top: 8px;
+  writing-mode: vertical-rl;
   font-family: var(--font-serif);
-  font-size: 1.35rem;
-  color: var(--surface);
-  background: var(--seal-red);
-  border: 1px solid rgb(0 0 0 / 18%);
-  box-shadow: var(--shadow-soft);
+  font-size: 0.72rem;
+  line-height: 2;
+  letter-spacing: 0.34em;
+  color: var(--seal-ink);
 }
 
 /* 矮屏（1284×685 这类）版头原本就要滚动，品牌区收一档减少挤出量 */

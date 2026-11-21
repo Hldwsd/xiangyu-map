@@ -217,6 +217,8 @@ describe('HomeRail 品牌区（ADR 0008）', () => {
     expect(wrapper.find('.rail__brand h1').exists()).toBe(true)
     expect(wrapper.find('.rail__seal').text()).toBe('徽')
     expect(wrapper.find('.rail__sub').text()).toContain('在地图上，遇见一个文旅项目')
+    // 左列引言：填满标题左侧留白（ADR 0008 修订）
+    expect(wrapper.find('.rail__quote').text()).toContain('无梦到徽州')
     // 旧横排 tag 不应再出现
     expect(wrapper.find('.rail__tag').exists()).toBe(false)
   })
