@@ -440,9 +440,14 @@ export function buildAnhuiMapOption(
       // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
       regions,
       emphasis: {
-        // 只加深描边、不铺灰底：灰底会把底下的河道盖住（用户实测到的问题）
+        /**
+         * 悬停只加深描边、**不填任何颜色**。
+         *
+         * ECharts 会把 hover 的区域重新画在兄弟区域之上：哪怕填的是同一档底色，
+         * 也会把压在城市里的湖面（巢湖等）盖成纸色。填透明才能保证水系颜色不被覆盖。
+         */
         itemStyle: {
-          areaColor: palette.mapArea,
+          areaColor: 'transparent',
           borderColor: palette.mapLabel,
           borderWidth: 1.2,
         },

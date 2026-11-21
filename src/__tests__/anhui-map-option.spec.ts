@@ -111,6 +111,15 @@ describe('toScatterData', () => {
 })
 
 describe('按市上墨（choropleth）', () => {
+  it('hover 不填色：ECharts 会把悬停区域重绘在城市之上，填色会盖住湖面', () => {
+    const geo = buildAnhuiMapOption(sites, null).geo as {
+      emphasis?: { itemStyle?: { areaColor?: string } }
+    }
+
+    // 实测：填 palette.mapArea 时，合肥 hover 会把巢湖盖成纸色（220,228,225 → 245,237,219）
+    expect(geo.emphasis?.itemStyle?.areaColor).toBe('transparent')
+  })
+
   it('项目数分三档：0–1 原色、2–3 一档、≥4 两档', () => {
     expect(cityAreaTier(0)).toBe(0)
     expect(cityAreaTier(1)).toBe(0)
