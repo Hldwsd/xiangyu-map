@@ -1,16 +1,18 @@
 import type { Site } from '@/types/site'
 
 /**
- * 地标数据（30 条，全部在安徽省内，覆盖 16 个地级市）。
+ * 地标数据（64 条，全部在安徽省内，覆盖 16 个地级市）。
  *
- * 两组来源，别混着看：
- * - 前 10 条为 M0 示例数据：文案是编辑示例、`tags` 首位带「示例数据」、图片为占位；
- *   来源已换成可核验的景区官网或区县政府门户，但正文内容仍待逐条替换。
- * - 后 16 条（`longzihu` 起）为 M1 新增：来源是市级政府门户或景区官网；
- *   其中黄山市政府、安庆市政府对脚本请求返回 412/403（反爬），已在 PR 里说明。
- *   图片仍是占位，待授权素材到位后补。
+ * 数据分两批入库，均已通过来源核验（docs/research/2026-11-21-sources-audit.md）：
+ * - 前 10 条为 M0 示例数据转正（2026-11-21）：文案按真实信息重写、
+ *   去除「示例数据」标签，来源升级为项目级；黄山为世界双遗产、
+ *   宏村为世界文化遗产。图片仍为占位，待授权素材到位后补。
+ * - 其余 54 条为 M1 各轮（data-round5-8 与场馆扩展）新增：来源是
+ *   政府详情页、景区官网、百科词条或权威媒体，逐条实测可达；
+ *   黄山市政府、安庆市政府对脚本请求返回 412/403（反爬），浏览器可开。
  *
- * 通用约定：坐标是 GCJ-02 粗略值（千米级误差），不作为导航依据；`summary` ≤ 60 字。
+ * 通用约定：坐标是 GCJ-02（Photon/OSM 查询后经标准算法转换，宏村基准
+ * 校验偏差 Δ0.006°），千米级精度，不作为导航依据；`summary` ≤ 60 字。
  */
 export const sites: Site[] = [
   {
@@ -20,16 +22,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '合肥市',
     location: { lng: 117.252, lat: 31.579 },
-    summary: '丰乐河、杭埠河、小南河交汇处的老镇，青石板街巷与临水吊脚楼保存得相当完整。',
+    summary: '丰乐河、杭埠河、小南河交汇处的 5A 水乡古镇，青石板街巷与皖中民居保存完整。',
     description:
-      '古镇因三条河交汇得名，主街沿河铺开，石板路两侧是晚清至民国的铺面与民居。\n\n沿河走一圈大约两小时，清晨与傍晚光线最好。镇内有多处祠堂与名人旧居，门票与开放情况以现场公示为准。',
+      '古镇因三条河交汇得名，主街沿河铺开，石板路两侧是晚清至民国的铺面与民居，杨振宁旧居在街内。\n\n沿河走一圈约两小时，清晨与傍晚光线最好；2015 年成为合肥首个 5A 景区。镇内祠堂与名人旧居较多，门票与开放情况以现场公示为准。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '水乡', '古镇'],
+    tags: ['水乡', '古镇', '5A'],
     bestSeason: '3-5 月、9-11 月',
     transport: '合肥市区自驾约 1 小时，或乘至肥西的班车后转乘',
-    sources: ['https://www.ah.gov.cn/zwyw/jryw/565343031.html'],
-    updatedAt: '2026-11-19',
+    sources: ['https://baike.baidu.com/item/三河古镇', 'https://www.hefei.gov.cn/'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'huizhou-ancient-city',
@@ -38,16 +40,19 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '黄山市',
     location: { lng: 118.436, lat: 29.867 },
-    summary: '歙县老城，许国石坊、斗山街与渔梁坝串起一条读徽州府城历史的步行路线。',
+    summary: '旧徽州府治所在的歙县古城，许国石坊、斗山街与渔梁坝串成读徽州的步行路线。',
     description:
-      '古城是旧徽州府治所在，城墙、府衙、牌坊与街巷层层叠着。许国石坊是城内最醒目的地标，斗山街两侧保留了大量徽派宅第。\n\n出城不远是渔梁坝，傍晚在坝上看练江收束，是很多人对歙县的第一印象。',
+      '古城是旧徽州府治所在，许国石坊（明万历年间的八脚牌坊）是城内最醒目的地标，斗山街两侧保留大量徽派宅第。\n\n徽州古城是 5A「古徽州文化旅游区」的组成部分，出城不远是渔梁坝；傍晚在坝上看练江收束，是很多人对歙县的第一印象。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '徽派', '古城'],
+    tags: ['徽派', '古城', '许国石坊'],
     bestSeason: '3-4 月、10-11 月',
     transport: '黄山北站转乘至歙县，县城内步行可达',
-    sources: ['https://www.huangshan.gov.cn/content/article/8297412'],
-    updatedAt: '2026-11-19',
+    sources: [
+      'https://baike.baidu.com/item/徽州古城',
+      'https://www.huangshan.gov.cn/content/article/8297412',
+    ],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'shouxian-ancient-city',
@@ -56,16 +61,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '淮南市',
     location: { lng: 116.784, lat: 32.576 },
-    summary: '保存完整的宋代城垣与四座城门，城墙上可以走一整圈，城外就是淮河平原。',
+    summary: '楚末都寿春的宋代城垣，四门与瓮城保存完整，城外淮河平原一望无际。',
     description:
-      '寿县古称寿春，城墙周长数公里，墙体与城门形制保留得相当完整。沿城墙步行可以俯瞰城内棋盘状的街巷。\n\n城内的报恩寺、孔庙与楚文化博物馆适合安排半天，博物馆的馆藏是理解这一带历史的入口。',
+      '寿县古称寿春，是楚国最后一座都城；宋代重修的城墙周长约七公里余，四座城门与瓮城形制完整。\n\n沿城墙步行可俯瞰城内街巷；城内报恩寺、孔庙与安徽楚文化博物馆适合安排半天，博物馆是理解楚文化的入口。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '古城', '城墙'],
+    tags: ['古城', '城墙', '楚都'],
     bestSeason: '4-5 月、10 月',
     transport: '淮南市区自驾约 40 分钟',
     sources: ['https://www.shouxian.gov.cn/'],
-    updatedAt: '2026-11-19',
+    updatedAt: '2026-11-21',
   },
   {
     id: 'huangshan-scenic',
@@ -74,16 +79,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '黄山市',
     location: { lng: 118.166, lat: 30.133 },
-    summary: '花岗岩峰林与松、云、泉组合成的经典山岳景观，日出与云海要看运气也看季节。',
+    summary: '世界文化与自然双遗产，奇松怪石云海温泉四绝，中国山岳风景的经典。',
     description:
-      '黄山以奇松、怪石、云海、温泉著称，前山后山各有索道，徒步与索道可以组合安排。\n\n山上住宿有限，看日出通常需要在山上过夜；山下汤口镇是主要集散地。天气变化快，雨具与保暖衣物一年四季都用得上。',
+      '黄山 1990 年列入世界文化与自然双遗产，以奇松、怪石、云海、温泉「四绝」著称。\n\n前山后山各有索道，徒步与索道可以组合安排；看日出通常需在山上过夜，山下汤口镇是主要集散地。天气变化快，雨具与保暖衣物四季都用得上。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '山岳', '云海'],
+    tags: ['世界遗产', '山岳', '云海'],
     bestSeason: '4-5 月、9-11 月',
     transport: '黄山北站转乘景区班车至汤口，再换乘上山',
-    sources: ['http://www.hsly.com/'],
-    updatedAt: '2026-11-19',
+    sources: ['https://whc.unesco.org/zh/list/779', 'http://www.hsly.com/'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'jiuhuashan',
@@ -92,16 +97,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '池州市',
     location: { lng: 117.808, lat: 30.48 },
-    summary: '花岗岩峰丛间的佛教名山，寺院沿山势分布，山道与索道都能上到核心景区。',
+    summary: '中国佛教四大名山之一，地藏菩萨道场，肉身宝殿与百岁宫沿山势层叠。',
     description:
-      '九华山以地藏道场闻名，山上寺院密集，化城寺、肉身宝殿、百岁宫是常走的几处。\n\n山脚柯村是换乘点，景区内以步行与索道为主。清晨与傍晚山上人少，适合慢慢走一段山路。',
+      '九华山是中国佛教四大名山之一、国家 5A 景区，以地藏菩萨道场闻名，山上寺院密集。\n\n化城寺、肉身宝殿、百岁宫是常走的几处；山脚柯村是换乘点，景区内以步行与索道为主，清晨与傍晚山上人少。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '山岳', '寺院'],
+    tags: ['佛教名山', '地藏道场', '5A'],
     bestSeason: '4-6 月、9-11 月',
     transport: '池州站转乘至柯村换乘中心',
-    sources: ['http://www.jiuhuashan.gov.cn/'],
-    updatedAt: '2026-11-19',
+    sources: ['https://baike.baidu.com/item/九华山', 'http://www.jiuhuashan.gov.cn/'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'tianzhushan',
@@ -110,16 +115,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '安庆市',
     location: { lng: 116.463, lat: 30.727 },
-    summary: '以花岗岩峰柱著称的山岳，主峰形似擎天一柱，山脊步道视野开阔。',
+    summary: '花岗岩峰柱地貌的世界地质公园，主峰如擎天一柱，汉武帝曾在此封禅。',
     description:
-      '天柱山的花岗岩峰林与洞穴地貌是主要看点，主峰天柱峰孤立于群峰之间。\n\n索道可以省掉大半爬升，剩下的山脊步道仍需体力。山下潜山市区住宿选择多，适合安排两天。',
+      '天柱山是 UNESCO 世界地质公园、国家 5A 景区，花岗岩峰林与洞穴地貌是主要看点，主峰孤立于群峰之间。\n\n索道可省掉大半爬升，剩下的山脊步道仍需体力；山下潜山市区住宿选择多，适合安排两天。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '山岳', '花岗岩'],
+    tags: ['世界地质公园', '山岳', '花岗岩'],
     bestSeason: '4-5 月、9-10 月',
     transport: '潜山站转乘至景区大门',
-    sources: ['http://www.tzs.com.cn/'],
-    updatedAt: '2026-11-19',
+    sources: ['http://www.tzs.com.cn/', 'https://www.anqing.gov.cn/'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'yunling-memorial',
@@ -128,16 +133,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '宣城市',
     location: { lng: 118.191, lat: 30.652 },
-    summary: '皖南山区里的新四军军部驻地，旧址群与纪念馆连成一片，适合安静地走半天。',
+    summary: '泾县云岭的新四军军部驻地（1938–1941），第一批全国重点文物保护单位。',
     description:
-      '旧址位于泾县云岭，军部机关、大会堂与领导人旧居散布在几个村落之间，多是皖南民居形制。\n\n纪念馆的展陈按时间线梳理皖南事变前后的经过，看完再走旧址群，会更容易理解这片山地的空间关系。',
+      '1938–1941 年新四军军部驻扎泾县云岭，军部机关、大会堂与领导人旧居散布在几个村落之间，多为皖南民居形制。\n\n旧址 1961 年列入第一批全国重点文物保护单位；纪念馆按时间线梳理皖南事变前后的经过，看完再走旧址群更容易理解这片山地的空间关系。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '红色', '纪念馆'],
+    tags: ['新四军', '红色', '全国文保'],
     bestSeason: '全年',
     transport: '泾县县城自驾约 40 分钟',
     sources: ['https://www.ahjx.gov.cn/OpennessContent/show/1314813.html'],
-    updatedAt: '2026-11-19',
+    updatedAt: '2026-11-21',
   },
   {
     id: 'huaxilou',
@@ -146,16 +151,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '亳州市',
     location: { lng: 115.779, lat: 33.868 },
-    summary: '山陕会馆里的砖雕与木雕戏台，三绝集中在方寸之间，是皖北工艺的代表作。',
+    summary: '山陕会馆里的砖雕木雕戏台，1988 年列入第三批全国重点文物保护单位。',
     description:
-      '花戏楼本名山陕会馆，是清代晋陕商人在亳州集资所建。戏台的木雕与外墙砖雕是核心看点，题材密集，值得带着耐心看细节。\n\n旁边的亳州老街与华佗纪念馆可以一并安排，这里是中药集散地，街市气息与皖南很不一样。',
+      '花戏楼本名山陕会馆（大关帝庙），是清代晋陕商人在亳州集资所建；1988 年列入第三批全国重点文物保护单位。\n\n戏台木雕与外墙砖雕是核心看点，题材密集，值得带着耐心看细节；旁边的亳州老街与曹操运兵道可以一并安排。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '非遗', '砖雕'],
+    tags: ['砖雕', '全国文保', '会馆'],
     bestSeason: '4-5 月、9-10 月',
     transport: '亳州站打车约 20 分钟',
-    sources: ['https://www.bozhou.gov.cn/'],
-    updatedAt: '2026-11-19',
+    sources: ['https://baike.baidu.com/item/花戏楼', 'https://www.bozhou.gov.cn/'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'wuhu-iron-painting',
@@ -164,16 +169,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '芜湖市',
     location: { lng: 118.376, lat: 31.334 },
-    summary: '以铁为墨、以锤代笔的锻打工艺，山水花鸟都能打成薄浮雕，工序全在手上。',
+    summary: '首批国家级非遗的锻铁成画技艺，以铁为墨、以锤代笔，山水花鸟皆可入画。',
     description:
-      '铁画以低碳钢为料，经锻、钻、焊、锉多道工序成型，画面有类似水墨的层次。芜湖是这门工艺的发源地，作坊与展馆里能看到从锻打到装框的全过程。\n\n看铁画最好留出与匠人聊天的时间，工艺的难点往往在几句解释里才显得出来。',
+      '芜湖铁画锻制技艺 2006 年列入第一批国家级非物质文化遗产名录；以低碳钢为料，经锻、钻、焊、锉多道工序成型，画面有类似水墨的层次。\n\n芜湖是这门工艺的发源地，作坊与展馆里能看到从锻打到装框的全过程；看铁画最好留出与匠人聊天的时间。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '非遗', '手工艺'],
+    tags: ['铁画', '非遗', '手工艺'],
     bestSeason: '全年',
     transport: '芜湖市区内步行或打车可达',
-    sources: ['https://www.wuhu.gov.cn/'],
-    updatedAt: '2026-11-19',
+    sources: ['https://baike.baidu.com/item/芜湖铁画', 'https://www.wuhu.gov.cn/'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'hongcun',
@@ -182,16 +187,16 @@ export const sites: Site[] = [
     province: '安徽省',
     city: '黄山市',
     location: { lng: 117.988, lat: 29.996 },
-    summary: '牛形水系串起月沼与南湖的古村落，白墙黛瓦倒映在水面，清晨最安静。',
+    summary: '世界文化遗产的牛形村落，月沼南湖的水圳流过每家门前，清晨最安静。',
     description:
-      '宏村的水系按牛形布局，水圳从每家门前流过，月沼与南湖是两处最开阔的水面。\n\n村内巷道窄，晨昏光线斜射时最好看；住村内可以避开白天的团队客流。周边西递、塔川可顺路安排。',
+      '宏村 2000 年作为「皖南古村落—西递、宏村」列入世界文化遗产，水系按牛形布局，水圳从每家门前流过。\n\n月沼与南湖是两处最开阔的水面，村内巷道窄，晨昏光线斜射时最好看；住村内可避开团队客流，西递、塔川可顺路安排。',
     cover: '/images/placeholder.svg',
     gallery: [],
-    tags: ['示例数据', '徽派', '村落'],
+    tags: ['世界遗产', '徽派', '村落'],
     bestSeason: '3-4 月、11 月',
     transport: '黄山北站转乘至黟县，再换乘至宏村',
-    sources: ['https://www.yixian.gov.cn/mlyx/ywy/jq/9237160.html'],
-    updatedAt: '2026-11-19',
+    sources: ['https://whc.unesco.org/zh/list/1002', 'https://baike.baidu.com/item/宏村'],
+    updatedAt: '2026-11-21',
   },
   {
     id: 'longzihu',

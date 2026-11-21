@@ -43,7 +43,7 @@ describe('SitePanel', () => {
     expect(wrapper.text()).toContain('宏村')
     expect(wrapper.text()).toContain('安徽省')
     expect(wrapper.text()).toContain('黄山市')
-    expect(wrapper.text()).toContain('月沼与南湖')
+    expect(wrapper.text()).toContain('月沼南湖')
   })
 
   it('点击关闭按钮时抛出 close 事件', async () => {
