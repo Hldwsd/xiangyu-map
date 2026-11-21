@@ -18,13 +18,13 @@
 ## 当前状态
 
 **M0、M1 已上线，M2 进行中**（2026-11-21）。线上是可直接用的开发版：全屏安徽省地图（16 个地级市）+
-30 条可核验的文旅项目、分类图例、关键词搜索、列表抽屉、城市索引、详情页、区县界开关
-（默认关闭）、9 个湖泊与长江/淮河水道、省界渐隐光晕。
+42 条可核验的文旅项目、分类图例、关键词搜索、列表抽屉、城市索引、详情页、区县界开关
+（默认开启）、9 个湖泊与长江/淮河水道、省界渐隐光晕。
 
 - 视觉走「纸本墨线」：米白纸、墨线、宋体标题、金色点睛，分类靠形状区分（[ADR 0007](docs/adr/0007-ink-paper-home.md)），
   背景是邓石如《少学琴书册》的墨迹（清代，公有领域）；
 - 区划以**安徽省自然资源厅官方标准图（审图号 皖S(2025)71号）**为准：该图只划分 16 个地级市，
-  所以区县界默认不显示，需要时在菜单里打开；
+  所以区县界默认显示，可在菜单里关掉；
 - 底图几何仍是 DataV.GeoAtlas 的公开 GeoJSON（开发期示意，来源与 sha256 见
   [public/maps/README.md](public/maps/README.md)），**公开上线前仍须完成地图审核与审图号标注**；
 - 部署链路已接通（见下节），PR 各自有预览地址。
@@ -69,7 +69,7 @@ pnpm dev          # http://localhost:5173
 | `pnpm data:anhui-outline`        | 重新抓取省界轮廓到 `public/maps/anhui-outline.json`                   |
 | `pnpm data:anhui-water`          | 重新抓取 9 个湖泊水面到 `public/maps/anhui-water.json`（OSM）         |
 | `pnpm data:anhui-rivers`         | 重新抓取长江/淮河河道线到 `public/maps/anhui-rivers.json`（OSM）      |
-| `pnpm data:anhui-districts`      | 重新抓取区县界线到 `public/maps/anhui-districts.json`（默认不加载）   |
+| `pnpm data:anhui-districts`      | 重新抓取区县界线到 `public/maps/anhui-districts.json`（默认加载）     |
 | `node scripts/check-sources.mjs` | 检查每条数据的 `sources` 是否可达（加 `--strict` 有不可达时退出码 1） |
 
 首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
@@ -92,16 +92,16 @@ pnpm dev          # http://localhost:5173
 - **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、城市属于 16 个地级市、坐标落在安徽省内、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
 - **底图与专题图层**（都在 `public/maps/`，来源、字段与 sha256 见 [public/maps/README.md](public/maps/README.md)）：
 
-  | 文件                   | 内容                                     | 来源                            | 生成命令                    |
-  | ---------------------- | ---------------------------------------- | ------------------------------- | --------------------------- |
-  | `anhui.json`           | 16 个地级市面（主底图）                  | DataV.GeoAtlas                  | `pnpm data:anhui-map`       |
-  | `anhui-outline.json`   | 省界轮廓（用来做渐隐光晕）               | DataV.GeoAtlas                  | `pnpm data:anhui-outline`   |
-  | `anhui-water.json`     | 9 个主要湖泊水面                         | OpenStreetMap（Overpass，ODbL） | `pnpm data:anhui-water`     |
-  | `anhui-rivers.json`    | 长江、淮河在省域内的河道线               | OpenStreetMap（Overpass，ODbL） | `pnpm data:anhui-rivers`    |
-  | `anhui-districts.json` | 区县界线（104 个，默认不加载，菜单可开） | 公开数据集                      | `pnpm data:anhui-districts` |
+  | 文件                   | 内容                                   | 来源                            | 生成命令                    |
+  | ---------------------- | -------------------------------------- | ------------------------------- | --------------------------- |
+  | `anhui.json`           | 16 个地级市面（主底图）                | DataV.GeoAtlas                  | `pnpm data:anhui-map`       |
+  | `anhui-outline.json`   | 省界轮廓（用来做渐隐光晕）             | DataV.GeoAtlas                  | `pnpm data:anhui-outline`   |
+  | `anhui-water.json`     | 9 个主要湖泊水面                       | OpenStreetMap（Overpass，ODbL） | `pnpm data:anhui-water`     |
+  | `anhui-rivers.json`    | 长江、淮河在省域内的河道线             | OpenStreetMap（Overpass，ODbL） | `pnpm data:anhui-rivers`    |
+  | `anhui-districts.json` | 区县界线（104 个，默认加载，菜单可关） | 公开数据集                      | `pnpm data:anhui-districts` |
 
   区划口径以安徽省自然资源厅官方标准图（审图号 皖S(2025)71号）为准，该标准图只到 16 个地级市，
-  所以区县界默认关闭。
+  所以区县界默认开启。
 
 - **来源核验**：`node scripts/check-sources.mjs` 把每条数据的 `sources` 跑一遍，按「可达 / 反爬 / 不可达 / 占位」分类；政府站点常对脚本请求返回 403/412，这类单列为「反爬」不算失败（`.github/workflows/sources.yml` 在数据变更时跑它，非阻断）。
 - **图片来源**：正式图片放 `public/images/sites/<id>/`（WebP，单张 ≤ 300 KB），示例数据统一用 `public/images/placeholder.svg`。数据里写的是站点根路径（`/images/...`），渲染时由 `src/utils/asset-url.ts` 套上部署基地址 —— 部署在 `/xiangyu-map/` 这类子路径下也不会 404。

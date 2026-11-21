@@ -28,9 +28,10 @@ const cityOpen = ref(false)
  * 区县界默认关闭：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界。
  * 留一个开关给需要看细节的人，选择记在本地。
  */
-const showDistricts = ref(localStorage.getItem('xy-show-districts') === '1')
-/** 默认合并；关掉后每个地标单独画 */
-const mergeMarkers = ref(localStorage.getItem('xy-merge-markers') !== '0')
+/** 默认显示区县界：找项目时靠区县定位比只看 16 个市更准 */
+const showDistricts = ref(localStorage.getItem('xy-show-districts') !== '0')
+/** 默认不合并：每个项目都点得中，不再有「数字标签挡住单个项目」 */
+const mergeMarkers = ref(localStorage.getItem('xy-merge-markers') === '1')
 watch(showDistricts, (value) => localStorage.setItem('xy-show-districts', value ? '1' : '0'))
 watch(mergeMarkers, (value) => localStorage.setItem('xy-merge-markers', value ? '1' : '0'))
 

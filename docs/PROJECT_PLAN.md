@@ -82,7 +82,7 @@ xiangyu-map/
 │  ├─ maps/anhui-outline.json     # 省界轮廓，用于渐隐光晕（gzip 15 KB）
 │  ├─ maps/anhui-water.json       # 9 个湖泊水面（OSM / ODbL）
 │  ├─ maps/anhui-rivers.json      # 长江、淮河河道线（OSM / ODbL）
-│  ├─ maps/anhui-districts.json   # 区县界线 104 个（默认不加载，菜单可开）
+│  ├─ maps/anhui-districts.json   # 区县界线 104 个（默认加载，菜单可关）
 │  ├─ maps/README.md              # 图层来源、sha256、ODbL 与审图号提示
 │  ├─ images/bg-calligraphy.webp  # 背景书法（邓石如《少学琴书册》墨迹）
 │  └─ images/placeholder.svg      # 占位图；正式图放 images/sites/<id>/
@@ -101,7 +101,7 @@ xiangyu-map/
 │  │  ├─ layout/EdgeDrawer.vue    # 窄屏左右抽拉（分类/城市）
 │  │  ├─ icons/                   # S1 线稿图标与分类字形
 │  │  └─ site/SitePanel.vue       # 选中地标摘要卡
-│  ├─ data/sites.ts               # 地标数据（当前 30 条，可核验来源）
+│  ├─ data/sites.ts               # 地标数据（当前 42 条，可核验来源）
 │  ├─ router/index.ts             # / 与 /site/:id（详情页按需加载）
 │  ├─ services/anhui-map-loader.ts # 底图与图层加载、缓存，全站唯一 fetch 出口
 │  ├─ stores/sites.ts             # 数据 + 筛选 + 选中态
@@ -259,7 +259,7 @@ export interface Site {
 
 | 项               | 目标              | 现状                                              |
 | ---------------- | ----------------- | ------------------------------------------------- |
-| 地标数据         | 60 条（M1）       | **30 条**，来源可核验，示例占位 0                 |
+| 地标数据         | 60 条（M1）       | **42 条**，来源可核验，示例占位 0                 |
 | 单元测试         | 覆盖率 ≥ 70%      | **99 个用例 / 8 个文件**，全绿                    |
 | 首屏 JS（gzip）  | ≤ 300 KB          | **247.8 KB**                                      |
 | 底图体积（gzip） | ≤ 250 KB          | 市级 39.8 + 省界 15 + 湖泊 9.4 + 河道 12 KB       |
@@ -300,8 +300,8 @@ export interface Site {
 
 - 已落地：分类形状 + 配色、命中尺寸、双击还原视野、键盘与读屏入口、密集聚合
   （`cluster-sites.ts` + 点击放大）、ECharts 原生 roam（滚轮/双指/拖动 + 中心夹取）、
-  缩放条、区县界开关（默认关）、省界渐隐光晕、湖泊 9 个、长江/淮河河道 193 段。
-- 数据：**30 条可核验**（示例占位 0），等 B 的下一批补到 60（[Issue #17](https://github.com/Hldwsd/xiangyu-map/issues/17)）。
+  缩放条、区县界开关（默认开）、省界渐隐光晕、湖泊 9 个、长江/淮河河道 193 段。
+- 数据：**42 条可核验**（示例占位 0），等 B 的下一批补到 60（[Issue #17](https://github.com/Hldwsd/xiangyu-map/issues/17)）。
 - 剩余：**聚合后命中率与 FPS 在真实前台窗口复测**（[Issue #16](https://github.com/Hldwsd/xiangyu-map/issues/16)；
   ego 会话里 rAF 被节流，测不准）、移动端手势（M1 后半段，已在真机手测中）。
 
