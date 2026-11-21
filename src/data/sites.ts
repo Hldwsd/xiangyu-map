@@ -554,3 +554,9 @@ export const sites: Site[] = [
     updatedAt: '2026-11-19',
   },
 ]
+
+/**
+ * 本期精选：版头「本期精选」直接点名，地图上用金色虚线环 + 大一号圆钉标记。
+ * 精选是内容决策（哪些项目值得「跳过筛选直接看」），所以和数据放在一起维护。
+ */
+export const FEATURED_SITE_IDS = ['huizhou-ancient-city', 'huangshan-scenic', 'hongcun'] as const

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 
 import CategoryLegend from '@/components/home/CategoryLegend.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import { FEATURED_SITE_IDS } from '@/data/sites'
 import { useSitesStore } from '@/stores/sites'
 import type { Site } from '@/types/site'
 
@@ -10,11 +11,11 @@ const emit = defineEmits<{ menu: []; select: [id: string] }>()
 
 const store = useSitesStore()
 
-/** 本期精选：数据里真实存在的三个项目，点名字直接选中 */
+/** 本期精选：地图上带金色虚线环的那几个项目，点名字直接选中 */
 const picks = computed(() =>
-  ['huizhou-ancient-city', 'huangshan-scenic', 'hongcun']
-    .map((id) => store.getSiteById(id))
-    .filter((site): site is Site => site !== null),
+  FEATURED_SITE_IDS.map((id) => store.getSiteById(id)).filter(
+    (site): site is Site => site !== null,
+  ),
 )
 </script>
 
@@ -28,6 +29,7 @@ const picks = computed(() =>
 
     <p class="rail__label">分类 · 图例</p>
     <CategoryLegend />
+    <p class="rail__hint">地图上市底色越深，收录的项目越多</p>
 
     <p class="rail__label rail__label--gap">本期精选</p>
     <div class="rail__picks">
@@ -146,6 +148,15 @@ const picks = computed(() =>
   font-size: 0.55rem;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
+}
+
+/* choropleth 的语义说明：颜色不解释就有歧义（会被误读成推荐度或经济水平） */
+.rail__hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.62rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
 }
 
 .pick {

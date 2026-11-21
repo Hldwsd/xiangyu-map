@@ -9,6 +9,7 @@ import type { EChartsType } from 'echarts/core'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import {
   buildAnhuiMapOption,
+  buildCityAreaColors,
   toScatterData,
   type ClusterScatterDatum,
   type MapRegionStyle,
@@ -18,6 +19,7 @@ import {
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
+import { FEATURED_SITE_IDS } from '@/data/sites'
 import {
   ANHUI_FULL_MAP_NAME,
   ANHUI_MAP_NAME,
@@ -92,6 +94,10 @@ let cachedWater: Parameters<typeof mergeMapLayers>[2] = null
 let outlineRings: OutlineRing[] = []
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
+/** 本期精选的 id 集合：地图上用金色虚线环 + 大一号圆钉标记 */
+const FEATURED_ID_SET: ReadonlySet<string> = new Set(FEATURED_SITE_IDS)
+/** 首次 setOption 之后置 false：落墨入场动画只在首帧播，筛选/聚合更新不再播 */
+let firstOptionApplied = false
 /** 当前主题的配色（分类色 + 地图配色）。主题只在加载时确定，读一次就够 */
 let palette: ThemePalette | null = null
 
@@ -311,7 +317,13 @@ function refreshMarkers(): void {
   if (instance === null || status.value !== 'ready') return
 
   const groups = computeGroups(instance)
-  currentData = toScatterData(props.sites, props.selectedId, groups, themePalette())
+  currentData = toScatterData(
+    props.sites,
+    props.selectedId,
+    groups,
+    themePalette(),
+    FEATURED_ID_SET,
+  )
   instance.setOption({ series: [{ id: 'sites', data: currentData }] })
 }
 
@@ -332,7 +344,7 @@ function datumIndexOfSite(siteId: string): number {
 }
 
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
-  return buildAnhuiMapOption(
+  const option = buildAnhuiMapOption(
     props.sites,
     props.selectedId,
     undefined,
@@ -341,7 +353,12 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
     riverLines,
     activeMapName,
     outlineRings,
+    FEATURED_ID_SET,
+    // 落墨入场只播一次：首次 setOption 为 true，之后的更新一律 false
+    !firstOptionApplied,
   )
+  firstOptionApplied = true
+  return option
 }
 
 /** 把河道 GeoJSON 转成 lines 系列需要的折线数据 */
@@ -368,7 +385,8 @@ function buildRiverLines(collection: { features: unknown[] } | null): RiverLine[
     }
     if (coords.length < 2) continue
 
-    const width = typeof candidate.properties?.width === 'number' ? candidate.properties.width : 1.6
+    // 默认 2.2：长江/淮河是构图的水文骨架，1.6 在省域视野下细得像注记
+    const width = typeof candidate.properties?.width === 'number' ? candidate.properties.width : 2.2
     lines.push({ name, width, coords })
   }
 
@@ -386,6 +404,8 @@ function buildLayerRegions(
   interactive: 'city' | 'district',
 ): MapRegionStyle[] {
   const paletteNow = themePalette()
+  // choropleth：按市收录项目数上墨（0–1 个保持原色，2–3 / ≥4 各深一档）
+  const cityColors = buildCityAreaColors(props.sites, paletteNow)
   const regions: MapRegionStyle[] = []
 
   for (const feature of features) {
@@ -394,17 +414,19 @@ function buildLayerRegions(
     const layer = feature.properties.layer
 
     if (layer === 'city') {
+      const areaColor = cityColors.get(name) ?? paletteNow.mapArea
       regions.push({
         name,
         itemStyle: {
-          areaColor: paletteNow.mapArea,
+          areaColor,
           borderColor: paletteNow.mapBorder,
           borderWidth: 1.1,
         },
-        // hover 只加深描边：铺灰底会把压在上面的河道盖成一片灰
+        // hover 只加深描边、保持档位底色：铺灰底会把压在上面的河道盖成一片灰，
+        // 变回原色则会让深色市在悬停时「变浅」，两者都会破坏 choropleth 的读法
         emphasis: {
           itemStyle: {
-            areaColor: paletteNow.mapArea,
+            areaColor,
             borderColor: paletteNow.mapLabel,
             borderWidth: 1.4,
           },
@@ -592,7 +614,13 @@ async function render(): Promise<void> {
     status.value = 'ready'
     const { zoom } = geoState()
     zoomLevel.value = Number(zoom.toFixed(2))
-    currentData = toScatterData(props.sites, props.selectedId, undefined, themePalette())
+    currentData = toScatterData(
+      props.sites,
+      props.selectedId,
+      undefined,
+      themePalette(),
+      FEATURED_ID_SET,
+    )
     refreshMarkers()
 
     // 区县界默认不加载；打开开关时在首屏之后补（重注册地图并保留当前视野）

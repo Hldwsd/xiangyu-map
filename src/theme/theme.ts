@@ -4,6 +4,9 @@ import type { SiteCategory } from '@/types/site'
 export interface ThemePalette {
   category: Record<SiteCategory, string>
   mapArea: string
+  /** 按市收录项目数分档的纸色加深：2–3 个用 tier1，≥4 个用 tier2（0–1 个用 mapArea 原色） */
+  mapTier1: string
+  mapTier2: string
   mapBorder: string
   mapLabel: string
   mapAreaHover: string
@@ -32,6 +35,8 @@ export const DEFAULT_PALETTE: ThemePalette = {
     乡村: '#1c1a17',
   },
   mapArea: '#fcf8ee',
+  mapTier1: '#f5eddb',
+  mapTier2: '#ecdfc4',
   mapBorder: '#6f6759',
   mapLabel: '#5e564b',
   mapAreaHover: '#f7f1e5',
@@ -75,6 +80,8 @@ export function readThemePalette(): ThemePalette {
   return {
     category,
     mapArea: read('--map-area', DEFAULT_PALETTE.mapArea),
+    mapTier1: read('--map-tier-1', DEFAULT_PALETTE.mapTier1),
+    mapTier2: read('--map-tier-2', DEFAULT_PALETTE.mapTier2),
     mapBorder: read('--map-border', DEFAULT_PALETTE.mapBorder),
     mapLabel: read('--map-label', DEFAULT_PALETTE.mapLabel),
     mapAreaHover: read('--map-area-hover', DEFAULT_PALETTE.mapAreaHover),

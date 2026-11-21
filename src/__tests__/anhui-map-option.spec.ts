@@ -5,6 +5,8 @@ import {
   CATEGORY_COLORS,
   CATEGORY_SYMBOLS,
   buildAnhuiMapOption,
+  buildCityAreaColors,
+  cityAreaTier,
   escapeHtml,
   formatSiteTooltip,
   toScatterData,
@@ -12,10 +14,16 @@ import {
   type SiteScatterDatum,
 } from '@/components/map/anhui-map-option'
 import { sites } from '@/data/sites'
+import { categoryMarkerSymbol } from '@/components/icons/category-paths'
+import { DEFAULT_PALETTE } from '@/theme/theme'
 
 /** 不传分组时，每一项都是「单点」，类型上单独收窄一次，省得每处断言都写 cast */
-function siteData(subset: typeof sites, selectedId: string | null): SiteScatterDatum[] {
-  return toScatterData(subset, selectedId) as SiteScatterDatum[]
+function siteData(
+  subset: typeof sites,
+  selectedId: string | null,
+  featuredIds?: ReadonlySet<string>,
+): SiteScatterDatum[] {
+  return toScatterData(subset, selectedId, undefined, undefined, featuredIds) as SiteScatterDatum[]
 }
 
 function scatterDataOf(option: EChartsOption): unknown[] {
@@ -79,6 +87,89 @@ describe('toScatterData', () => {
       expect(datum.symbolSize).toBeGreaterThanOrEqual(28)
     }
   })
+
+  it('精选项用大一号圆钉：比普通点大、比选中点小', () => {
+    const featuredIds = new Set(['hongcun'])
+    const data = siteData(sites, null, featuredIds)
+
+    const featured = data.find((datum) => datum.siteId === 'hongcun')
+    const normal = data.find((datum) => datum.siteId === 'huangshan-scenic')
+
+    expect(featured?.symbolSize).toBe(42)
+    expect(normal?.symbolSize).toBe(36)
+    expect(featured!.symbolSize).toBeLessThan(48)
+  })
+
+  it('选中优先于精选：一个点同时命中两种状态时用选中态', () => {
+    const featuredIds = new Set(['hongcun'])
+    const data = siteData(sites, 'hongcun', featuredIds)
+
+    const selected = data.find((datum) => datum.siteId === 'hongcun')
+    expect(selected?.symbolSize).toBe(48)
+    expect(selected?.symbol).toBe(categoryMarkerSymbol('乡村', true))
+  })
+})
+
+describe('按市上墨（choropleth）', () => {
+  it('项目数分三档：0–1 原色、2–3 一档、≥4 两档', () => {
+    expect(cityAreaTier(0)).toBe(0)
+    expect(cityAreaTier(1)).toBe(0)
+    expect(cityAreaTier(2)).toBe(1)
+    expect(cityAreaTier(3)).toBe(1)
+    expect(cityAreaTier(4)).toBe(2)
+    expect(cityAreaTier(9)).toBe(2)
+  })
+
+  it('档位色取自 palette，0 档不返回（region 缺省即原色）', () => {
+    // 依赖真实数据分布：黄山市与宣城市各有 5 条（两档），合肥市只有 1 条（原色）
+    const colors = buildCityAreaColors(sites, DEFAULT_PALETTE)
+
+    expect(colors.get('黄山市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('宣城市')).toBe(DEFAULT_PALETTE.mapTier2)
+    expect(colors.get('合肥市')).toBeUndefined()
+    expect(colors.get('六安市')).toBe(DEFAULT_PALETTE.mapTier1)
+  })
+})
+
+describe('落墨入场动画', () => {
+  it('默认关闭：筛选与聚合更新时不能出现「两点互换」的补间', () => {
+    const option = buildAnhuiMapOption(sites, null)
+    const series = (option.series as Array<{ id?: string; animation?: boolean }>).find(
+      (item) => item.id === 'sites',
+    )
+
+    expect(series?.animation).toBe(false)
+  })
+
+  it('首帧开启并逐点错开，像墨点依次落纸', () => {
+    const option = buildAnhuiMapOption(
+      sites,
+      null,
+      undefined,
+      DEFAULT_PALETTE,
+      [],
+      [],
+      'anhui',
+      [],
+      new Set(),
+      true,
+    )
+    const series = option.series as unknown as Array<{
+      id?: string
+      animation?: boolean
+      animationDuration?: number
+      animationDelay?: (idx: number) => number
+    }>
+    const sitesSeries = series.find((item) => item.id === 'sites')
+
+    expect(sitesSeries?.animation).toBe(true)
+    expect(sitesSeries?.animationDuration).toBeGreaterThan(0)
+    // 错开延迟：第 0 个点立即开始，第 N 个点晚 N 拍
+    expect(sitesSeries?.animationDelay?.(0)).toBe(0)
+    expect(sitesSeries?.animationDelay?.(5)).toBeGreaterThan(0)
+    // geo 与河道仍然不参与补间（缩放同步性的老约束）
+    expect((option.geo as { animation?: boolean }).animation).toBe(false)
+  })
 })
 
 describe('escapeHtml', () => {
@@ -131,10 +222,15 @@ describe('buildAnhuiMapOption', () => {
 
   it('打开 geo 标签，市级划分才看得见', () => {
     const option = buildAnhuiMapOption(sites, null)
-    const geo = option.geo as { label?: { show?: boolean }; emphasis?: { label?: unknown } }
+    const geo = option.geo as {
+      label?: { show?: boolean; color?: string }
+      emphasis?: { label?: unknown }
+    }
 
     expect(geo.label?.show).toBe(true)
     expect(geo.emphasis?.label).toBeDefined()
+    // 市名升为墨色：地名是构图的一部分，不再是灰色注记
+    expect(geo.label?.color).toBe('#1c1a17')
   })
 
   it('不写死 center/zoom，视野跟着底图自适应', () => {
@@ -224,6 +320,30 @@ describe('buildAnhuiMapOption 的聚合点', () => {
     expect(cluster?.clusterIds).toEqual(trio.slice(1).map((site) => site.id))
     // 最后绘制，才不会被簇压住
     expect(data[data.length - 1]).toBe(selected)
+  })
+
+  it('精选项在簇里时同样被拆出来单独绘制，金环推荐位不被折叠', () => {
+    // 黄山市三条聚成一簇，其中宏村是精选
+    const trio = ['hongcun', 'xidi', 'tunxi-old-street'].map((id) =>
+      sites.find((site) => site.id === id)!,
+    )
+    const data = toScatterData(
+      trio,
+      null,
+      [{ ids: trio.map((site) => site.id), lng: 118, lat: 29.9 }],
+      undefined,
+      new Set(['hongcun']),
+    )
+
+    expect(data).toHaveLength(2)
+    const featured = data.find(
+      (datum): datum is SiteScatterDatum => 'siteId' in datum && datum.siteId === 'hongcun',
+    )
+    const cluster = data.find((datum): datum is ClusterScatterDatum => 'count' in datum)
+
+    expect(featured?.symbolSize).toBe(42)
+    expect(cluster?.count).toBe(2)
+    expect(cluster?.clusterIds).toEqual(['xidi', 'tunxi-old-street'])
   })
 
   it('簇的 tooltip 先说数量、再列名字', () => {
