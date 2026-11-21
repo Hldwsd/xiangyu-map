@@ -247,7 +247,8 @@ describe('buildAnhuiMapOption', () => {
     }
 
     expect(geo.label?.show).toBe(true)
-    expect(geo.emphasis?.label).toBeDefined()
+    // hover 重绘会盖住湖面或挖洞，已整体关闭，交给 tooltip 做反馈
+    expect((geo.emphasis as { disabled?: boolean } | undefined)?.disabled).toBe(true)
     // 市名升为墨色：地名是构图的一部分，不再是灰色注记
     expect(geo.label?.color).toBe('#1c1a17')
   })

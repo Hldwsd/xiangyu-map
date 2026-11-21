@@ -16,7 +16,6 @@ import {
   type MapScatterDatum,
   type OutlineRing,
   type RiverLine,
-  type WaterLayer,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
@@ -24,7 +23,6 @@ import { FEATURED_SITE_IDS } from '@/data/sites'
 import {
   ANHUI_FULL_MAP_NAME,
   ANHUI_MAP_NAME,
-  ANHUI_WATER_MAP_NAME,
   loadAnhuiDistricts,
   loadAnhuiMap,
   loadAnhuiOutline,
@@ -91,6 +89,7 @@ let riverLines: RiverLine[] = []
 let activeMapName = ANHUI_MAP_NAME
 /** 首屏加载的市界与水域，切换区县图层时复用，不再重复请求 */
 let cachedCity: Parameters<typeof mergeMapLayers>[0] | null = null
+let cachedWater: Parameters<typeof mergeMapLayers>[2] = null
 /** 省界光晕：同一圈轮廓的三种线宽/浓度（lines 系列画，拐点用圆角） */
 let outlineRings: OutlineRing[] = []
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
@@ -140,20 +139,6 @@ function clampCenter(center: [number, number]): [number, number] {
  * `roam: 'move'` 交给 ECharts 做平移手感（惯性、指针捕获都是现成的），
  * 但默认可以把地图拖到视野外只剩空白；这里在 georoam 里做范围夹取。
  */
-/**
- * 视图补丁：主 geo 与水域 geo 必须一起改 center/zoom。
- *
- * 两个 geo 共用 boundingCoords，只要 center/zoom 一致，投影就完全重合；
- * 只改第一层的话湖面会留在旧位置。
- */
-function viewPatch(
-  center: [number, number],
-  zoom: number,
-): { geo: Array<{ center: [number, number]; zoom: number }> } {
-  const layer = { center, zoom }
-  return { geo: waterLayer === null ? [layer] : [layer, { ...layer }] }
-}
-
 function handleGeoRoam(): void {
   const instance = chart.value
   if (instance === null || tweening || clampingCenter) return
@@ -168,16 +153,8 @@ function handleGeoRoam(): void {
   const [clampedX, clampedY] = clampCenter(center)
   if (clampedX !== center[0] || clampedY !== center[1]) {
     clampingCenter = true
-    instance.setOption(viewPatch([clampedX, clampedY], zoom))
+    instance.setOption({ geo: { center: [clampedX, clampedY], zoom } })
     clampingCenter = false
-  }
-
-  // 原生 roam（滚轮/拖动/双指）只会改主 geo，水域 geo 要跟着同步，否则湖面会漂走
-  if (waterLayer !== null) {
-    const current = geoState()
-    instance.setOption({
-      geo: [{}, { center: clampCenter(current.center), zoom: current.zoom }],
-    })
   }
 }
 
@@ -245,13 +222,15 @@ function animateGeoTo(center: [number, number], zoom: number, duration = CLUSTER
     const k = easeOutCubic(progress)
     const nextZoom = from.zoom + (zoom - from.zoom) * k
     instance.setOption(
-      viewPatch(
-        [
-          from.center[0] + (target[0] - from.center[0]) * k,
-          from.center[1] + (target[1] - from.center[1]) * k,
-        ],
-        nextZoom,
-      ),
+      {
+        geo: {
+          center: [
+            from.center[0] + (target[0] - from.center[0]) * k,
+            from.center[1] + (target[1] - from.center[1]) * k,
+          ],
+          zoom: nextZoom,
+        },
+      },
       { lazyUpdate: true },
     )
     zoomLevel.value = Number(nextZoom.toFixed(2))
@@ -274,7 +253,7 @@ function syncLayerMode(): void {
   if (next === layerMode) return
   layerMode = next
   layerRegions = buildLayerRegions(mapFeatures, layerMode)
-  chart.value?.setOption({ geo: [{ regions: layerRegions }] })
+  chart.value?.setOption({ geo: { regions: layerRegions } })
 }
 
 /**
@@ -291,7 +270,7 @@ function zoomTo(target: number): void {
   const next = clampZoom(target)
   if (Math.abs(next - zoom) < 0.001) return
 
-  instance.setOption(viewPatch(clampCenter(center), next))
+  instance.setOption({ geo: { center: clampCenter(center), zoom: next } })
   zoomLevel.value = Number(next.toFixed(2))
   syncLayerMode()
   refreshMarkers()
@@ -377,53 +356,9 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
     FEATURED_ID_SET,
     // 落墨入场只播一次：首次 setOption 为 true，之后的更新一律 false
     !firstOptionApplied,
-    waterLayer,
   )
   firstOptionApplied = true
   return option
-}
-
-/**
- * 水域图层：注册成第二个 geo，与主 geo 共用 boundingCoords。
- *
- * 湖面不能留在主 geo 里：hover 城市时 ECharts 会把该区域重绘在所有 region 之上，
- * 湖面要么被盖成纸色、要么（填透明时）城市变成一个露出背景的洞。
- * 拆成独立 geo 后，hover 只影响第一层，湖面始终在上面。
- */
-let waterLayer: WaterLayer | null = null
-
-function bboxOf(
-  features: { geometry?: { coordinates?: unknown } | null }[],
-): [[number, number], [number, number]] {
-  let minLng = Infinity
-  let minLat = Infinity
-  let maxLng = -Infinity
-  let maxLat = -Infinity
-
-  const visit = (node: unknown): void => {
-    if (!Array.isArray(node)) return
-    if (node.length >= 2 && typeof node[0] === 'number' && typeof node[1] === 'number') {
-      const [lng, lat] = node as [number, number]
-      minLng = Math.min(minLng, lng)
-      maxLng = Math.max(maxLng, lng)
-      minLat = Math.min(minLat, lat)
-      maxLat = Math.max(maxLat, lat)
-      return
-    }
-    for (const child of node) visit(child)
-  }
-
-  for (const feature of features) visit(feature.geometry?.coordinates)
-  if (!Number.isFinite(minLng)) {
-    return [
-      [114.8, 29.4],
-      [119.7, 34.7],
-    ]
-  }
-  return [
-    [minLng, minLat],
-    [maxLng, maxLat],
-  ]
 }
 
 /** 把河道 GeoJSON 转成 lines 系列需要的折线数据 */
@@ -585,7 +520,7 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
   if (disposed || chart.value === null) return
 
   const { center, zoom } = geoState()
-  const merged = mergeMapLayers(cachedCity, districts, null)
+  const merged = mergeMapLayers(cachedCity, districts, cachedWater)
   mapFeatures = merged.features
   layerMode = zoom >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
   layerRegions = buildLayerRegions(mapFeatures, layerMode)
@@ -593,7 +528,7 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
 
   echarts.registerMap(activeMapName, merged as Parameters<typeof echarts.registerMap>[1])
   instance.setOption(currentOption(), { notMerge: true })
-  instance.setOption(viewPatch(center, zoom))
+  instance.setOption({ geo: { center, zoom } })
   zoomLevel.value = Number(zoom.toFixed(2))
   refreshMarkers()
 }
@@ -659,17 +594,14 @@ async function render(): Promise<void> {
     if (container.value.clientWidth === 0 || container.value.clientHeight === 0) return
 
     cachedCity = city
+    cachedWater = water
     outlineRings = buildOutlineRings(outline)
-    const merged = mergeMapLayers(city, null, null)
+    const merged = mergeMapLayers(city, null, water)
     mapFeatures = merged.features
     riverLines = buildRiverLines(rivers)
     layerMode = 'city'
     layerRegions = buildLayerRegions(mapFeatures, layerMode)
     echarts.registerMap(ANHUI_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
-    if (water !== null) {
-      echarts.registerMap(ANHUI_WATER_MAP_NAME, water as Parameters<typeof echarts.registerMap>[1])
-      waterLayer = { mapName: ANHUI_WATER_MAP_NAME, boundingCoords: bboxOf(city.features) }
-    }
 
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
