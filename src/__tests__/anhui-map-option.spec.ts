@@ -61,7 +61,7 @@ describe('toScatterData', () => {
     expect(other?.label.show).toBe(false)
   })
 
-  it('地标颜色统一取自 token：单色方向下六类同色', () => {
+  it('地标颜色统一取自 token：单色方向下七类同色', () => {
     const data = siteData(sites, null)
     for (const datum of data) {
       expect(datum.itemStyle.color).toBe(CATEGORY_COLORS[datum.category])
