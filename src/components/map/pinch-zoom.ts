@@ -9,7 +9,7 @@
 export interface PinchZoomOptions {
   min: number
   max: number
-  /** 0–1：越小越不敏感；默认 0.55，20% 的手势 ≈ 10% 的缩放 */
+  /** 0–1：越小越不敏感；默认 0.75，20% 的手势 ≈ 15% 的缩放 */
   damping?: number
 }
 
@@ -18,7 +18,7 @@ export function pinchZoom(
   distanceRatio: number,
   options: PinchZoomOptions,
 ): number {
-  const { min, max, damping = 0.55 } = options
+  const { min, max, damping = 0.75 } = options
   if (!Number.isFinite(startZoom) || startZoom <= 0) return startZoom
   if (!Number.isFinite(distanceRatio) || distanceRatio <= 0) return startZoom
 

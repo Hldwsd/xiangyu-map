@@ -7,7 +7,8 @@
  */
 
 :root {
-  color-scheme: light;
+  /* only light：部分手机浏览器按系统深色把整页反色，纸底会变成黑的 */
+  color-scheme: only light;
 
   /* ---- 底色与表面 ---- */
   --paper: #f4eee2;
