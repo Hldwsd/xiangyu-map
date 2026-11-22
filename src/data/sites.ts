@@ -304,7 +304,7 @@ export const sites: Site[] = [
     summary: '萧县境内的山谷次生林，树龄老、夏季阴凉，山道不长但台阶密。',
     description:
       '皇藏峪在萧县东南，是皖北少见的成片次生林山谷，林下阴凉，夏天比平原舒服得多。\n\n山道以石阶为主，落差集中，走完约两三小时；谷内有几处与汉高祖传说相关的旧迹。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huangcangyu/cover.webp',
     gallery: [],
     tags: ['森林', '山谷', '避暑'],
     bestSeason: '5-10 月',
@@ -700,7 +700,7 @@ export const sites: Site[] = [
     summary: '大泽乡的陈胜吴广起义遗址，夯土高台保存至今，省级重点文物保护单位。',
     description:
       '公元前 209 年陈胜吴广在蕲县大泽乡揭竿而起，「涉故台」即当年筑台盟誓之处；台东南的鸿鹄苑有碑廊与陈列。\n\n遗址在宿州东南的大泽乡镇，乡野气息重，适合对秦末历史有兴趣的人专程走一趟。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/shegutai/cover.webp',
     gallery: [],
     tags: ['陈胜吴广', '起义遗址', '大泽乡'],
     bestSeason: '全年',
