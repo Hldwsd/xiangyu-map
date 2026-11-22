@@ -85,8 +85,10 @@ xiangyu-map/
 │  ├─ maps/anhui-districts.json   # 区县界线 104 个（默认加载，菜单可关）
 │  ├─ maps/README.md              # 图层来源、sha256、ODbL 与审图号提示
 │  ├─ images/bg-calligraphy.webp  # 背景书法（邓石如《少学琴书册》墨迹）
-│  └─ images/placeholder.svg      # 占位图；正式图放 images/sites/<id>/
+│  ├─ images/placeholder.svg      # 占位图；正式图放 images/sites/<id>/
+│  └─ og-cover.jpg                # 默认分享图（1200×630）
 ├─ scripts/fetch-anhui-*.mjs      # 四个图层抓取脚本（pnpm data:anhui-*）
+├─ scripts/prerender-sites.mjs    # 构建后生成 62 个详情页静态 HTML（pnpm prerender）
 ├─ src/
 │  ├─ assets/main.css、tokens.css # 全局样式与设计变量（纸本墨线）
 │  ├─ components/
@@ -109,7 +111,7 @@ xiangyu-map/
 │  ├─ types/site.ts               # 数据契约（双方评审后冻结）
 │  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
 │  ├─ views/HomeView.vue、views/SiteDetailView.vue
-│  ├─ __tests__/                  # Vitest 单测（9 个文件 / 125 个用例）
+│  ├─ __tests__/                  # Vitest 单测（10 个文件 / 126 个用例）
 │  ├─ App.vue
 │  └─ main.ts
 ├─ .github/workflows/ci.yml       # PR 上跑 lint / format / typecheck / test / build
@@ -261,7 +263,7 @@ export interface Site {
 | 项               | 目标              | 现状                                                                                                         |
 | ---------------- | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | 地标数据         | 60 条（M1）       | **62 条**可核验（M1 的 60 条目标已达成）；16 市全部 ≥2 条；**「示例数据」标签已清零**；**封面 62/62 已置入** |
-| 单元测试         | 覆盖率 ≥ 70%      | **125 个用例 / 9 个文件**，全绿（覆盖率报告未接）                                                            |
+| 单元测试         | 覆盖率 ≥ 70%      | **126 个用例 / 10 个文件**，全绿（覆盖率报告未接）                                                           |
 | 首屏 JS（gzip）  | ≤ 300 KB          | **258.7 KB**                                                                                                 |
 | 底图体积（gzip） | ≤ 250 KB          | 市 41 + 省界 17 + 湖 11 + 河 3 + 区县 126 = **198 KB**                                                       |
 | 线上             | main 自动发布     | https://hldwsd.github.io/xiangyu-map/ （main 自动发布，资源哈希随构建变化）                                  |
@@ -328,6 +330,7 @@ export interface Site {
 - 视觉完成两轮：纸本墨线 → 「版式融合 + 省界光晕 + cover 背景」；
 - 封面：**62/62 已置入**，素材来源与授权风险见 [ADR 0011](adr/0011-cover-source-baike.md)；
 - 详情页：新增高德地点链接（62/62 精确 POI 短链已置入，缺失时按名称 + 城市搜索，不拼经纬度）、同城其他项目、来源域名展示（2026-11-22）；
+- 分享与收录：构建后预渲染 62 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；
 - 键盘入口：移除地图内重复的隐藏地标列表，统一走顶部「项目列表」抽屉（[Issue #107](https://github.com/Hldwsd/xiangyu-map/issues/107)）；
 - 剩余：加载骨架与错误态的细粒度打磨、图片懒加载在真实图片上验证、
   列表 ↔ 地图的 hover（目前只做选中联动）。
