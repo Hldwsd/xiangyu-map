@@ -14,7 +14,8 @@ if (!existsSync(templatePath)) {
 }
 
 const siteUrl = `${(process.env.SITE_URL ?? 'http://localhost:4173/').replace(/\/+$/, '')}/`
-const ogImage = `${siteUrl}og-cover.jpg`
+const absoluteAsset = (assetPath) => `${siteUrl}${assetPath.replace(/^\/+/, '')}`
+const ogImage = absoluteAsset('/og-cover.jpg')
 const template = await readFile(templatePath, 'utf8')
 
 const vite = await createServer({
@@ -44,7 +45,7 @@ function jsonLdScript(data) {
   return `    <script type="application/ld+json">${json}</script>`
 }
 
-function metaBlock({ title, description, url, type, image, jsonLd }) {
+function metaBlock({ title, description, url, type, image, imageAlt, jsonLd }) {
   return [
     '    <!-- prerender:meta:start -->',
     `    <link rel="canonical" href="${escapeHtml(url)}" />`,
@@ -54,12 +55,15 @@ function metaBlock({ title, description, url, type, image, jsonLd }) {
     `    <meta property="og:description" content="${escapeHtml(description)}" />`,
     `    <meta property="og:url" content="${escapeHtml(url)}" />`,
     `    <meta property="og:image" content="${escapeHtml(image)}" />`,
+    '    <meta property="og:image:type" content="image/jpeg" />',
     '    <meta property="og:image:width" content="1200" />',
     '    <meta property="og:image:height" content="630" />',
+    `    <meta property="og:image:alt" content="${escapeHtml(imageAlt)}" />`,
     '    <meta name="twitter:card" content="summary_large_image" />',
     `    <meta name="twitter:title" content="${escapeHtml(title)}" />`,
     `    <meta name="twitter:description" content="${escapeHtml(description)}" />`,
     `    <meta name="twitter:image" content="${escapeHtml(image)}" />`,
+    `    <meta name="twitter:image:alt" content="${escapeHtml(imageAlt)}" />`,
     jsonLdScript(jsonLd),
     '    <!-- prerender:meta:end -->',
   ].join('\n')
@@ -83,6 +87,7 @@ const homeMeta = {
   url: siteUrl,
   type: 'website',
   image: ogImage,
+  imageAlt: '乡遇安徽：在地图上发现安徽文旅项目',
   jsonLd: {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -99,15 +104,18 @@ let count = 0
 for (const site of sites) {
   const url = `${siteUrl}site/${site.id}/`
   const title = `${site.name} · 乡遇安徽`
-  const image = existsSync(path.join(distDir, 'og', 'sites', `${site.id}.jpg`))
-    ? `${siteUrl}og/sites/${site.id}.jpg`
-    : ogImage
+  const imagePath = site.shareImage ?? '/og-cover.jpg'
+  if (!existsSync(path.join(distDir, imagePath.replace(/^\/+/, '')))) {
+    throw new Error(`${site.id}: shareImage 文件不存在：${imagePath}`)
+  }
+  const image = absoluteAsset(imagePath)
   const meta = {
     title,
     description: site.summary,
     url,
     type: 'article',
     image,
+    imageAlt: `${site.name} · ${site.city} · 乡遇安徽`,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'TouristAttraction',

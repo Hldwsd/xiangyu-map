@@ -112,7 +112,7 @@ xiangyu-map/
 │  ├─ types/site.ts               # 数据契约（双方评审后冻结）
 │  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
 │  ├─ views/HomeView.vue、views/SiteDetailView.vue
-│  ├─ __tests__/                  # Vitest 单测（13 个文件 / 141 个用例）
+│  ├─ __tests__/                  # Vitest 单测（13 个文件 / 143 个用例）
 │  ├─ App.vue
 │  └─ main.ts
 ├─ e2e/                           # Playwright 冒烟（桌面 + 移动端）
@@ -183,6 +183,7 @@ export interface Site {
   summary: string // ≤ 60 字，地图侧栏与列表用
   description: string // 详情页正文，纯文本；空行分段
   cover: string // 封面：正式图 public/images/sites/<id>/cover.webp，示例数据用占位图
+  shareImage?: string // 分享卡片图：/og/sites/<id>.jpg；缺省用 public/og-cover.jpg
   gallery: string[]
   tags: string[]
   bestSeason?: string
@@ -212,6 +213,7 @@ export interface Site {
   "summary": "牛形水系串起月沼与南湖的古村落，白墙黛瓦倒映在水面，清晨最安静。",
   "description": "宏村的水系按牛形布局，水圳从每家门前流过，月沼与南湖是两处最开阔的水面。",
   "cover": "/images/placeholder.svg",
+  "shareImage": "/og/sites/hongcun.jpg",
   "gallery": [],
   "tags": ["示例数据", "徽派", "村落"],
   "bestSeason": "3-4 月、11 月",
@@ -229,6 +231,7 @@ export interface Site {
 | 坐标     | 统一 GCJ-02；若 geoJSON 底图与取点存在明显偏移（> 1km），统一做一次 WGS-84 → GCJ-02 转换，不逐条手改                                                                                     |
 | 图片     | WebP，单张 ≤ 300 KB，宽度 ≤ 1920px，按 `public/images/sites/<id>/` 存放；数据里写站点根路径（`/images/...`），渲染时用 `src/utils/asset-url.ts` 的 `assetUrl()` 套部署基地址             |
 | 来源     | `sources` 必填：官方站点、开放数据或授权素材；无来源数据不入库                                                                                                                           |
+| 分享图   | `shareImage` 可选：`/og/sites/<id>.jpg`，文件名必须与 id 一致；缺省回退 `public/og-cover.jpg`；详情页分享弹层与 OG/Twitter 共用                                                          |
 | 实用信息 | `practical` 可选：`duration` / `hours` / `ticket` / `audience`，每项 ≤ 80 字；没有可靠来源就留空，不写“约”“仅供参考”凑数                                                                 |
 | 校验     | 启动时校验：id 唯一与格式、分类枚举、省份固定为安徽省、城市属于 16 个地级市、坐标落在安徽省外包框内、summary 长度、图片路径与 id 一致、updatedAt 真实日期；单测覆盖真实数据，CI 必须通过 |
 
@@ -272,8 +275,8 @@ export interface Site {
 | 项               | 目标              | 现状                                                                                                         |
 | ---------------- | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | 地标数据         | 60 条（M1）       | **70 条**可核验（M1 的 60 条目标已达成）；16 市全部 ≥2 条；**「示例数据」标签已清零**；**封面 70/70 已置入** |
-| 单元测试         | 覆盖率 ≥ 70%      | **141 个用例 / 13 个文件**，全绿；覆盖率闸门已接（语句 91.89% / 分支 85.31%）                                |
-| 首屏 JS（gzip）  | ≤ 300 KB          | **254.6 KB**（入口 JS；构建总量 263.4 KB）                                                                   |
+| 单元测试         | 覆盖率 ≥ 70%      | **143 个用例 / 13 个文件**，全绿；覆盖率闸门已接（语句 91.84% / 分支 85.60%）                                |
+| 首屏 JS（gzip）  | ≤ 300 KB          | **256.2 KB**（入口 JS；构建总量 265.0 KB）                                                                   |
 | 底图体积（gzip） | ≤ 250 KB          | 市 41 + 省界 17 + 湖 11 + 河 3 + 区县 126 = **198 KB**                                                       |
 | 线上             | main 自动发布     | https://hldwsd.github.io/xiangyu-map/ （main 自动发布，资源哈希随构建变化）                                  |
 | 合规             | 审图号 + OSM 署名 | OSM ODbL 已署名（页脚/版记/关于）；**审图号待办**                                                            |
@@ -342,9 +345,9 @@ export interface Site {
 - 封面：**70/70 已置入**，素材来源与授权风险见 [ADR 0011](adr/0011-cover-source-baike.md)；
 - 详情页：新增高德地点链接（70/70 精确 POI 短链已置入，缺失时按名称 + 城市搜索，不拼经纬度）、同城其他项目、来源域名展示（2026-11-22）；
 - 详情页决策信息：12 个头部项目补 `practical.duration` / `audience`；`hours` / `ticket` 待有可追溯来源后补；
-- 画廊：12 个头部项目各 2 张 `gallery-*.webp`（高德 POI 公开评论图片）；其余 50 条仍为空；
+- 画廊：12 个头部项目各 2 张 `gallery-*.webp`（高德 POI 公开评论图片）；其余 58 条仍为空；
 - 内容补强：新增 8 条非遗/场馆（宣纸、徽墨、歙砚、汪满田鱼灯、池州傩、万安罗盘、冯嘴子花鼓灯、中国徽菜博物馆），数据 62→70；
-- 分享与收录：构建后预渲染 70 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；头部 12 个项目已有独立分享图，其余用统一品牌图；
+- 分享与收录：构建后预渲染 70 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；头部 12 个项目已有独立分享图，详情页可打开分享弹层（复制链接/保存图片/系统分享），其余用统一品牌图；
 - 键盘入口：移除地图内重复的隐藏地标列表，统一走顶部「项目列表」抽屉（[Issue #107](https://github.com/Hldwsd/xiangyu-map/issues/107)）；
 - 剩余：加载骨架与错误态的细粒度打磨、图片懒加载在真实图片上验证、
   列表 ↔ 地图的 hover（目前只做选中联动）。
@@ -364,7 +367,7 @@ export interface Site {
 
 **M3 进度**（截至 2026-11-22）：
 
-- 覆盖率闸门已接（#150/#152）：核心逻辑 70% 阈值，当前全量语句 91.89% / 分支 85.31%；
+- 覆盖率闸门已接（#150/#152）：核心逻辑 70% 阈值，当前全量语句 91.84% / 分支 85.60%；
 - E2E 冒烟已接：Playwright 桌面 + 移动端，首页计数、城市筛选、搜索列表、详情深链与预渲染 meta；
 - 待办：Lighthouse 桌面/移动基线、`v0.1.0` tag/Release、审图号与图片授权。
 

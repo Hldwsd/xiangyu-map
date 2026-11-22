@@ -89,6 +89,8 @@ export interface Site {
   description: string
   /** 封面图路径，放 public/images/sites/<id>/ 下，WebP 且 ≤300KB */
   cover: string
+  /** 分享卡片图路径，放 public/og/sites/<id>.jpg；缺省用 public/og-cover.jpg */
+  shareImage?: string
   /** 详情页图集，可为空数组 */
   gallery: string[]
   /** 标签，用于检索与展示 */

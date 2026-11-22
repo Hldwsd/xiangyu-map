@@ -1,4 +1,4 @@
-﻿import { expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test('详情深链：黄山风景区直接打开，保留决策信息与高德入口', async ({ page }) => {
   await page.goto('/site/huangshan-scenic/')
@@ -14,8 +14,31 @@ test('详情页预渲染 meta 可被爬虫直接读到', async ({ page }) => {
 
   await expect(page).toHaveTitle(/黄山风景区/)
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', /黄山风景区/)
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    'content',
+    /\/og\/sites\/huangshan-scenic\.jpg$/,
+  )
+  await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
+    'content',
+    /黄山风景区/,
+  )
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     /\/site\/huangshan-scenic/,
   )
+})
+
+test('分享弹层展示专属卡片，非头部项目回退默认图', async ({ page }) => {
+  await page.goto('/site/huangshan-scenic/')
+  await page.getByRole('button', { name: '分享' }).click()
+
+  const dialog = page.getByRole('dialog', { name: '分享这张卡片' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.locator('img')).toHaveAttribute('src', /\/og\/sites\/huangshan-scenic\.jpg$/)
+  await dialog.getByRole('button', { name: '关闭分享' }).click()
+  await expect(dialog).toHaveCount(0)
+
+  await page.goto('/site/huicai-museum/')
+  await page.getByRole('button', { name: '分享' }).click()
+  await expect(page.getByRole('dialog').locator('img')).toHaveAttribute('src', /\/og-cover\.jpg$/)
 })

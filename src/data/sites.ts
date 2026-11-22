@@ -30,6 +30,7 @@ export const sites: Site[] = [
     description:
       '古镇因三条河交汇得名，主街沿河铺开，石板路两侧是晚清至民国的铺面与民居，杨振宁旧居在街内。\n\n沿河走一圈约两小时，清晨与傍晚光线最好；2015 年成为合肥首个 5A 景区。镇内祠堂与名人旧居较多，门票与开放情况以现场公示为准。',
     cover: '/images/sites/sanhe-ancient-town/cover.webp',
+    shareImage: '/og/sites/sanhe-ancient-town.jpg',
     gallery: [
       '/images/sites/sanhe-ancient-town/gallery-1.webp',
       '/images/sites/sanhe-ancient-town/gallery-2.webp',
@@ -55,6 +56,7 @@ export const sites: Site[] = [
     description:
       '古城是旧徽州府治所在，许国石坊（明万历年间的八脚牌坊）是城内最醒目的地标，斗山街两侧保留大量徽派宅第。\n\n徽州古城是 5A「古徽州文化旅游区」的组成部分，出城不远是渔梁坝；傍晚在坝上看练江收束，是很多人对歙县的第一印象。',
     cover: '/images/sites/huizhou-ancient-city/cover.webp',
+    shareImage: '/og/sites/huizhou-ancient-city.jpg',
     gallery: [
       '/images/sites/huizhou-ancient-city/gallery-1.webp',
       '/images/sites/huizhou-ancient-city/gallery-2.webp',
@@ -83,6 +85,7 @@ export const sites: Site[] = [
     description:
       '寿县古称寿春，是楚国最后一座都城；宋代重修的城墙周长约七公里余，四座城门与瓮城形制完整。\n\n沿城墙步行可俯瞰城内街巷；城内报恩寺、孔庙与安徽楚文化博物馆适合安排半天，博物馆是理解楚文化的入口。',
     cover: '/images/sites/shouxian-ancient-city/cover.webp',
+    shareImage: '/og/sites/shouxian-ancient-city.jpg',
     gallery: [
       '/images/sites/shouxian-ancient-city/gallery-1.webp',
       '/images/sites/shouxian-ancient-city/gallery-2.webp',
@@ -108,6 +111,7 @@ export const sites: Site[] = [
     description:
       '黄山 1990 年列入世界文化与自然双遗产，以奇松、怪石、云海、温泉「四绝」著称。\n\n前山后山各有索道，徒步与索道可以组合安排；看日出通常需在山上过夜，山下汤口镇是主要集散地。天气变化快，雨具与保暖衣物四季都用得上。',
     cover: '/images/sites/huangshan-scenic/cover.webp',
+    shareImage: '/og/sites/huangshan-scenic.jpg',
     gallery: [
       '/images/sites/huangshan-scenic/gallery-1.webp',
       '/images/sites/huangshan-scenic/gallery-2.webp',
@@ -133,6 +137,7 @@ export const sites: Site[] = [
     description:
       '九华山是中国佛教四大名山之一、国家 5A 景区，以地藏菩萨道场闻名，山上寺院密集。\n\n化城寺、肉身宝殿、百岁宫是常走的几处；山脚柯村是换乘点，景区内以步行与索道为主，清晨与傍晚山上人少。',
     cover: '/images/sites/jiuhuashan/cover.webp',
+    shareImage: '/og/sites/jiuhuashan.jpg',
     gallery: ['/images/sites/jiuhuashan/gallery-1.webp', '/images/sites/jiuhuashan/gallery-2.webp'],
     tags: ['佛教名山', '地藏道场', '5A'],
     bestSeason: '4-6 月、9-11 月',
@@ -155,6 +160,7 @@ export const sites: Site[] = [
     description:
       '天柱山是 UNESCO 世界地质公园、国家 5A 景区，花岗岩峰林与洞穴地貌是主要看点，主峰孤立于群峰之间。\n\n索道可省掉大半爬升，剩下的山脊步道仍需体力；山下潜山市区住宿选择多，适合安排两天。',
     cover: '/images/sites/tianzhushan/cover.webp',
+    shareImage: '/og/sites/tianzhushan.jpg',
     gallery: [
       '/images/sites/tianzhushan/gallery-1.webp',
       '/images/sites/tianzhushan/gallery-2.webp',
@@ -216,6 +222,7 @@ export const sites: Site[] = [
     description:
       '宏村 2000 年作为「皖南古村落—西递、宏村」列入世界文化遗产，水系按牛形布局，水圳从每家门前流过。\n\n月沼与南湖是两处最开阔的水面，村内巷道窄，晨昏光线斜射时最好看；住村内可避开团队客流，西递、塔川可顺路安排。',
     cover: '/images/sites/hongcun/cover.webp',
+    shareImage: '/og/sites/hongcun.jpg',
     gallery: ['/images/sites/hongcun/gallery-1.webp', '/images/sites/hongcun/gallery-2.webp'],
     tags: ['世界遗产', '徽派', '村落'],
     bestSeason: '3-4 月、11 月',
@@ -256,6 +263,7 @@ export const sites: Site[] = [
     description:
       '采石矶是长江东岸的一处矶头，临江崖壁与江面构成天然的观景点，山上有太白楼与相关纪念建筑。\n\n这里与李白晚年的行迹交织，景区步道不长，江景与人文遗迹并置，半天足够走完。',
     cover: '/images/sites/caishiji/cover.webp',
+    shareImage: '/og/sites/caishiji.jpg',
     gallery: ['/images/sites/caishiji/gallery-1.webp', '/images/sites/caishiji/gallery-2.webp'],
     tags: ['长江', '李白', '矶头'],
     bestSeason: '4-5 月、9-11 月',
@@ -410,6 +418,7 @@ export const sites: Site[] = [
     description:
       '天堂寨在大别山腹地，皖鄂交界，主峰海拔一千七百多米，山北是金寨、山南是湖北罗田。\n\n景区以瀑布群与林间步道为主，徒步路线较长，建议留一整天；山上气温比县城低不少，早晚要加衣。',
     cover: '/images/sites/tiantangzhai/cover.webp',
+    shareImage: '/og/sites/tiantangzhai.jpg',
     gallery: [
       '/images/sites/tiantangzhai/gallery-1.webp',
       '/images/sites/tiantangzhai/gallery-2.webp',
@@ -471,6 +480,7 @@ export const sites: Site[] = [
     description:
       '西递与宏村同为皖南古村落的代表，村口的胡文光牌坊是最醒目的地标，村内街巷依山势铺开。\n\n相比宏村的水系，西递更强调宗族与宅第的格局；游客密度低一些，适合慢慢看门楼上的砖雕。',
     cover: '/images/sites/xidi/cover.webp',
+    shareImage: '/og/sites/xidi.jpg',
     gallery: ['/images/sites/xidi/gallery-1.webp', '/images/sites/xidi/gallery-2.webp'],
     tags: ['徽派', '古村落', '世界遗产'],
     bestSeason: '3-4 月、10-11 月',
@@ -568,6 +578,7 @@ export const sites: Site[] = [
     description:
       '查济在泾县桃花潭镇，是皖南保存规模较大的古村落之一：溪水穿村、石桥众多，祠堂与老宅沿着水声排布。\n\n游客密度不高，适合慢慢走；巷子窄且多石阶，穿双舒服的鞋。',
     cover: '/images/sites/chaji-village/cover.webp',
+    shareImage: '/og/sites/chaji-village.jpg',
     gallery: [
       '/images/sites/chaji-village/gallery-1.webp',
       '/images/sites/chaji-village/gallery-2.webp',
@@ -1022,6 +1033,7 @@ export const sites: Site[] = [
     description:
       '龙川是大坑口村的古称，村形如船、依山傍水；胡氏宗祠始建于宋、嘉靖年间扩建，木雕「四和图」让它有「木雕艺术博物馆」之称。\n\n宗祠、奕世尚书坊与胡炳衡宅三处全国重点文保组成 5A 景区；胡宗宪、胡富的故里故事适合配着三雕细看。',
     cover: '/images/sites/longchuan/cover.webp',
+    shareImage: '/og/sites/longchuan.jpg',
     gallery: ['/images/sites/longchuan/gallery-1.webp', '/images/sites/longchuan/gallery-2.webp'],
     tags: ['胡氏宗祠', '全国文保', '5A'],
     bestSeason: '3-5 月、9-11 月',

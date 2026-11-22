@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { sites } from '@/data/sites'
 import {
@@ -57,6 +57,22 @@ describe('validateSites', () => {
       audience: '古村、摄影',
     }
     expect(validateSites([withPractical])).toHaveLength(1)
+  })
+
+  it('接受可选的分享图路径', () => {
+    const withShare = validSite()
+    withShare['shareImage'] = '/og/sites/demo-site.jpg'
+    expect(validateSites([withShare])).toHaveLength(1)
+  })
+
+  it('分享图路径不是 /og/sites/<id>.jpg 或与 id 不一致时报错', () => {
+    const wrongPath = validSite()
+    wrongPath['shareImage'] = '/og-cover.jpg'
+    expect(expectProblems([wrongPath]).some((p) => p.includes('shareImage'))).toBe(true)
+
+    const wrongId = validSite()
+    wrongId['shareImage'] = '/og/sites/other-site.jpg'
+    expect(expectProblems([wrongId]).some((p) => p.includes('与 id'))).toBe(true)
   })
 
   it('practical 非对象、空字段、未知字段或超长时报错', () => {
