@@ -70,7 +70,8 @@ pnpm prerender     # 62 detail + home
 ```
 
 - main 的 CI、Deploy 最近一次 run 均 success；
-- 当前没有 open PR；open issue 只剩 **#16（M1 聚合命中率/FPS 真机复测）**；
+- 交接时没有其他 open PR（本文件自身通过 #135 提交）；
+- open issue 只剩 **#16（M1 聚合命中率/FPS 真机复测）**；
 - #107 已随 #129 关闭。
 
 ## 四、未完成与阻塞
