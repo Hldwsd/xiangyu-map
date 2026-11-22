@@ -67,6 +67,8 @@ pnpm dev          # http://localhost:5173
 | `pnpm prerender`                 | 构建后生成 70 个详情页的静态 HTML（title/OG/JSON-LD）                 |
 | `pnpm preview`                   | 预览 `dist/`                                                          |
 | `pnpm test:unit`                 | 单元测试（`--run` 跑一次）                                            |
+| `pnpm test:coverage`             | 单元测试 + 覆盖率闸门（核心逻辑 ≥70%）                                |
+| `pnpm test:e2e`                  | Playwright E2E（先 `build` + `prerender`，再用 Chrome 跑桌面/移动端） |
 | `pnpm lint`                      | ESLint（`lint:fix` 自动修）                                           |
 | `pnpm format`                    | Prettier 格式化（`format:check` 只校验）                              |
 | `pnpm data:anhui-map`            | 重新抓取底图到 `public/maps/anhui.json`                               |

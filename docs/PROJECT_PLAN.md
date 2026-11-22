@@ -112,9 +112,10 @@ xiangyu-map/
 │  ├─ types/site.ts               # 数据契约（双方评审后冻结）
 │  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
 │  ├─ views/HomeView.vue、views/SiteDetailView.vue
-│  ├─ __tests__/                  # Vitest 单测（12 个文件 / 136 个用例）
+│  ├─ __tests__/                  # Vitest 单测（13 个文件 / 141 个用例）
 │  ├─ App.vue
 │  └─ main.ts
+├─ e2e/                           # Playwright 冒烟（桌面 + 移动端）
 ├─ .github/workflows/ci.yml       # PR 上跑 lint / format / typecheck / test / build
 ├─ package.json
 └─ vite.config.ts
@@ -271,8 +272,8 @@ export interface Site {
 | 项               | 目标              | 现状                                                                                                         |
 | ---------------- | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | 地标数据         | 60 条（M1）       | **70 条**可核验（M1 的 60 条目标已达成）；16 市全部 ≥2 条；**「示例数据」标签已清零**；**封面 70/70 已置入** |
-| 单元测试         | 覆盖率 ≥ 70%      | **136 个用例 / 12 个文件**，全绿（覆盖率报告未接）                                                           |
-| 首屏 JS（gzip）  | ≤ 300 KB          | **253.9 KB**（入口 JS；构建总量 262.7 KB）                                                                   |
+| 单元测试         | 覆盖率 ≥ 70%      | **141 个用例 / 13 个文件**，全绿；覆盖率闸门已接（语句 91.89% / 分支 85.31%）                                |
+| 首屏 JS（gzip）  | ≤ 300 KB          | **254.6 KB**（入口 JS；构建总量 263.4 KB）                                                                   |
 | 底图体积（gzip） | ≤ 250 KB          | 市 41 + 省界 17 + 湖 11 + 河 3 + 区县 126 = **198 KB**                                                       |
 | 线上             | main 自动发布     | https://hldwsd.github.io/xiangyu-map/ （main 自动发布，资源哈希随构建变化）                                  |
 | 合规             | 审图号 + OSM 署名 | OSM ODbL 已署名（页脚/版记/关于）；**审图号待办**                                                            |
@@ -315,8 +316,8 @@ export interface Site {
 - 地标交互演进：重叠点先尝试圆环 + 引线（#139），后改为软碰撞小球（#142–#147，
   [ADR 0013](adr/0013-marker-physics.md)）；缩放/拖动时跟随 home 平移，不再重置。
 - 数据：**70 条可核验**（16 市全部 ≥2 条，M1 目标 60 已达成）；**「示例数据」标签已清零**（#102），头部 10 条文案按真实信息重写、来源升级为 UNESCO/百科/政府页；封面 70/70 已置入（公开资料，授权状态见 [ADR 0011](adr/0011-cover-source-baike.md)）。
-- 剩余：**小球真机 FPS、移动端触摸命中、reduced-motion 验收**（[Issue #16](https://github.com/Hldwsd/xiangyu-map/issues/16)；
-  ego 会话里 rAF 被节流，测不准）、移动端手势（M1 后半段，已在真机手测中）。
+- 剩余：**小球真机 FPS、移动端触摸命中、聚合/筛选组合回归**（[Issue #16](https://github.com/Hldwsd/xiangyu-map/issues/16)；
+  ego 会话里 rAF 被节流，测不准）；`prefers-reduced-motion` 已由 #151 关闭入场与 hover 拨球。
 
 ### M2 内容与交互（W4–W5）
 
@@ -360,6 +361,12 @@ export interface Site {
 - 发布：打了 tag `v0.1.0`，GitHub Release 写清本期能力与已知问题
 
 **DoD**：Lighthouse 性能桌面 ≥ 85、移动 ≥ 70；构建无 TS 报错与 lint warning；`v0.1.0` Release 可访问。
+
+**M3 进度**（截至 2026-11-22）：
+
+- 覆盖率闸门已接（#150/#152）：核心逻辑 70% 阈值，当前全量语句 91.89% / 分支 85.31%；
+- E2E 冒烟已接：Playwright 桌面 + 移动端，首页计数、城市筛选、搜索列表、详情深链与预渲染 meta；
+- 待办：Lighthouse 桌面/移动基线、`v0.1.0` tag/Release、审图号与图片授权。
 
 ### M4 多端预研（W7–W8）
 
