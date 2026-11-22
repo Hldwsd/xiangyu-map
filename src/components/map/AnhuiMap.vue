@@ -105,6 +105,10 @@ let currentData: MapScatterDatum[] = []
 let balls: BallState[] = []
 let ballHomes = new Map<string, Point>()
 let ballRAF: number | null = null
+/** 拖动/缩放时不要每个 georoam 都重建数据：防抖到停下后再刷新 */
+let roamRefreshTimer: number | null = null
+/** 漫游结束后的时间点：这段时间内物理循环让路，避免和地图重绘抢帧 */
+let roamActiveUntil = 0
 let ballStillFrames = 0
 /** 上一帧位置：静止判定看「这一帧位移量」，不看速度——弹簧在平衡点仍有残余速度 */
 let ballLastPos = new Map<string, [number, number]>()
@@ -213,20 +217,8 @@ function clampCenter(center: [number, number]): [number, number] {
 function handleGeoRoam(): void {
   const instance = chart.value
   if (instance === null || tweening || clampingCenter) return
-
-  const { center, zoom } = geoState()
-  zoomLevel.value = Number(zoom.toFixed(2))
-  syncLayerMode()
-  scheduleRefresh()
-
-  // 实时夹取：拖动过程中越界就把中心顶回边界，而不是等松手后「传送」回来。
-  // 写回时带上传当前 zoom，避免只写 center 时把缩放重置成默认值。
-  const [clampedX, clampedY] = clampCenter(center)
-  if (clampedX !== center[0] || clampedY !== center[1]) {
-    clampingCenter = true
-    instance.setOption({ geo: { center: [clampedX, clampedY], zoom } })
-    clampingCenter = false
-  }
+  roamActiveUntil = performance.now() + 180
+  scheduleRoamRefresh()
 }
 
 function handleChartClick(params: unknown): void {
@@ -511,6 +503,11 @@ function kickBalls(): void {
 function tickBalls(): void {
   ballRAF = null
   if (props.cluster || disposed) return
+  // 拖动/缩放期间让路：ECharts 自己在重绘地图，这时候每一步物理再 setOption 一次会抢帧
+  if (performance.now() < roamActiveUntil) {
+    ballRAF = window.requestAnimationFrame(tickBalls)
+    return
+  }
 
   const previous = ballLastPos
   const speed = stepBalls(balls, ballHomes, {
@@ -597,6 +594,30 @@ function handleMarkerHover(params: unknown): void {
   const strength = Math.min(6, pointerSpeed * 2.2)
   nudgeBall(ball, pointer, strength)
   kickBalls()
+}
+
+function scheduleRoamRefresh(): void {
+  if (roamRefreshTimer !== null) window.clearTimeout(roamRefreshTimer)
+  // 拖动/缩放停下后再做夹取、图层切换与数据重算：
+  // ECharts 的 georoam 会按指针频率触发，逐帧 getOption + setOption 是手机上掉帧的主因
+  roamRefreshTimer = window.setTimeout(() => {
+    roamRefreshTimer = null
+    const instance = chart.value
+    if (instance === null || disposed) return
+
+    const { center, zoom } = geoState()
+    zoomLevel.value = Number(zoom.toFixed(2))
+    syncLayerMode()
+
+    const [clampedX, clampedY] = clampCenter(center)
+    if (clampedX !== center[0] || clampedY !== center[1]) {
+      clampingCenter = true
+      instance.setOption({ geo: { center: [clampedX, clampedY], zoom } })
+      clampingCenter = false
+    }
+
+    refreshMarkers()
+  }, 140)
 }
 
 function scheduleRefresh(): void {
@@ -850,7 +871,12 @@ async function render(): Promise<void> {
     echarts.registerMap(ANHUI_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
 
     if (chart.value === null) {
-      const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
+      const instance = echarts.init(container.value, undefined, {
+        renderer: 'canvas',
+        // 手机上 DPR 常 3+：整块 canvas 每帧按物理像素重绘，拖图会明显掉帧；
+        // 封顶 2 倍，肉眼几乎无差，填充率直接降到 1/2～1/3
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      })
       instance.on('click', handleChartClick)
       instance.on('mouseover', handleMarkerHover)
       instance.on('mousemove', handlePointerMove)
@@ -908,6 +934,7 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
+  if (roamRefreshTimer !== null) window.clearTimeout(roamRefreshTimer)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   chart.value?.off('georoam', handleGeoRoam)
   chart.value?.off('mouseover', handleMarkerHover)
