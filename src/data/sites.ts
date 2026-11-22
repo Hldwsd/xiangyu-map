@@ -322,7 +322,7 @@ export const sites: Site[] = [
     summary: '大别山里的将军县地标，纪念碑与革命博物馆连成一片，适合安静走半天。',
     description:
       '金寨是著名的将军县，红军广场一带集中了革命烈士纪念碑、纪念塔与金寨县革命博物馆。\n\n博物馆按时间线展陈鄂豫皖苏区的历史，看完再走广场，对大别山根据地会有更具体的空间感。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/jinzhai-red-army-square/cover.webp',
     gallery: [],
     tags: ['大别山', '将军县', '纪念馆'],
     bestSeason: '全年',
@@ -358,7 +358,7 @@ export const sites: Site[] = [
     summary: '大别山主峰之一，瀑布群与原始林连着走，夏天是皖西的避暑去处。',
     description:
       '天堂寨在大别山腹地，皖鄂交界，主峰海拔一千七百多米，山北是金寨、山南是湖北罗田。\n\n景区以瀑布群与林间步道为主，徒步路线较长，建议留一整天；山上气温比县城低不少，早晚要加衣。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/tiantangzhai/cover.webp',
     gallery: [],
     tags: ['大别山', '瀑布', '避暑'],
     bestSeason: '5-10 月',
@@ -466,7 +466,7 @@ export const sites: Site[] = [
     summary: '舒城境内的大型水库，湖湾多、水质清，环湖公路适合骑车慢慢绕。',
     description:
       '万佛湖是龙河口水库形成的湖面，湖岸曲折，岛屿散落其间，周边是大别山的余脉。\n\n环湖公路路况好、车少，适合骑行；湖区也有游船与露营点，夏天人多，春秋更自在。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/wanfohu/cover.webp',
     gallery: [],
     tags: ['水库', '骑行', '湖湾'],
     bestSeason: '4-6 月、9-10 月',
@@ -1060,7 +1060,7 @@ export const sites: Site[] = [
     summary: '大别山主峰，海拔 1777 米，花岗岩山体常年白云缭绕，4A 景区里最难爬的一座。',
     description:
       '白马尖在霍山县与岳西县交界，与多云尖、天河尖呈品字形鼎立，是大别山（六安）国家地质公园的主峰园区。\n\n上下山是同一条路，登顶约需大半天，被驴友称作「安徽最难爬的山」；东北坡有千年都枝杜鹃，体力好再上，量力而行。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/baimajian/cover.webp',
     gallery: [],
     tags: ['大别山主峰', '登山', '地质公园'],
     bestSeason: '5-6 月、9-10 月',
