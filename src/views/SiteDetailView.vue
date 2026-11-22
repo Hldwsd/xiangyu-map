@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useSitesStore } from '@/stores/sites'
@@ -16,6 +16,24 @@ const site = computed(() => store.getSiteById(props.id))
 
 /** 只有还带「示例数据」标签的条目才提示「内容为占位」；其余只说明封面待授权 */
 const isSample = computed(() => site.value?.tags.includes('示例数据') === true)
+
+/**
+ * 路由切换后把焦点交给标题。
+ *
+ * SPA 里换页不会像整页刷新那样把焦点归零：点「查看详情」后焦点仍留在原链接所在的页面，
+ * 读屏用户听不到任何新内容，键盘用户下一次 Tab 会从文档开头重新数。
+ * 标题加 tabindex="-1" 后可以程序化聚焦，又不会插进 Tab 序列。
+ */
+const heading = ref<HTMLHeadingElement | null>(null)
+
+function focusHeading(): void {
+  void nextTick(() => heading.value?.focus({ preventScroll: true }))
+}
+
+onMounted(focusHeading)
+
+// 详情页之间用「上一条 / 下一条」互跳时不得整页重挂，靠监听 id 重新聚焦
+watch(() => props.id, focusHeading)
 
 const paragraphs = computed(() => {
   const current = site.value
@@ -64,7 +82,7 @@ function markBroken(url: string): void {
         <span>{{ site.province }} · {{ site.city }}</span>
         <span class="detail__updated">更新于 {{ site.updatedAt }}</span>
       </p>
-      <h1 class="detail__title">{{ site.name }}</h1>
+      <h1 ref="heading" class="detail__title" tabindex="-1">{{ site.name }}</h1>
       <p class="detail__summary">{{ site.summary }}</p>
     </header>
 
@@ -241,6 +259,11 @@ function markBroken(url: string): void {
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
   color: var(--ink);
+}
+
+/* 程序化聚焦标题只为让读屏播报，不用画焦点环；−1 的 tabindex 本就不进 Tab 序列 */
+.detail__title:focus {
+  outline: none;
 }
 
 .detail__summary {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
 
 import MenuDrawer from '@/components/layout/MenuDrawer.vue'
 import SiteListSheet from '@/components/layout/SiteListSheet.vue'
@@ -251,6 +252,22 @@ describe('SiteDetailView', () => {
     })
 
     expect(wrapper.get('.detail__pager').text()).toContain('已是第一条')
+  })
+
+  it('挂载后把焦点交给标题（读屏能播报当前项目），且不插进 Tab 序列', async () => {
+    const wrapper = mount(SiteDetailView, {
+      props: { id: 'hongcun' },
+      attachTo: document.body,
+      global: { plugins: [createPinia()], stubs: { RouterLink: routerLinkStub } },
+    })
+
+    await nextTick()
+
+    const heading = wrapper.get('.detail__title')
+    expect(heading.attributes('tabindex')).toBe('-1')
+    expect(document.activeElement).toBe(heading.element)
+
+    wrapper.unmount()
   })
 
   it('封面加载失败时换成占位图，且不会无限重试', async () => {
