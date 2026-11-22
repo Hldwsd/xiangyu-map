@@ -379,13 +379,7 @@ function refreshMarkers(): void {
       themePalette(),
       FEATURED_ID_SET,
     )
-    instance.setOption({
-      series: [
-        { id: 'sites', data: currentData },
-        { id: 'leader', data: [] },
-        { id: 'anchors', data: [] },
-      ],
-    })
+    instance.setOption({ series: [{ id: 'sites', data: currentData }] })
     return
   }
 
@@ -428,8 +422,32 @@ function syncBalls(instance: EChartsType): void {
   }
 
   if (same) {
-    // 同一视野：home 不变，球位置也保持；只同步一下引用
     ballHomes = homes
+    return
+  }
+
+  // 视野变化（缩放/拖动）：球跟着 home 一起平移，保留当前的相对偏移，
+  // 不能整组重置——否则用户缩放地图时刚挤出来的状态就没了。
+  const sameIds =
+    balls.length === props.sites.length &&
+    props.sites.every((site) => balls.some((ball) => ball.id === site.id))
+  if (sameIds) {
+    for (const ball of balls) {
+      const next = homes.get(ball.id)
+      const previous = ballHomes.get(ball.id)
+      if (next === undefined) continue
+      if (previous === undefined) {
+        ball.x = next[0]
+        ball.y = next[1]
+      } else {
+        ball.x += next[0] - previous[0]
+        ball.y += next[1] - previous[1]
+      }
+      ball.vx = 0
+      ball.vy = 0
+    }
+    ballHomes = homes
+    ballStillFrames = 0
     return
   }
 
