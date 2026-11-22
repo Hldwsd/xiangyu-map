@@ -244,7 +244,7 @@ export const sites: Site[] = [
     summary: '长江边因盐运而兴的老镇，和悦洲上的老街与江滩保留着旧码头的格局。',
     description:
       '大通在铜陵市郊，长江与青通河在此交汇，旧时是盐运与商埠码头，老街与和悦洲一带还能看出当年的格局。\n\n江滩与渡口是这里的日常，适合慢慢走、看江面上来往的船。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/datong-ancient-town/cover.webp',
     gallery: [],
     tags: ['长江', '盐运', '老街'],
     bestSeason: '4-5 月、10-11 月',
@@ -664,7 +664,7 @@ export const sites: Site[] = [
     summary: '义安区的药用牡丹原乡，「江南第一牡丹园」，春天花开时满坡凤丹如雪。',
     description:
       '凤凰山在铜陵义安区顺安镇，凤丹种植历史 1600 多年，与洛阳、菏泽牡丹并称国内三大名贵牡丹。\n\n清明前后是花期，相思树、滴水崖与牡丹园连成一条环线；非花期是安静的丘陵步道，适合半日。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/tongling-fenghuangshan/cover.webp',
     gallery: [],
     tags: ['牡丹', '凤丹', '春花'],
     bestSeason: '4 月（牡丹花期）',
