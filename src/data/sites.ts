@@ -226,7 +226,7 @@ export const sites: Site[] = [
     summary: '皖北的老集镇长街，茶馆里用大壶续水，赶集日的市井气比建筑更值得看。',
     description:
       '临涣在濉溪县，是皖北老街市，镇上茶馆至今保留着大壶续水、按位坐的老习惯。\n\n建筑谈不上精雕细琢，看点在市井：茶馆、集市与街边手艺人，赶集日最热闹。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/linhuan-ancient-town/cover.webp',
     gallery: [],
     tags: ['茶馆', '集市', '皖北'],
     bestSeason: '3-5 月、9-11 月',
@@ -682,7 +682,7 @@ export const sites: Site[] = [
     summary: '淮北市区的城市森林公园，主峰是皖北至高点，登顶可俯瞰全城。',
     description:
       '相山国家森林公园在淮北市中心南麓，免费开放；显通寺始建于西晋，乾隆题过「惠我南黎」。\n\n环形步道一圈约一个半小时，雨后常能看到云海漫过山脊；对这座城市来说，相山是日常也是最高点。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/xiangshan-huaibei/cover.webp',
     gallery: [],
     tags: ['森林公园', '城市山', '显通寺'],
     bestSeason: '全年',
@@ -1078,7 +1078,7 @@ export const sites: Site[] = [
     summary: '隋唐大运河通济渠的码头遗存，全国文保，2014 年入选世界遗产「中国大运河」。',
     description:
       '柳孜运河遗址在濉溪县百善镇柳孜村，两次考古发掘出唐宋河道、河堤与码头实物，是还原千年运河面貌的关键地点。\n\n2014 年成为世界遗产「中国大运河」的遗产点段之一（安徽仅两处），2026 年获评省级考古遗址公园；对运河史有兴趣值得专程。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/liuzi-site/cover.webp',
     gallery: [],
     tags: ['大运河', '世界遗产', '全国文保'],
     bestSeason: '全年',
