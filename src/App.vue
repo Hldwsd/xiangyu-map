@@ -3,10 +3,17 @@ import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
+import { useSitesStore } from '@/stores/sites'
 
 const route = useRoute()
 /** 首页是全屏地图，导航与页脚都收进菜单；其余页面保留常规头部与页脚 */
 const chromeHidden = computed(() => route.name === 'home')
+
+/**
+ * 条数从数据派生，不写死。
+ * 之前页脚写「64 条」而数据是 63 条——删一条数据就要顺手改文案，迟早漏。
+ */
+const siteCount = computed(() => useSitesStore().sites.length)
 </script>
 
 <template>
@@ -31,7 +38,7 @@ const chromeHidden = computed(() => route.name === 'home')
 
       <footer v-if="!chromeHidden" class="app__footer">
         <span>
-          64 条数据已核验 · 封面暂为占位 · 水系与河道 ©
+          {{ siteCount }} 条数据已核验 · 封面来自公开资料（版权归原作者） · 水系与河道 ©
           <a
             href="https://www.openstreetmap.org/copyright"
             target="_blank"

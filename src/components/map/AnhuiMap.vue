@@ -57,7 +57,7 @@ const CENTER_MAX: [number, number] = [119.1, 33.9]
 const props = defineProps<{
   sites: Site[]
   selectedId: string | null
-  /** 是否显示区县界。默认关闭：官方标准图（皖S(2025)71号）只有 16 个地级市 */
+  /** 是否显示区县界。默认开启：找项目时按区县定位比只看 16 个市更准 */
   showDistricts?: boolean
   /** 是否把靠得近的地标合并成一个数字标签。关掉后每个项目单独画，便于逐个点选 */
   cluster?: boolean
@@ -341,13 +341,6 @@ function scheduleRefresh(): void {
   })
 }
 
-/** 按项目 id 找它在当前这批点里的下标；被并进簇时返回簇的下标 */
-function datumIndexOfSite(siteId: string): number {
-  return currentData.findIndex((datum) =>
-    'clusterIds' in datum ? datum.clusterIds.includes(siteId) : datum.siteId === siteId,
-  )
-}
-
 function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
   const option = buildAnhuiMapOption(
     props.sites,
@@ -480,40 +473,17 @@ function buildLayerRegions(
   return regions
 }
 
-/**
- * 键盘操作的地标列表：canvas 里的地标对读屏和 Tab 不可达，
- * 所以另渲染一份等价的按钮列表，聚焦时在地图上高亮对应地标，Enter 打开详情。
- *
- * 注意不能直接用列表的下标做 `dataIndex`：图上画的是「点 + 簇」，
- * 顺序与列表不同，被并进簇的项目也没有自己的点。所以先按 id 反查一次。
+/*
+ * 键盘与读屏的等价入口在顶部「项目列表」抽屉里：抽屉本身可 Tab、可 Enter，
+ * 地图 canvas 只保留一句 aria-label 说明。不再在地图组件内维护第二份地标列表，
+ * 否则两个入口要同步、而且整份列表会排在搜索框之前抢占 Tab 序列（Issue #107）。
  */
-function focusMarker(index: number): void {
-  const instance = chart.value
-  const site = props.sites[index]
-  if (instance === null || site === undefined) return
-
-  const dataIndex = datumIndexOfSite(site.id)
-  if (dataIndex < 0) return
-  instance.dispatchAction({ type: 'highlight', seriesId: 'sites', dataIndex })
-  instance.dispatchAction({ type: 'showTip', seriesId: 'sites', dataIndex })
-}
-
-function blurMarker(index: number): void {
-  const instance = chart.value
-  const site = props.sites[index]
-  if (instance === null || site === undefined) return
-
-  const dataIndex = datumIndexOfSite(site.id)
-  if (dataIndex < 0) return
-  instance.dispatchAction({ type: 'downplay', seriesId: 'sites', dataIndex })
-  instance.dispatchAction({ type: 'hideTip' })
-}
 
 /**
  * 切换区县界图层。
  *
- * 默认不显示：官方标准图（皖S(2025)71号「安徽省示意图（一）」）只画 16 个地级市，
- * 没有县区界；区县一层留作可选细节，需要时才请求（660KB）。
+ * 默认显示：官方标准图（皖S(2025)71号「安徽省示意图（一）」）只画 16 个地级市，
+ * 没有县区界；区县一层留作可选的定位细节，菜单里可以关掉。首次启用时请求一次（gzip 126KB）。
  * 重建前记下 center/zoom，重建后写回去——否则用户的缩放会被打回默认。
  */
 async function applyDistrictLayer(include: boolean): Promise<void> {
@@ -706,7 +676,7 @@ watch(
       ref="container"
       class="anhui-map__canvas"
       role="img"
-      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置。可用右侧缩放条缩放；键盘用户可用下方地标列表逐项浏览"
+      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置。可用右侧缩放条缩放；键盘用户可用顶部「项目列表」逐项浏览"
     />
 
     <p v-if="status === 'loading'" class="anhui-map__hint">
@@ -718,20 +688,6 @@ watch(
       <span>{{ errorMessage }}</span>
       <button type="button" class="anhui-map__retry" @click="render">重试</button>
     </div>
-
-    <ul v-if="status === 'ready'" class="anhui-map__a11y" aria-label="地图上的文旅项目">
-      <li v-for="(site, index) in sites" :key="site.id">
-        <button
-          type="button"
-          class="anhui-map__a11y-item"
-          @focus="focusMarker(index)"
-          @blur="blurMarker(index)"
-          @click="emit('select', site.id)"
-        >
-          {{ site.name }}（{{ site.category }} · {{ site.city }}）
-        </button>
-      </li>
-    </ul>
 
     <div class="anhui-map__zoom" role="group" aria-label="地图缩放">
       <button type="button" class="anhui-map__zoom-button" aria-label="放大" @click="zoomBy(1.4)">
@@ -819,54 +775,6 @@ watch(
   background: transparent;
   border: 1px solid currentcolor;
   border-radius: var(--radius-pill);
-}
-
-/*
- * 平时不可见（不占位、不进读屏的视觉流），但 Tab 能进来：
- * 一旦有焦点就整块显形，否则键盘用户看不到自己在选哪个地标。
- */
-.anhui-map__a11y {
-  position: absolute;
-  top: 0.6rem;
-  left: 0.6rem;
-  z-index: 3;
-  max-width: min(18rem, 70%);
-  max-height: 70%;
-  margin: 0;
-  padding: 0;
-  overflow: auto;
-  list-style: none;
-  background: rgb(var(--surface-rgb) / 96%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  clip-path: inset(50%);
-}
-
-.anhui-map__a11y:focus-within {
-  padding: 0.35rem;
-  clip-path: none;
-}
-
-.anhui-map__a11y-item {
-  display: block;
-  width: 100%;
-  padding: 0.28rem 0.45rem;
-  font: inherit;
-  font-size: 0.78rem;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-xs);
-}
-
-.anhui-map__a11y-item:focus-visible {
-  color: var(--accent-ink);
-  background: var(--accent);
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
 }
 
 .anhui-map__zoom {

@@ -14,7 +14,7 @@ const props = defineProps<{ id: string }>()
 const store = useSitesStore()
 const site = computed(() => store.getSiteById(props.id))
 
-/** 只有还带「示例数据」标签的条目才提示「内容为占位」；其余只说明封面待授权 */
+/** 只有还带「示例数据」标签的条目才提示「内容为占位」；其余只说明封面来源与授权状态 */
 const isSample = computed(() => site.value?.tags.includes('示例数据') === true)
 
 /**
@@ -146,9 +146,7 @@ function markBroken(url: string): void {
       <p v-if="isSample" class="detail__notice">
         当前为示例数据：文案、图片与来源均为占位，正式上线前会逐条替换为可核验的官方资料。
       </p>
-      <p v-else class="detail__notice">
-        封面图暂为占位；文案与来源已逐条核验，授权素材到位后替换。
-      </p>
+      <p v-else class="detail__notice">封面来自公开资料，版权归原作者；正式授权素材到位后替换。</p>
     </section>
 
     <nav class="detail__pager" aria-label="相邻项目">
