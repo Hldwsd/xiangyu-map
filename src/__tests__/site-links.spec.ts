@@ -17,7 +17,7 @@ describe('amapSiteUrl', () => {
     expect(fallback).not.toContain('position=')
   })
 
-  it('63 条数据都有精确短链，且只引用真实 site id、必须是 https', () => {
+  it('所有数据都有精确短链，且只引用真实 site id、必须是 https', () => {
     expect(Object.keys(AMAP_SITE_URLS)).toHaveLength(sites.length)
     const ids = new Set(sites.map((site) => site.id))
     for (const [id, url] of Object.entries(AMAP_SITE_URLS)) {

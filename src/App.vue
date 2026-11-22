@@ -11,7 +11,7 @@ const chromeHidden = computed(() => route.name === 'home')
 
 /**
  * 条数从数据派生，不写死。
- * 之前页脚写「64 条」而数据是 63 条——删一条数据就要顺手改文案，迟早漏。
+ * 之前页脚写死「64 条」，数据一删就与现状对不上，从此不再硬编码。
  */
 const siteCount = computed(() => useSitesStore().sites.length)
 </script>

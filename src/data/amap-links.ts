@@ -1,7 +1,7 @@
 /**
  * 高德精确 POI 短链，按 site id 索引。
  *
- * 63/63 均由浏览器打开高德搜索、确认地点后点「分享」取回，不按经纬度拼 marker。
+ * 62/62 均由浏览器打开高德搜索、确认地点后点「分享」取回，不按经纬度拼 marker。
  * 坐标是千米级精度，按坐标打开容易落到隔壁点位；短链是人工核对过的地点页。
  * 以后新增项目没有短链时，详情页会退化为「名称 + 城市」搜索，仍然不使用经纬度。
  */
@@ -49,7 +49,6 @@ export const AMAP_SITE_URLS: Readonly<Record<string, string>> = {
   guniujiang: 'https://surl.amap.com/1OgzYxPQ1n7dQ',
   'baogong-park': 'https://surl.amap.com/2xjmDUNIzeWP',
   'zhanggong-park': 'https://surl.amap.com/rj1Ur2yW6qr',
-  'huagudeng-carnival': 'https://surl.amap.com/1NdPrS0iYf7r',
   bawangci: 'https://surl.amap.com/1NxfWsQq1v11b',
   'fuyang-ecopark': 'https://surl.amap.com/1NiYSvCyZ5VI',
   'caocao-park': 'https://surl.amap.com/1NosxINsG7F5',
