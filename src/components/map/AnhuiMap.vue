@@ -93,12 +93,14 @@ let currentData: MapScatterDatum[] = []
 let balls: BallState[] = []
 let ballHomes = new Map<string, Point>()
 let ballRAF: number | null = null
-let ballCalmFrames = 0
+let ballFramesLeft = 0
 /** 上一帧位置：静止判定看「这一帧位移量」，不看速度——弹簧在平衡点仍有残余速度 */
 let ballLastPos = new Map<string, [number, number]>()
 const ballNudgeAt = new Map<string, number>()
 /** 鼠标移动采样：用来按滑动速度决定「带一下」的力度 */
 let pointerLast: { x: number; y: number; t: number } | null = null
+/** 最近一次 mousemove 的指针速度（px/ms）：hover 时用上一次移动估算，不能用当前位置比当前位置 */
+let pointerSpeed = 0
 let refreshHandle: number | null = null
 /** 我们自己在 georoam 里写回中心时置 true，避免递归 */
 let clampingCenter = false
@@ -396,6 +398,8 @@ function refreshMarkers(): void {
     FEATURED_ID_SET,
   )
   syncBalls(instance)
+  // 数据重建后必须把球的当前位置重新写回：否则选中/刷新会让所有球叠回原点（看起来「碰撞消失」）
+  applyBalls()
 }
 
 /**
@@ -445,7 +449,7 @@ function resetBalls(instance: EChartsType): void {
   }
   balls = next
   ballHomes = homes
-  ballCalmFrames = 0
+  ballFramesLeft = 0
   ballLastPos = new Map()
   kickBalls()
 }
@@ -470,6 +474,8 @@ function applyBalls(): void {
 
 function kickBalls(): void {
   if (ballRAF !== null) return
+  // 固定帧预算：碰一下最多模拟 ~1.5s 就冻结，保证「一会就停」，不必等速度衰减到阈值
+  ballFramesLeft = 90
   ballRAF = window.requestAnimationFrame(tickBalls)
 }
 
@@ -486,7 +492,6 @@ function tickBalls(): void {
   })
   applyBalls()
 
-  // 静止判定看「每帧位移」：平衡点上弹簧仍有残余速度，用速度判会一直转下去
   let maxStep = 0
   const positions = new Map<string, [number, number]>()
   for (const ball of balls) {
@@ -497,32 +502,32 @@ function tickBalls(): void {
     }
   }
   ballLastPos = positions
+  ballFramesLeft -= 1
 
-  if (maxStep > 0.04) {
-    ballCalmFrames = 0
-  } else {
-    ballCalmFrames += 1
-  }
-
-  if (ballCalmFrames < 20) {
-    ballRAF = window.requestAnimationFrame(tickBalls)
+  // 已经基本不动，或预算用完：清零速度并冻结，避免弹簧在平衡点长期微抖
+  if (maxStep < 0.02 || ballFramesLeft <= 0) {
+    for (const ball of balls) {
+      ball.vx = 0
+      ball.vy = 0
+    }
+    ballFramesLeft = 0
+    ballRAF = null
     return
   }
 
-  // 停稳：清速度并冻结，别让弹簧在平衡点继续抖
-  for (const ball of balls) {
-    ball.vx = 0
-    ball.vy = 0
-  }
-  ballCalmFrames = 0
-  ballRAF = null
+  ballRAF = window.requestAnimationFrame(tickBalls)
 }
 
 /** 鼠标滑过小球：朝指针反方向「带一下」，随后被弹簧拉回 */
 function handlePointerMove(params: unknown): void {
   const event = (params as { event?: { offsetX?: number; offsetY?: number } }).event
   if (typeof event?.offsetX !== 'number' || typeof event?.offsetY !== 'number') return
-  pointerLast = { x: event.offsetX, y: event.offsetY, t: performance.now() }
+  const now = performance.now()
+  if (pointerLast !== null) {
+    const dt = Math.max(8, now - pointerLast.t)
+    pointerSpeed = Math.hypot(event.offsetX - pointerLast.x, event.offsetY - pointerLast.y) / dt
+  }
+  pointerLast = { x: event.offsetX, y: event.offsetY, t: now }
 }
 
 /**
@@ -547,15 +552,13 @@ function handleMarkerHover(params: unknown): void {
   if (now - (ballNudgeAt.get(id) ?? 0) < 260) return
   ballNudgeAt.set(id, now)
 
-  // 没有移动采样、或指针已经停住（speed≈0）时不碰球：
+  // 用最近一次移动的速度；指针停住超过 150ms（或速度太小）就不碰球，
   // 否则球被推走后会在静止的鼠标下来回触发 mouseover，看起来像永远在动。
-  if (pointerLast === null) return
-  const pointer: Point = [payload.event?.offsetX ?? ball.x, payload.event?.offsetY ?? ball.y]
-  const dt = Math.max(8, now - pointerLast.t)
-  const speed = Math.hypot(pointer[0] - pointerLast.x, pointer[1] - pointerLast.y) / dt
-  if (speed < 0.15) return
+  if (pointerLast === null || now - pointerLast.t > 150) return
+  if (pointerSpeed < 0.15) return
 
-  const strength = Math.min(6, speed * 2.2)
+  const pointer: Point = [payload.event?.offsetX ?? ball.x, payload.event?.offsetY ?? ball.y]
+  const strength = Math.min(6, pointerSpeed * 2.2)
   nudgeBall(ball, pointer, strength)
   kickBalls()
 }

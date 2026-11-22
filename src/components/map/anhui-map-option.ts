@@ -516,8 +516,8 @@ export function buildAnhuiMapOption(
         animationDelay: (idx: number): number => idx * 28,
         animationEasing: 'cubicOut',
         emphasis: {
-          // 圆钉自带 1.6px 墨圈，hover 只轻微放大；白描边在纸白钉上不可见，已去掉
-          scale: 1.12,
+          // 不放大：hover 放大后的球会盖住旁边的球，看起来像「碰撞消失了」
+          scale: false,
         },
       },
     ],
