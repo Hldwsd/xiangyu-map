@@ -11,6 +11,32 @@
 html,
 body {
   min-height: 100%;
+  /* 手机长按会弹系统菜单/选择手柄，地图与控件上很影响手感；正文段落仍允许选中 */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 交给 ECharts 处理手势，避免浏览器抢走 pinch/pan */
+.anhui-map__canvas {
+  touch-action: none;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* 详情正文仍可复制 */
+.detail__description,
+.detail__summary,
+.detail__facts dd {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /*
