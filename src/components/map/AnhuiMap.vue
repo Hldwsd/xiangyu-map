@@ -172,29 +172,8 @@ function geoState(): { center: [number, number]; zoom: number } {
  * 可见半幅（经纬度）= 视口像素 / 每度像素 / 2；中心允许范围就是省域外框内缩半幅后的区间。
  * 缩得很小时半幅比省域还大，就固定在省域中心（不出现大片空白）。
  */
-function clampCenter(center: [number, number], zoom = geoState().zoom): [number, number] {
-  const instance = chart.value
-  const containerEl = container.value
-  if (instance === null || containerEl === null) return center
-
-  const state = geoState()
-  const p0 = instance.convertToPixel({ geoIndex: 0 }, state.center)
-  const pLng = instance.convertToPixel({ geoIndex: 0 }, [state.center[0] + 0.5, state.center[1]])
-  const pLat = instance.convertToPixel({ geoIndex: 0 }, [state.center[0], state.center[1] + 0.5])
-  if (!Array.isArray(p0) || !Array.isArray(pLng) || !Array.isArray(pLat)) return center
-
-  const pxPerLng = Math.abs((pLng[0] as number) - (p0[0] as number)) / 0.5
-  const pxPerLat = Math.abs((pLat[1] as number) - (p0[1] as number)) / 0.5
-
-  return clampViewCenter({
-    center,
-    zoom,
-    currentZoom: state.zoom,
-    bbox: provinceBBox ?? FALLBACK_BBOX,
-    viewport: { width: containerEl.clientWidth, height: containerEl.clientHeight },
-    pxPerLng,
-    pxPerLat,
-  })
+function clampCenter(center: [number, number]): [number, number] {
+  return clampViewCenter(center, provinceBBox ?? FALLBACK_BBOX)
 }
 
 /**
@@ -214,7 +193,7 @@ function handleGeoRoam(): void {
 
   // 实时夹取：拖动过程中越界就把中心顶回边界，而不是等松手后「传送」回来。
   // 写回时带上传当前 zoom，避免只写 center 时把缩放重置成默认值。
-  const [clampedX, clampedY] = clampCenter(center, zoom)
+  const [clampedX, clampedY] = clampCenter(center)
   if (clampedX !== center[0] || clampedY !== center[1]) {
     clampingCenter = true
     instance.setOption({ geo: { center: [clampedX, clampedY], zoom } })
@@ -274,7 +253,7 @@ function animateGeoTo(center: [number, number], zoom: number, duration = CLUSTER
   if (instance === null) return
 
   const from = geoState()
-  const target = clampCenter(center, zoom)
+  const target = clampCenter(center)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   tweening = true
 
@@ -334,7 +313,7 @@ function zoomTo(target: number): void {
   const next = clampZoom(target)
   if (Math.abs(next - zoom) < 0.001) return
 
-  instance.setOption({ geo: { center: clampCenter(center, next), zoom: next } })
+  instance.setOption({ geo: { center: clampCenter(center), zoom: next } })
   zoomLevel.value = Number(next.toFixed(2))
   syncLayerMode()
   refreshMarkers()
