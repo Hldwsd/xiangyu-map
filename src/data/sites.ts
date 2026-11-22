@@ -118,7 +118,7 @@ export const sites: Site[] = [
     summary: '花岗岩峰柱地貌的世界地质公园，主峰如擎天一柱，汉武帝曾在此封禅。',
     description:
       '天柱山是 UNESCO 世界地质公园、国家 5A 景区，花岗岩峰林与洞穴地貌是主要看点，主峰孤立于群峰之间。\n\n索道可省掉大半爬升，剩下的山脊步道仍需体力；山下潜山市区住宿选择多，适合安排两天。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/tianzhushan/cover.webp',
     gallery: [],
     tags: ['世界地质公园', '山岳', '花岗岩'],
     bestSeason: '4-5 月、9-10 月',
@@ -466,7 +466,7 @@ export const sites: Site[] = [
     summary: '安庆城里的黄梅戏驻场演出，唱腔与身段都在小剧场里，听着不隔。',
     description:
       '黄梅戏发源于安庆一带，再芬黄梅公馆是当地的驻场演出场所，常演《天仙配》《女驸马》等折子。\n\n小剧场的距离近，唱腔与乐队都在眼前；演出安排随季节调整，去之前先确认场次。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huangmeixi-zaiyfen/cover.webp',
     gallery: [],
     tags: ['黄梅戏', '戏曲', '驻场演出'],
     bestSeason: '全年',
@@ -772,7 +772,7 @@ export const sites: Site[] = [
     summary: '岳西大别山腹地的三峰并列山岳，绝壁栈道与玻璃天梯悬在 400 米落差之上。',
     description:
       '明堂山因汉武帝封禅天柱山时设「明堂」祭拜得名，主峰海拔 1563 米，是长江淮河两大流域的分水岭。\n\n景区以栈道出名：1800 米绝壁栈道接 130 米玻璃栈道，还有垂直落差 365 米的云端天梯；缆车可代步，体力要求不高。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/mingtang-mountain/cover.webp',
     gallery: [],
     tags: ['大别山', '高空栈道', '玻璃天梯'],
     bestSeason: '5-6 月、9-10 月',
@@ -1060,7 +1060,7 @@ export const sites: Site[] = [
     summary: '岳西境内的「中华禅宗第一山」，二祖慧可在此避难传法，主峰海拔 1227 米。',
     description:
       '司空山在岳西县店前镇与冶溪镇交界，公元 577 年禅宗二祖慧可携达摩衣钵在此弘法，二祖寺分上下两院。\n\n山势雄奇、人文与自然交错，李白曾避居于此留有太白书堂；3A 景区，游客不多，适合寻禅与徒步的人慢慢走。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/sikong-mountain/cover.webp',
     gallery: [],
     tags: ['禅宗', '二祖道场', '徒步'],
     bestSeason: '4-6 月、9-10 月',
@@ -1114,7 +1114,7 @@ export const sites: Site[] = [
     summary: '桐城城里的一条两米窄巷，「让他三尺又何妨」的礼让故事让它在 2024 年再度走红。',
     description:
       '清康熙年间大学士张英一句回诗化解了张吴两家的宅基地之争，两家各让三尺留出这条巷子；现属安徽省级文物保护单位。\n\n2024 年升级改造后由六尺巷、张府吴府遗存与勺园组成，免费参观；把桐城文庙、孔城老街串成一日线更顺。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/liuchixiang/cover.webp',
     gallery: [],
     tags: ['礼让文化', '桐城', '历史街区'],
     bestSeason: '全年',
