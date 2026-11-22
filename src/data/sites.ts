@@ -154,7 +154,7 @@ export const sites: Site[] = [
     summary: '山陕会馆里的砖雕木雕戏台，1988 年列入第三批全国重点文物保护单位。',
     description:
       '花戏楼本名山陕会馆（大关帝庙），是清代晋陕商人在亳州集资所建；1988 年列入第三批全国重点文物保护单位。\n\n戏台木雕与外墙砖雕是核心看点，题材密集，值得带着耐心看细节；旁边的亳州老街与曹操运兵道可以一并安排。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huaxilou/cover.webp',
     gallery: [],
     tags: ['砖雕', '全国文保', '会馆'],
     bestSeason: '4-5 月、9-10 月',
@@ -898,7 +898,7 @@ export const sites: Site[] = [
     summary: '亳州最大的公园，建在曹操宗族墓群之上，魏武祠与松涛墓冢连成三国一课。',
     description:
       '曹操公园原称曹氏公园，园内的「曹四孤堆」是曹操宗族墓群，园中建有曹操纪念馆与魏武祠。\n\n免费开放的露天博物馆，松涛、墓冢与诗碑并存；可与曹操运兵道、花戏楼串成亳州三国一日线。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/caocao-park/cover.webp',
     gallery: [],
     tags: ['曹操', '三国', '墓群'],
     bestSeason: '全年',
