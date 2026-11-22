@@ -8,63 +8,30 @@ const ANHUI: BBox = [
   [119.649144, 34.650809],
 ]
 
-/** 1264×805 视口、1 倍缩放的像素密度；放大后按 zoom 线性缩放（实测 8 倍为 845.11 / 1126.82） */
-const PX_AT_1 = { lng: 845.11 / 8, lat: 1126.82 / 8 }
-
-function clamp(center: [number, number], zoom: number) {
-  return clampViewCenter({
-    center,
-    zoom,
-    currentZoom: zoom,
-    bbox: ANHUI,
-    viewport: { width: 1264, height: 805 },
-    pxPerLng: PX_AT_1.lng * zoom,
-    pxPerLat: PX_AT_1.lat * zoom,
-  })
-}
-
 describe('clampViewCenter', () => {
-  it('放大到 8 倍时，南北两端都能拖到：以前的固定框会卡在 33.9 / 30.2', () => {
-    const north = clamp([117.3, 34.8], 8)
-    const south = clamp([117.3, 29.2], 8)
+  it('放大后能把省域边缘拖到窗口中心：中心纬度可以到北界', () => {
+    const north = clampViewCenter([117.3, 35.2], ANHUI)
 
-    // 省域北界 34.65，可见半幅约 0.357° → 中心最多到 ~34.29
-    expect(north[1]).toBeCloseTo(34.294, 2)
-    expect(north[1]).toBeGreaterThan(33.9)
-    // 南界 29.395 + 半幅 → ~29.752
-    expect(south[1]).toBeCloseTo(29.752, 2)
-    expect(south[1]).toBeLessThan(30.2)
+    // 北界 34.6508 → 中心允许等于它，边缘正好落在窗口中心
+    expect(north[1]).toBeCloseTo(34.650809, 5)
+    expect(north[1]).toBeGreaterThan(34.294)
   })
 
-  it('放大到 8 倍时，东西两端也能拖到（不再止步于 115.4 / 119.1）', () => {
-    const west = clamp([114.5, 31.8], 8)
-    const east = clamp([120.0, 31.8], 8)
-
-    expect(west[0]).toBeCloseTo(115.631, 2)
-    expect(east[0]).toBeCloseTo(118.901, 2)
+  it('南、西、东三边同样能到窗口中心', () => {
+    expect(clampViewCenter([117.3, 28.8], ANHUI)[1]).toBeCloseTo(29.395253, 5)
+    expect(clampViewCenter([114.2, 31.8], ANHUI)[0]).toBeCloseTo(114.883371, 5)
+    expect(clampViewCenter([120.3, 31.8], ANHUI)[0]).toBeCloseTo(119.649144, 5)
   })
 
-  it('缩到视野比省域还大时，固定在省域中心，不出现大片空白', () => {
-    const result = clamp([114.5, 29.2], 1)
-    expect(result[0]).toBeCloseTo((ANHUI[0][0] + ANHUI[1][0]) / 2, 4)
-    expect(result[1]).toBeCloseTo((ANHUI[0][1] + ANHUI[1][1]) / 2, 4)
+  it('外框内的中心原样保留，拖动不会被反复改写', () => {
+    expect(clampViewCenter([117.3, 31.8], ANHUI)).toEqual([117.3, 31.8])
   })
 
-  it('在可移动范围内不动，避免每次 roam 都抖动', () => {
-    const center: [number, number] = [117.3, 31.8]
-    expect(clamp(center, 3)).toEqual(center)
-  })
-
-  it('像素密度异常时原样返回，不产生 NaN', () => {
-    const result = clampViewCenter({
-      center: [117, 31],
-      zoom: 2,
-      currentZoom: 2,
-      bbox: ANHUI,
-      viewport: { width: 1264, height: 805 },
-      pxPerLng: 0,
-      pxPerLat: 0,
-    })
-    expect(result).toEqual([117, 31])
+  it('缩到最小也不会把地图拖出外框（中心仍被夹在外框内）', () => {
+    const extreme = clampViewCenter([113.0, 36.0], ANHUI)
+    expect(extreme[0]).toBeGreaterThanOrEqual(ANHUI[0][0])
+    expect(extreme[0]).toBeLessThanOrEqual(ANHUI[1][0])
+    expect(extreme[1]).toBeGreaterThanOrEqual(ANHUI[0][1])
+    expect(extreme[1]).toBeLessThanOrEqual(ANHUI[1][1])
   })
 })
