@@ -1,18 +1,18 @@
 import type { Site } from '@/types/site'
 
 /**
- * 地标数据（62 条，全部在安徽省内，覆盖 16 个地级市）。
+ * 地标数据（70 条，全部在安徽省内，覆盖 16 个地级市）。
  *
  * 数据分两批入库，均已通过来源核验（docs/research/2026-11-21-sources-audit.md）：
  * - 前 10 条为 M0 示例数据转正（2026-11-21）：文案按真实信息重写、
  *   去除「示例数据」标签，来源升级为项目级；黄山为世界双遗产、
  *   宏村为世界文化遗产。
- * - 其余 52 条为 M1 各轮（data-round5-8 与场馆扩展）新增；芜湖铁画因是技艺
+ * - 其余 60 条为 M1 各轮（data-round5-8 与场馆扩展）新增；芜湖铁画因是技艺
  *   而非景点、花鼓灯嘉年华因高德 POI 显示暂停营业且无法确认现状，均已移除。
  *   来源是政府详情页、景区官网、百科词条或权威媒体，逐条实测可达；黄山市政府、
  *   安庆市政府对脚本请求返回 412/403（反爬），浏览器可开。
  *
- * 封面：62/62 已置入，素材取自公开资料，版权与授权状态见
+ * 封面：70/70 已置入，素材取自公开资料，版权与授权状态见
  * docs/adr/0011-cover-source-baike.md。
  *
  * 通用约定：坐标是 GCJ-02（Photon/OSM 查询后经标准算法转换，宏村基准
@@ -1233,6 +1233,182 @@ export const sites: Site[] = [
     transport: '寿县高铁站打车约 15 分钟',
     sources: ['https://www.huainan.gov.cn/'],
     updatedAt: '2026-11-21',
+  },
+  {
+    id: 'jingxian-xuan-paper',
+    name: '中国宣纸文化园',
+    category: '非遗',
+    province: '安徽省',
+    city: '宣城市',
+    location: { lng: 118.419, lat: 30.686 },
+    summary: '泾县宣纸传统制作技艺的展示园区，可看捞纸、晒纸等工序，适合非遗研学。',
+    description:
+      '中国宣纸文化园在泾县榔桥镇，围绕宣纸传统制作技艺展开：捞纸、晒纸、剪纸等工序都能在园区里看到。\n\n宣纸制作技艺是首批国家级非遗；园区适合安排半天，和泾县周边的古村、查济串成一条线。',
+    cover: '/images/sites/jingxian-xuan-paper/cover.webp',
+    gallery: [],
+    tags: ['非遗', '宣纸', '研学'],
+    bestSeason: '全年',
+    transport: '泾县县城自驾约 30 分钟',
+    practical: {
+      duration: '2–3 小时',
+      audience: '非遗体验、亲子、研学',
+    },
+    sources: ['https://baike.baidu.com/item/中国宣纸文化园', 'https://www.ahjx.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'shexian-ink-garden',
+    name: '老胡开文墨厂',
+    category: '非遗',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 118.436, lat: 29.867 },
+    summary: '歙县老胡开文墨厂，徽墨制作技艺的代表性厂区，可看炼烟、制墨与描金。',
+    description:
+      '老胡开文墨厂在歙县，是徽墨制作技艺的代表性厂区；炼烟、和胶、制墨、描金等工序仍按传统流程进行。\n\n徽墨是文房四宝之一，也是国家级非遗；参观时间不长，适合和徽州古城、歙砚博物馆一起安排。',
+    cover: '/images/sites/shexian-ink-garden/cover.webp',
+    gallery: [],
+    tags: ['非遗', '徽墨', '歙县'],
+    bestSeason: '全年',
+    transport: '歙县县城内步行或短途打车',
+    practical: {
+      duration: '1–2 小时',
+      audience: '徽墨工艺、文房、研学',
+    },
+    sources: ['https://baike.baidu.com/item/徽墨', 'https://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'shexian-inkstone-museum',
+    name: '歙县古城墨砚博物馆',
+    category: '非遗',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 118.44, lat: 29.87 },
+    summary: '歙县古城里的歙砚专题博物馆，展出砚石、砚雕与文房器物。',
+    description:
+      '歙县古城墨砚博物馆以歙砚为主题，展出砚石、砚雕与文房器物，能看清一块砚石如何变成一方砚。\n\n歙砚制作技艺是国家级非遗；博物馆在歙县古城附近，适合和许国石坊、斗山街串半天。',
+    cover: '/images/sites/shexian-inkstone-museum/cover.webp',
+    gallery: [],
+    tags: ['非遗', '歙砚', '文房'],
+    bestSeason: '全年',
+    transport: '歙县古城内步行可达',
+    practical: {
+      duration: '1–2 小时',
+      audience: '歙砚、文房、博物馆',
+    },
+    sources: ['https://baike.baidu.com/item/歙砚', 'https://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'wangmantian-village',
+    name: '汪满田村',
+    category: '非遗',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 118.58, lat: 30.02 },
+    summary: '歙县溪头镇的鱼灯古村，正月十三至十六有大型鱼灯巡游。',
+    description:
+      '汪满田村在歙县溪头镇，以正月鱼灯民俗出名：竹骨纸糊的大鱼灯在村巷里巡游，是皖南春节最热闹的场景之一。\n\n鱼灯集中在正月十三至十六；平日村庄安静，适合看古村与山景，灯会期建议提前确认路线与停车。',
+    cover: '/images/sites/wangmantian-village/cover.webp',
+    gallery: [],
+    tags: ['非遗', '鱼灯', '民俗'],
+    bestSeason: '正月十三至十六（灯会）',
+    transport: '歙县县城自驾约 40 分钟',
+    practical: {
+      duration: '半天（灯会期）',
+      audience: '民俗、摄影、古村',
+    },
+    sources: ['https://baike.baidu.com/item/汪满田村', 'https://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'chizhou-nuo-culture-park',
+    name: '傩文化馆',
+    category: '非遗',
+    province: '安徽省',
+    city: '池州市',
+    location: { lng: 117.49, lat: 30.56 },
+    summary: '贵池的傩文化展馆，展出傩面具、傩仪与池州傩戏相关器物。',
+    description:
+      '池州傩文化馆在贵池，展出傩面具、傩仪与傩戏相关器物，是理解“戏曲活化石”池州傩的入口。\n\n池州傩戏是国家级非遗，宗族傩活动多在春节前后；展馆适合搭配刘街、茅坦等傩戏村一起看。',
+    cover: '/images/sites/chizhou-nuo-culture-park/cover.webp',
+    gallery: [],
+    tags: ['非遗', '傩戏', '面具'],
+    bestSeason: '全年（春节前后有傩事活动）',
+    transport: '池州主城区打车约 20 分钟',
+    practical: {
+      duration: '1–2 小时',
+      audience: '民俗、非遗、博物馆',
+    },
+    sources: ['https://baike.baidu.com/item/池州傩戏', 'https://www.chizhou.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'wanan-compass-museum',
+    name: '安徽万安罗经文化博物馆',
+    category: '非遗',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 118.18, lat: 29.79 },
+    summary: '休宁万安镇的罗盘专题博物馆，讲万安罗盘的历史与制作技艺。',
+    description:
+      '安徽万安罗经文化博物馆在休宁万安镇，讲万安罗盘的历史、工序与用途；罗盘制作技艺是国家级非遗。\n\n万安老街就在附近，博物馆不大，适合和休宁古城岩、齐云山串成一条短线。',
+    cover: '/images/sites/wanan-compass-museum/cover.webp',
+    gallery: [],
+    tags: ['非遗', '罗盘', '万安'],
+    bestSeason: '全年',
+    transport: '休宁县城自驾约 15 分钟',
+    practical: {
+      duration: '1 小时',
+      audience: '非遗、技艺、老街',
+    },
+    sources: ['https://baike.baidu.com/item/万安罗盘', 'https://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'fengzaizi-village',
+    name: '冯嘴子村',
+    category: '非遗',
+    province: '安徽省',
+    city: '蚌埠市',
+    location: { lng: 117.34, lat: 32.93 },
+    summary: '蚌埠禹会区的花鼓灯传习村，中国花鼓灯艺术传习所所在地。',
+    description:
+      '冯嘴子村在蚌埠禹会区，是中国花鼓灯艺术传习所所在地；花鼓灯是首批国家级非遗，锣鼓、灯歌与舞蹈在这里仍有传承。\n\n村里有传习与展演空间，具体演出需提前联系；适合对民俗、民间舞蹈感兴趣的人专程安排半天。',
+    cover: '/images/sites/fengzaizi-village/cover.webp',
+    gallery: [],
+    tags: ['非遗', '花鼓灯', '民俗'],
+    bestSeason: '全年（演出需预约）',
+    transport: '蚌埠市区自驾约 30 分钟',
+    practical: {
+      duration: '半天',
+      audience: '民俗、民间舞蹈、研学',
+    },
+    sources: ['https://baike.baidu.com/item/冯嘴子村', 'https://www.bengbu.gov.cn/'],
+    updatedAt: '2026-11-22',
+  },
+  {
+    id: 'huicai-museum',
+    name: '中国徽菜博物馆',
+    category: '场馆',
+    province: '安徽省',
+    city: '黄山市',
+    location: { lng: 118.31, lat: 29.72 },
+    summary: '黄山屯溪的徽菜文化博物馆，展陈、市集与品鉴一体的饮食文化馆。',
+    description:
+      '中国徽菜博物馆在黄山屯溪，展陈徽菜源流、食材与宴席，也设有小吃市集和品鉴区，是“看+吃”一体的饮食文化馆。\n\n徽菜重火功、善烧炖；博物馆适合安排在屯溪老街前后，半天足够，饭点可直接在馆内解决。',
+    cover: '/images/sites/huicai-museum/cover.webp',
+    gallery: [],
+    tags: ['徽菜', '博物馆', '非遗'],
+    bestSeason: '全年',
+    transport: '屯溪市区打车约 15 分钟',
+    practical: {
+      duration: '2–3 小时',
+      audience: '徽菜文化、美食、亲子',
+    },
+    sources: ['https://baike.baidu.com/item/中国徽菜博物馆', 'https://www.huangshan.gov.cn/'],
+    updatedAt: '2026-11-22',
   },
 ]
 

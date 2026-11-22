@@ -10,8 +10,8 @@ describe('useSitesStore', () => {
 
   it('启动时加载全部数据', () => {
     const store = useSitesStore()
-    expect(store.sites).toHaveLength(62)
-    expect(store.filteredSites).toHaveLength(62)
+    expect(store.sites).toHaveLength(70)
+    expect(store.filteredSites).toHaveLength(70)
     expect(store.category).toBe(ALL_CATEGORIES)
     expect(store.city).toBe(ALL_CITIES)
   })
@@ -62,12 +62,19 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setQuery('池州市')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['jiuhuashan', 'xinghuacun', 'guniujiang', 'jiuzi-yan', 'shengjin-lake'].sort(),
+      [
+        'jiuhuashan',
+        'xinghuacun',
+        'guniujiang',
+        'jiuzi-yan',
+        'shengjin-lake',
+        'chizhou-nuo-culture-park',
+      ].sort(),
     )
 
     store.setQuery('古城')
     expect(store.filteredSites.map((site) => site.id).sort()).toEqual(
-      ['huizhou-ancient-city', 'shouxian-ancient-city'].sort(),
+      ['huizhou-ancient-city', 'shouxian-ancient-city', 'shexian-inkstone-museum'].sort(),
     )
   })
 
@@ -126,7 +133,7 @@ describe('useSitesStore', () => {
     const store = useSitesStore()
     store.setCity('黄山市')
 
-    expect(store.filteredSites).toHaveLength(8)
+    expect(store.filteredSites).toHaveLength(13)
     expect(store.filteredSites.every((site) => site.city === '黄山市')).toBe(true)
   })
 
@@ -163,7 +170,7 @@ describe('useSitesStore', () => {
 
     expect(counts).toHaveLength(16)
     expect(counts.reduce((sum, count) => sum + count, 0)).toBe(store.sites.length)
-    expect(store.cityCounts['黄山市']).toBe(8)
+    expect(store.cityCounts['黄山市']).toBe(13)
     expect(store.cityCounts['铜陵市']).toBe(2)
   })
 
@@ -208,6 +215,12 @@ describe('useSitesStore', () => {
       'yuliang-dam',
       'qiankou-mansion',
       'huizhou-culture-museum',
+      // 2026-11-22 新增的非遗/场馆条目
+      'shexian-ink-garden',
+      'shexian-inkstone-museum',
+      'wangmantian-village',
+      'wanan-compass-museum',
+      'huicai-museum',
     ])
   })
 
