@@ -18,6 +18,7 @@ import {
   type RiverLine,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
+import { spreadOffsets, type MarkerOffset } from '@/components/map/marker-spread'
 import { clampViewCenter } from '@/components/map/view-clamp'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
 import { FEATURED_SITE_IDS } from '@/data/sites'
@@ -41,6 +42,8 @@ echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRen
  * 略小于圆钉直径（36）：允许轻微重叠不合并，否则聚合会太激进。
  */
 const CLUSTER_MIN_GAP = 36
+/** 不合并时，屏幕距离小于它的地标才散开：只在「真的叠住」时动手，避免满屏引线 */
+const SPREAD_MIN_GAP = 12
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
@@ -328,10 +331,7 @@ function onZoomInput(event: Event): void {
 }
 
 /** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
-function computeGroups(instance: EChartsType): MarkerGroup[] | undefined {
-  // 关掉合并时返回 undefined：toScatterData 按「每个项目一颗」处理
-  if (props.cluster === false) return undefined
-
+function computeGroups(instance: EChartsType, minGap = CLUSTER_MIN_GAP): MarkerGroup[] {
   const pixels = new Map<string, readonly [number, number] | null>()
 
   for (const site of props.sites) {
@@ -343,12 +343,7 @@ function computeGroups(instance: EChartsType): MarkerGroup[] | undefined {
     pixels.set(site.id, usable ? ([point[0] as number, point[1] as number] as const) : null)
   }
 
-  const groups = groupOverlappingMarkers(
-    props.sites,
-    (site) => pixels.get(site.id) ?? null,
-    CLUSTER_MIN_GAP,
-  )
-  if (groups.length === 0) return undefined
+  const groups = groupOverlappingMarkers(props.sites, (site) => pixels.get(site.id) ?? null, minGap)
 
   // 按经纬度排序：数据下标稳定，缩放时不会因为顺序变化出现「两个点互换位置」
   return [...groups].sort((a, b) => (a.lng === b.lng ? a.lat - b.lat : a.lng - b.lng))
@@ -362,15 +357,87 @@ function refreshMarkers(): void {
   const instance = chart.value
   if (instance === null || status.value !== 'ready') return
 
-  const groups = computeGroups(instance)
+  if (props.cluster) {
+    const groups = computeGroups(instance, CLUSTER_MIN_GAP)
+    currentData = toScatterData(
+      props.sites,
+      props.selectedId,
+      groups,
+      themePalette(),
+      FEATURED_ID_SET,
+    )
+    instance.setOption({
+      series: [
+        { id: 'sites', data: currentData },
+        { id: 'leader', data: [] },
+        { id: 'anchors', data: [] },
+      ],
+    })
+    return
+  }
+
+  // 不合并：每个项目单独画；重叠的沿小圆环散开，并用虚线连回真实坐标
   currentData = toScatterData(
     props.sites,
     props.selectedId,
-    groups,
+    undefined,
     themePalette(),
     FEATURED_ID_SET,
   )
-  instance.setOption({ series: [{ id: 'sites', data: currentData }] })
+
+  const offsets = new Map<string, MarkerOffset>()
+  const pixels = new Map<string, readonly [number, number] | null>()
+  for (const site of props.sites) {
+    const point = instance.convertToPixel({ geoIndex: 0 }, [site.location.lng, site.location.lat])
+    const usable =
+      Array.isArray(point) &&
+      Number.isFinite(point[0] as number) &&
+      Number.isFinite(point[1] as number)
+    pixels.set(site.id, usable ? ([point[0] as number, point[1] as number] as const) : null)
+  }
+
+  const leaders: Array<{ coords: [[number, number], [number, number]] }> = []
+  const anchors: Array<{ value: [number, number] }> = []
+  for (const group of computeGroups(instance, SPREAD_MIN_GAP)) {
+    const ids = [...group.ids].sort()
+    const ring = spreadOffsets(ids)
+    for (const id of ids) {
+      const offset = ring.get(id)
+      if (offset === undefined) continue
+      offsets.set(id, offset)
+
+      const site = props.sites.find((item) => item.id === id)
+      const pixel = pixels.get(id)
+      if (site === undefined || pixel === null || pixel === undefined) continue
+      const target = instance.convertFromPixel({ geoIndex: 0 }, [
+        pixel[0] + offset[0],
+        pixel[1] + offset[1],
+      ])
+      if (!Array.isArray(target)) continue
+      leaders.push({
+        coords: [
+          [site.location.lng, site.location.lat],
+          [target[0] as number, target[1] as number],
+        ],
+      })
+      anchors.push({ value: [site.location.lng, site.location.lat] })
+    }
+  }
+
+  for (const datum of currentData) {
+    const offset = 'siteId' in datum ? offsets.get(datum.siteId) : undefined
+    if (offset !== undefined && 'siteId' in datum) {
+      datum.symbolOffset = offset
+    }
+  }
+
+  instance.setOption({
+    series: [
+      { id: 'sites', data: currentData },
+      { id: 'leader', data: leaders },
+      { id: 'anchors', data: anchors },
+    ],
+  })
 }
 
 function scheduleRefresh(): void {

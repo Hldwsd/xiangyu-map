@@ -41,6 +41,8 @@ export interface SiteScatterDatum {
   summary: string
   symbol: string
   symbolSize: number
+  /** 重叠时沿小圆环散开的像素偏移（不合并模式用） */
+  symbolOffset?: [number, number]
   itemStyle: {
     color: string
     borderColor: string
@@ -494,6 +496,38 @@ export function buildAnhuiMapOption(
           coords: river.coords,
           lineStyle: { width: river.width },
         })),
+      },
+      {
+        id: 'anchors',
+        type: 'scatter',
+        coordinateSystem: 'geo',
+        zlevel: 0,
+        // 真实位置的小墨点：引线再短，也能看出「这颗针本来在哪」
+        z: 2.9,
+        silent: true,
+        animation: false,
+        symbol: 'circle',
+        symbolSize: 4,
+        itemStyle: { color: INK, opacity: 0.5 },
+        data: [],
+      },
+      {
+        id: 'leader',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        zlevel: 0,
+        // 在河流之上、地标之下：只做位置指示，不抢视线
+        z: 2.8,
+        silent: true,
+        animation: false,
+        polyline: false,
+        lineStyle: {
+          color: 'rgba(28, 26, 23, 0.55)',
+          width: 1,
+          type: 'dashed',
+          curveness: 0,
+        },
+        data: [],
       },
       {
         id: 'sites',
