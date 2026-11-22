@@ -208,7 +208,7 @@ export const sites: Site[] = [
     summary: '长江边的矶头与太白楼，江面在此收窄，是读李白晚年行迹的一个落点。',
     description:
       '采石矶是长江东岸的一处矶头，临江崖壁与江面构成天然的观景点，山上有太白楼与相关纪念建筑。\n\n这里与李白晚年的行迹交织，景区步道不长，江景与人文遗迹并置，半天足够走完。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/caishiji/cover.webp',
     gallery: [],
     tags: ['长江', '李白', '矶头'],
     bestSeason: '4-5 月、9-11 月',
@@ -643,7 +643,7 @@ export const sites: Site[] = [
     summary: '当涂青山西麓的李白长眠地，太白祠与青莲书院围着全国重点文保的李白墓。',
     description:
       '李白晚年依当涂族叔李阳冰，病逝后葬于青山，李白墓是全国重点文物保护单位，历经多次修葺。\n\n文化园分前中后三区，竹木掩映、题刻众多；清明前后山脚油菜花开，适合与采石矶串成一条「李白线」。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/libai-culture-park/cover.webp',
     gallery: [],
     tags: ['李白墓', '全国文保', '青山'],
     bestSeason: '3-5 月、9-10 月',
@@ -844,7 +844,7 @@ export const sites: Site[] = [
     summary: '楚霸王项羽的自刎之地，汉阙式门楼与历代碑刻立在长江边的凤凰山上。',
     description:
       '公元前 202 年项羽兵败自刎乌江，后人立祠祀之；祠为安徽省重点文物保护单位，门楼上「霸王祠」三字出自董其昌手书。\n\n祠旁就是长江与驷马山河，把霸王祠、陋室（刘禹锡）与鸡笼山串成和县一日线更顺。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/bawangci/cover.webp',
     gallery: [],
     tags: ['项羽', '楚汉', '长江'],
     bestSeason: '全年',
@@ -1006,7 +1006,7 @@ export const sites: Site[] = [
     summary: '含山脚下 5800 年前的史前聚落，玉人玉鹰玉版出土于此，国家考古遗址公园。',
     description:
       '凌家滩是距今约 5800–5300 年的新石器时代中心聚落，出土的高规格玉礼器被视为「古国时代」第一阶段的代表，2023 年国家考古遗址公园揭牌。\n\n遗址公园、凌家滩遗址博物馆与考古研学小镇相邻，适合对史前文明有兴趣的人专程半天；配合隔壁的运漕古镇更好。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/lingjiatian/cover.webp',
     gallery: [],
     tags: ['史前遗址', '玉器', '考古公园'],
     bestSeason: '全年',
