@@ -61,6 +61,7 @@ pnpm dev          # http://localhost:5173
 | -------------------------------- | --------------------------------------------------------------------- |
 | `pnpm dev`                       | 本地开发（HMR）                                                       |
 | `pnpm build`                     | 类型检查 + 生产构建（CI 与本地都跑这一条）                            |
+| `pnpm prerender`                 | 构建后生成 62 个详情页的静态 HTML（title/OG/JSON-LD）                 |
 | `pnpm preview`                   | 预览 `dist/`                                                          |
 | `pnpm test:unit`                 | 单元测试（`--run` 跑一次）                                            |
 | `pnpm lint`                      | ESLint（`lint:fix` 自动修）                                           |
@@ -82,15 +83,17 @@ pnpm dev          # http://localhost:5173
 | PR 预览 | https://hldwsd.github.io/xiangyu-map/pr-<n>/ | PR 打开/更新（`.github/workflows/preview.yml`），链接自动贴在该 PR 里 |
 
 - 站点是 GitHub Pages 的 `gh-pages` 分支，主站在根目录、每个 PR 一个 `pr-<n>/` 子目录，PR 关闭时自动清理；
+- 构建后跑 `pnpm prerender`，把 62 个详情页写成 `dist/site/<id>/index.html`，注入各自的 title、description、OG 与 JSON-LD；`SITE_URL` 由 deploy/preview workflow 注入，用于生成绝对 URL；
 - 因为部署在子路径下，所有资源路径都走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`，`public/maps` 的加载器同理）。本地要在子路径下验证，可以 `pnpm build-only --base=/xiangyu-map/` 后用任意静态服务器挂在同名前缀下；
-- 深链（`/site/<id>` 刷新）靠 `dist/404.html` 兜底，构建时由 `deploy.yml` 复制 `index.html` 生成；
-- 选型与代价见 [ADR 0003](docs/adr/0003-deployment.md)。
+- 深链（`/site/<id>` 刷新）优先命中预渲染页；未知路径仍靠 `dist/404.html` 兜底，构建时由 `deploy.yml` 复制 `index.html` 生成；
+- 预渲染方案与代价见 [ADR 0012](docs/adr/0012-prerender-detail-pages.md)，部署选型见 [ADR 0003](docs/adr/0003-deployment.md)。
 
 ## 数据与底图
 
 - **地标数据**：`src/data/sites.ts`，字段契约在 `src/types/site.ts`（改字段需双方在 PR 确认）。新增一个项目 = 加一条数据 + 放图，不动组件代码；`province` 固定为安徽省，`city` 必须是 16 个地级市之一（联合类型，写错编译期就报错）。
 - **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、城市属于 16 个地级市、坐标落在安徽省内、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
 - **高德链接**：精确 POI 短链按 site id 维护在 `src/data/amap-links.ts`，当前 62/62 已置入；没有短链的项目回退到「名称 + 城市」搜索，不按经纬度拼 marker（坐标是千米级精度，容易落到隔壁点位）。
+- **分享图**：头部 12 个项目由 `scripts/make-og-images.py` 生成到 `public/og/sites/`，其余项目沿用 `public/og-cover.jpg`；预渲染时按 `dist/og/sites/<id>.jpg` 是否存在选择 `og:image`。
 - **底图与专题图层**（都在 `public/maps/`，来源、字段与 sha256 见 [public/maps/README.md](public/maps/README.md)）：
 
   | 文件                   | 内容                                   | 来源                            | 生成命令                    |
@@ -136,6 +139,7 @@ pnpm dev          # http://localhost:5173
 | 湖泊水面 / 河道线      | © OpenStreetMap contributors（Overpass API 抓取） | ODbL，页面已署名（页脚、首页版记、「菜单 → 关于」） |
 | 省与市轮廓             | DataV.GeoAtlas                                    | 见其仓库说明，公开上线前替换为经审核数据            |
 | 封面图                 | 百度百科词条主图（项目所有者逐条审核并替换部分）  | 版权待确认，公开商用前须替换或取得授权，见 ADR 0011 |
+| 默认分享图             | 项目内生成（省界轮廓来自 DataV.GeoAtlas）         | 随项目 MIT；头部 12 个项目有独立分享图              |
 | 背景书法《少学琴书册》 | 邓石如（清，1743–1805），项目所有者提供的扫描件   | 作品为公有领域；扫描件授权待确认                    |
 | 分类图标               | 项目内自绘（`src/components/icons/`，S1 线稿）    | 随项目 MIT                                          |
 

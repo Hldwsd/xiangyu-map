@@ -49,6 +49,12 @@ jobs:
         # 线上地址是 https://<owner>.github.io/<repo>/，基路径必须是 /<repo>/
         run: pnpm build-only --base=/${{ github.event.repository.name }}/
 
+      - name: Pre-render detail pages
+        # 构建后把 detail 页注入静态 meta（title/OG/JSON-LD），微信与搜索引擎才拿得到
+        run: pnpm prerender
+        env:
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+
       - name: SPA 回退页
         # GitHub Pages 对未知路径返回根目录 404.html；把它做成 index.html 的副本，
         # 深链（/site/hongcun）刷新后仍由同一个 SPA 接管。
