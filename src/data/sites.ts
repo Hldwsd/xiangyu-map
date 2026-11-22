@@ -64,7 +64,7 @@ export const sites: Site[] = [
     summary: '楚末都寿春的宋代城垣，四门与瓮城保存完整，城外淮河平原一望无际。',
     description:
       '寿县古称寿春，是楚国最后一座都城；宋代重修的城墙周长约七公里余，四座城门与瓮城形制完整。\n\n沿城墙步行可俯瞰城内街巷；城内报恩寺、孔庙与安徽楚文化博物馆适合安排半天，博物馆是理解楚文化的入口。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/shouxian-ancient-city/cover.webp',
     gallery: [],
     tags: ['古城', '城墙', '楚都'],
     bestSeason: '4-5 月、10 月',
@@ -754,7 +754,7 @@ export const sites: Site[] = [
     summary: '淮河南岸的湿地大湖，千亩荷花淀与万亩芦苇荡，人称「华东白洋淀」。',
     description:
       '焦岗湖跨淮南毛集实验区与颍上县，是国家湿地公园、国家水利风景区，湖面芦苇与荷花是主打。\n\n夏天坐船穿芦苇荡、看荷花淀最好；湖边渔家乐的鱼宴是老饕的理由。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/jiaogang-lake/cover.webp',
     gallery: [],
     tags: ['湿地公园', '荷花', '芦苇荡'],
     bestSeason: '6-8 月（荷花）',
@@ -1189,7 +1189,7 @@ export const sites: Site[] = [
     summary: '寿春城里的全国唯一「楚文化」命名博物馆，2024 年晋升国家一级博物馆。',
     description:
       '寿县是楚国最后一座都城寿春，楚幽王陵就在周边；安徽楚文化博物馆是全国唯一以「楚文化」命名的博物馆，2022 年开馆、2024 年晋升国家一级。\n\n楚式高台风格的馆舍里珍藏着 1 万余件（套）文物；与寿州古城墙一街之隔，看完博物馆再登城墙正好。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/chu-culture-museum/cover.webp',
     gallery: [],
     tags: ['楚文化', '一级博物馆', '寿县'],
     bestSeason: '全年（周一闭馆）',
