@@ -98,8 +98,8 @@ body {
 @media (max-width: 1199px) {
   body {
     background:
-      linear-gradient(rgba(247, 241, 226, 0.84), rgba(247, 241, 226, 0.9)),
-      url('/images/bg-calligraphy.webp') center top / 100% auto repeat-y,
+      linear-gradient(rgba(247, 241, 226, 0.72), rgba(247, 241, 226, 0.82)),
+      url('/images/bg-calligraphy.webp') center top / 170% auto repeat-y,
       var(--paper);
     background-attachment: scroll;
   }
