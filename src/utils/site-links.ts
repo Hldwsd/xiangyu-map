@@ -1,23 +1,26 @@
+import { AMAP_SITE_URLS } from '@/data/amap-links'
 import type { Site } from '@/types/site'
 
 /**
- * 高德地图 marker URI。
+ * 高德地点链接。
  *
- * 项目坐标统一是 GCJ-02，正好是高德使用的坐标系，不需要再做 WGS-84 转换；
- * 把 name 带进去，打开后能看到该项目的标注，而不是一个裸坐标。
+ * 优先用手工核对过的精确 POI 短链；没有短链的项目退化为「名称 + 城市」搜索。
+ * 两种情况都不拼经纬度：坐标是千米级精度，按坐标打开很容易落到隔壁点位，
+ * 而名称搜索至少把选择权交给高德的搜索结果页。
  * `callnative=0` 先打开网页版：桌面端不会弹「打开 App」，手机端网页会再引导。
  */
-export function amapMarkerUrl(site: Pick<Site, 'name' | 'location'>): string {
-  const { lng, lat } = site.location
-  // 不用 URLSearchParams：它会把 position 里的逗号编码成 %2C，部分客户端解析不稳
-  const params = [
-    `position=${lng},${lat}`,
-    `name=${encodeURIComponent(site.name)}`,
-    'coordinate=gaode',
-    'callnative=0',
-    'src=xiangyu-map',
-  ].join('&')
-  return `https://uri.amap.com/marker?${params}`
+export function amapSiteUrl(site: Pick<Site, 'id' | 'name' | 'city'>): string {
+  const exact = AMAP_SITE_URLS[site.id]
+  if (exact !== undefined && exact !== '') return exact
+
+  const params = new URLSearchParams({
+    keyword: site.name,
+    city: site.city,
+    coordinate: 'gaode',
+    callnative: '0',
+    src: 'xiangyu-map',
+  })
+  return `https://uri.amap.com/search?${params.toString()}`
 }
 
 /** 常见来源站点的中文名；不在表里的显示域名，至少比一长串 URL 好读 */

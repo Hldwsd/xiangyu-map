@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
 
-import { amapMarkerUrl, sourceLabel } from '@/utils/site-links'
+import { amapSiteUrl, sourceLabel } from '@/utils/site-links'
 
-describe('amapMarkerUrl', () => {
-  it('把 GCJ-02 坐标与项目名带进高德 marker URI', () => {
-    const url = amapMarkerUrl({
-      name: '徽州古城',
-      location: { lng: 118.436, lat: 29.867 },
-    })
+describe('amapSiteUrl', () => {
+  it('有精确短链时直接用；没有时按名称+城市搜索，不拼经纬度', () => {
+    expect(amapSiteUrl({ id: 'huizhou-ancient-city', name: '徽州古城', city: '黄山市' })).toBe(
+      'https://surl.amap.com/8bM7orMB7A0',
+    )
 
-    expect(url.startsWith('https://uri.amap.com/marker?')).toBe(true)
-    expect(url).toContain('position=118.436,29.867')
-    expect(url).toContain(`name=${encodeURIComponent('徽州古城')}`)
-    expect(url).toContain('coordinate=gaode')
+    const fallback = amapSiteUrl({ id: 'hongcun', name: '宏村', city: '黄山市' })
+    expect(fallback.startsWith('https://uri.amap.com/search?')).toBe(true)
+    expect(fallback).toContain(`keyword=${encodeURIComponent('宏村')}`)
+    expect(fallback).toContain(`city=${encodeURIComponent('黄山市')}`)
+    expect(fallback).not.toContain('position=')
   })
 })
 

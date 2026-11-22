@@ -102,6 +102,7 @@ xiangyu-map/
 │  │  ├─ icons/                   # S1 线稿图标与分类字形
 │  │  └─ site/SitePanel.vue       # 选中地标摘要卡
 │  ├─ data/sites.ts               # 地标数据（当前 63 条，可核验来源）
+│  ├─ data/amap-links.ts          # 高德精确 POI 短链（按 site id，缺失时按名称搜索）
 │  ├─ router/index.ts             # / 与 /site/:id（详情页按需加载）
 │  ├─ services/anhui-map-loader.ts # 底图与图层加载、缓存，全站唯一 fetch 出口
 │  ├─ stores/sites.ts             # 数据 + 筛选 + 选中态
@@ -326,7 +327,7 @@ export interface Site {
 - 顶栏融合了搜索/菜单/列表，筛选收进菜单与图例，去掉独立筛选浮层；
 - 视觉完成两轮：纸本墨线 → 「版式融合 + 省界光晕 + cover 背景」；
 - 封面：**63/63 已置入**，素材来源与授权风险见 [ADR 0011](adr/0011-cover-source-baike.md)；
-- 详情页：新增「在高德地图打开」、同城其他项目、来源域名展示（2026-11-22）；
+- 详情页：新增高德地点链接（精确短链优先，缺失时按名称 + 城市搜索，不拼经纬度）、同城其他项目、来源域名展示（2026-11-22）；
 - 键盘入口：移除地图内重复的隐藏地标列表，统一走顶部「项目列表」抽屉（[Issue #107](https://github.com/Hldwsd/xiangyu-map/issues/107)）；
 - 剩余：加载骨架与错误态的细粒度打磨、图片懒加载在真实图片上验证、
   列表 ↔ 地图的 hover（目前只做选中联动）。

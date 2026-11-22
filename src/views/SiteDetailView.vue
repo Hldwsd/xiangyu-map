@@ -6,7 +6,7 @@ import { useSitesStore } from '@/stores/sites'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import { assetUrl } from '@/utils/asset-url'
-import { amapMarkerUrl, sourceLabel } from '@/utils/site-links'
+import { amapSiteUrl, sourceLabel } from '@/utils/site-links'
 
 const FALLBACK_COVER = '/images/placeholder.svg'
 
@@ -147,10 +147,10 @@ function markBroken(url: string): void {
         <dd>
           <a
             class="detail__nav"
-            :href="amapMarkerUrl(site)"
+            :href="amapSiteUrl(site)"
             target="_blank"
             rel="noopener noreferrer"
-            title="坐标精度约 1 公里，仅作定位参考；导航请以官方信息为准"
+            title="打开高德地图的地点页；没有精确短链时按名称搜索"
           >
             在高德地图查看位置<AppIcon name="external" :size="12" />
           </a>
