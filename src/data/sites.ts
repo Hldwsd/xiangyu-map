@@ -622,7 +622,7 @@ export const sites: Site[] = [
     summary: '芜湖市中心的名片式湖泊，南宋状元张孝祥捐田百亩汇成，紧邻中山路步行街。',
     description:
       '镜湖原名陶塘，在芜湖最核心的地段，步出中山路步行街就是湖边。\n\n「水清可鉴，形似圆镜」是名字的来处；湖畔有步月桥与柳春园，夜色里对岸灯影入水，是市民散步的日常，也是旅人歇脚的中途站。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/jinghu-park/cover.webp',
     gallery: [],
     tags: ['城市湖泊', '步行街', '夜景'],
     bestSeason: '全年',
@@ -970,7 +970,7 @@ export const sites: Site[] = [
     summary: '芜湖市中心的地标山园，土石呈赭色得名，4A 景区免费开放，园内有皖南最大动物园。',
     description:
       '赭山在芜湖市中心、鸠兹广场北侧，大赭山海拔 84.8 米，因山体土石呈殷红色得名。\n\n1933 年筹建、1958 年建成，凝芳园、海棠园等园中园与广济寺相邻；登顶可环视芜湖城，与镜湖公园步行可达，适合串成市中心半日线。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/zhashan-park/cover.webp',
     gallery: [],
     tags: ['城市山', '免费', '广济寺'],
     bestSeason: '全年',
