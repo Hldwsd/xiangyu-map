@@ -93,7 +93,7 @@ let currentData: MapScatterDatum[] = []
 let balls: BallState[] = []
 let ballHomes = new Map<string, Point>()
 let ballRAF: number | null = null
-let ballFramesLeft = 0
+let ballStillFrames = 0
 /** 上一帧位置：静止判定看「这一帧位移量」，不看速度——弹簧在平衡点仍有残余速度 */
 let ballLastPos = new Map<string, [number, number]>()
 const ballNudgeAt = new Map<string, number>()
@@ -449,7 +449,7 @@ function resetBalls(instance: EChartsType): void {
   }
   balls = next
   ballHomes = homes
-  ballFramesLeft = 0
+  ballStillFrames = 0
   ballLastPos = new Map()
   kickBalls()
 }
@@ -474,8 +474,7 @@ function applyBalls(): void {
 
 function kickBalls(): void {
   if (ballRAF !== null) return
-  // 固定帧预算：碰一下最多模拟 ~1.5s 就冻结，保证「一会就停」，不必等速度衰减到阈值
-  ballFramesLeft = 90
+  ballStillFrames = 0
   ballRAF = window.requestAnimationFrame(tickBalls)
 }
 
@@ -484,11 +483,11 @@ function tickBalls(): void {
   if (props.cluster || disposed) return
 
   const previous = ballLastPos
-  stepBalls(balls, ballHomes, {
-    spring: 0.16,
-    damping: 0.8,
+  const speed = stepBalls(balls, ballHomes, {
+    spring: 0.06,
+    damping: 0.72,
     collide: BALL_COLLIDE,
-    push: 0.35,
+    contact: 0.12,
   })
   applyBalls()
 
@@ -502,20 +501,26 @@ function tickBalls(): void {
     }
   }
   ballLastPos = positions
-  ballFramesLeft -= 1
 
-  // 已经基本不动，或预算用完：清零速度并冻结，避免弹簧在平衡点长期微抖
-  if (maxStep < 0.02 || ballFramesLeft <= 0) {
-    for (const ball of balls) {
-      ball.vx = 0
-      ball.vy = 0
-    }
-    ballFramesLeft = 0
-    ballRAF = null
+  // 只有「真的不动了」才冻结：速度与位移都足够小连续 15 帧。
+  // 不设时间上限——停下是阻尼 + 非弹性接触把动能磨掉的结果，不是被强制截断。
+  if (speed < 0.02 && maxStep < 0.02) {
+    ballStillFrames += 1
+  } else {
+    ballStillFrames = 0
+  }
+
+  if (ballStillFrames < 15) {
+    ballRAF = window.requestAnimationFrame(tickBalls)
     return
   }
 
-  ballRAF = window.requestAnimationFrame(tickBalls)
+  for (const ball of balls) {
+    ball.vx = 0
+    ball.vy = 0
+  }
+  ballStillFrames = 0
+  ballRAF = null
 }
 
 /** 鼠标滑过小球：朝指针反方向「带一下」，随后被弹簧拉回 */

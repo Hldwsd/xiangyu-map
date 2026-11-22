@@ -27,15 +27,15 @@ export interface BallPhysicsOptions {
   damping: number
   /** 软碰撞半径：小于这个距离才互推；比地标直径（36）小一半，所以视觉上仍重叠 */
   collide: number
-  /** 碰撞位置修正比例（0–1，越大越硬） */
-  push: number
+  /** 接触刚度：重叠越深，推力越大（力模型，不是硬性分离） */
+  contact: number
 }
 
 export const DEFAULT_BALL_OPTIONS: BallPhysicsOptions = {
-  spring: 0.16,
-  damping: 0.8,
+  spring: 0.06,
+  damping: 0.72,
   collide: 18,
-  push: 0.35,
+  contact: 0.12,
 }
 
 export type Point = readonly [number, number]
@@ -46,17 +46,24 @@ export function stepBalls(
   homes: ReadonlyMap<string, Point>,
   options: BallPhysicsOptions = DEFAULT_BALL_OPTIONS,
 ): number {
-  const { spring, damping, collide, push } = options
+  const { spring, damping, collide, contact } = options
 
-  for (const ball of balls) {
+  // 清空上一帧的加速度
+  const ax = new Float64Array(balls.length)
+  const ay = new Float64Array(balls.length)
+
+  // 回位弹簧
+  for (let i = 0; i < balls.length; i += 1) {
+    const ball = balls[i]
+    if (ball === undefined) continue
     const home = homes.get(ball.id)
     if (home === undefined) continue
-    ball.vx = (ball.vx + (home[0] - ball.x) * spring) * damping
-    ball.vy = (ball.vy + (home[1] - ball.y) * spring) * damping
+    ax[i] = (ax[i] ?? 0) + (home[0] - ball.x) * spring
+    ay[i] = (ay[i] ?? 0) + (home[1] - ball.y) * spring
   }
 
-  // 软碰撞：只做「位置修正」，不注入速度——注入速度会让密集区域越推越散、永不收敛。
-  // 每次只挪 overlap 的一小部分，配合回位弹簧，最终停在一个「仍互相压住」的距离。
+  // 软接触力：重叠越深推力越大。力模型在 equilibrium 处速度归零，
+  // 不会像「直接挪位置」那样每帧注入能量、永远停不下来。
   for (let i = 0; i < balls.length; i += 1) {
     const a = balls[i]
     if (a === undefined) continue
@@ -69,18 +76,23 @@ export function stepBalls(
       if (distance >= collide) continue
       const nx = distance > 0.001 ? dx / distance : 1
       const ny = distance > 0.001 ? dy / distance : 0
-      const shift = (collide - distance) * push
-      a.x -= nx * shift
-      a.y -= ny * shift
-      b.x += nx * shift
-      b.y += ny * shift
+      const push = (collide - distance) * contact
+      ax[i] = (ax[i] ?? 0) - nx * push
+      ay[i] = (ay[i] ?? 0) - ny * push
+      ax[j] = (ax[j] ?? 0) + nx * push
+      ay[j] = (ay[j] ?? 0) + ny * push
     }
   }
 
   let maxSpeed = 0
-  for (const ball of balls) {
+  for (let i = 0; i < balls.length; i += 1) {
+    const ball = balls[i]
+    if (ball === undefined) continue
+    ball.vx = (ball.vx + (ax[i] ?? 0)) * damping
+    ball.vy = (ball.vy + (ay[i] ?? 0)) * damping
     ball.x += ball.vx
     ball.y += ball.vy
+
     const home = homes.get(ball.id)
     if (home !== undefined) {
       const offX = ball.x - home[0]
@@ -91,6 +103,7 @@ export function stepBalls(
         ball.y = home[1] + (offY / offDistance) * 48
       }
     }
+
     const speed = Math.hypot(ball.vx, ball.vy)
     if (speed > maxSpeed) maxSpeed = speed
   }
