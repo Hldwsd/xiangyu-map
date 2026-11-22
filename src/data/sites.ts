@@ -136,7 +136,7 @@ export const sites: Site[] = [
     summary: '泾县云岭的新四军军部驻地（1938–1941），第一批全国重点文物保护单位。',
     description:
       '1938–1941 年新四军军部驻扎泾县云岭，军部机关、大会堂与领导人旧居散布在几个村落之间，多为皖南民居形制。\n\n旧址 1961 年列入第一批全国重点文物保护单位；纪念馆按时间线梳理皖南事变前后的经过，看完再走旧址群更容易理解这片山地的空间关系。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/yunling-memorial/cover.webp',
     gallery: [],
     tags: ['新四军', '红色', '全国文保'],
     bestSeason: '全年',
@@ -505,7 +505,7 @@ export const sites: Site[] = [
     summary: '泾县青弋江上的深潭，两岸村落与古渡相对，春天桃花开时最像诗里写的。',
     description:
       '桃花潭在泾县西南，青弋江在此转出一个深潭，两岸是村落、古渡与踏歌岸阁。\n\n它因李白《赠汪伦》而知名；清晨江面起雾时最好看，夏季可以坐竹筏，水浅处还能下水。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/taohuatan/cover.webp',
     gallery: [],
     tags: ['青弋江', '古渡', '诗酒'],
     bestSeason: '3-4 月、9-10 月',
@@ -523,7 +523,7 @@ export const sites: Site[] = [
     summary: '泾县山里的查姓古村，祠堂与民居沿溪铺开，规模比一般古村大得多。',
     description:
       '查济在泾县桃花潭镇，是皖南保存规模较大的古村落之一：溪水穿村、石桥众多，祠堂与老宅沿着水声排布。\n\n游客密度不高，适合慢慢走；巷子窄且多石阶，穿双舒服的鞋。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/chaji-village/cover.webp',
     gallery: [],
     tags: ['古村落', '徽派', '溪流'],
     bestSeason: '3-4 月、10-11 月',
@@ -544,7 +544,7 @@ export const sites: Site[] = [
     summary: '泾县东南的山涧溪谷，水浅石白、树荫密，夏天适合沿溪踩水走一段。',
     description:
       '水墨汀溪在泾县汀溪乡，溪流在花岗岩河床上拐出许多浅滩与水潭，两岸是竹林与阔叶林。\n\n夏天最舒服，可以沿溪走一段、下到浅滩踩水；雨后水量大，石头滑，注意脚下。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/shuimo-tingxi/cover.webp',
     gallery: [],
     tags: ['溪谷', '竹林', '避暑'],
     bestSeason: '5-9 月',
@@ -565,7 +565,7 @@ export const sites: Site[] = [
     summary: '皖南事变的主要激战地，山坳里的旧址与纪念碑，适合安静走一趟。',
     description:
       '1941 年皖南事变中，新四军在茂林一带被围，山坳与溪谷间留下了多处战场遗址。\n\n镇上有纪念碑与旧址群；配合周边地形看，会更容易理解当年为什么在这里被围住。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/maolin-battlefield/cover.webp',
     gallery: [],
     tags: ['皖南事变', '旧址', '山地'],
     bestSeason: '全年',
@@ -988,7 +988,7 @@ export const sites: Site[] = [
     summary: '绩溪坑口村的胡氏聚居古村，胡氏宗祠与奕世尚书坊皆是全国文保，5A 景区。',
     description:
       '龙川是大坑口村的古称，村形如船、依山傍水；胡氏宗祠始建于宋、嘉靖年间扩建，木雕「四和图」让它有「木雕艺术博物馆」之称。\n\n宗祠、奕世尚书坊与胡炳衡宅三处全国重点文保组成 5A 景区；胡宗宪、胡富的故里故事适合配着三雕细看。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/longchuan/cover.webp',
     gallery: [],
     tags: ['胡氏宗祠', '全国文保', '5A'],
     bestSeason: '3-5 月、9-11 月',
