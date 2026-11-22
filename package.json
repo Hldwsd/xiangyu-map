@@ -13,6 +13,7 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "build-only": "vite build",
     "preview": "vite preview",
+    "prerender": "node scripts/prerender-sites.mjs",
     "type-check": "vue-tsc --build",
     "test:unit": "vitest",
     "lint": "eslint . --cache",

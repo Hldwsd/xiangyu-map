@@ -44,6 +44,11 @@ jobs:
       - name: Build
         run: pnpm build-only --base=${{ env.PREVIEW_BASE }}
 
+      - name: Pre-render detail pages
+        run: pnpm prerender
+        env:
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.number }}/
+
       - name: Publish preview
         # 同 deploy.yml：自己做推送以便失败重试（与部署同时写 gh-pages 时不至于红掉）
         run: |
