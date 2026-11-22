@@ -109,7 +109,7 @@ xiangyu-map/
 │  ├─ types/site.ts               # 数据契约（双方评审后冻结）
 │  ├─ utils/site-validation.ts    # 运行时校验：启动即校验，失败抛 SiteDataError
 │  ├─ views/HomeView.vue、views/SiteDetailView.vue
-│  ├─ __tests__/                  # Vitest 单测（9 个文件 / 124 个用例）
+│  ├─ __tests__/                  # Vitest 单测（9 个文件 / 125 个用例）
 │  ├─ App.vue
 │  └─ main.ts
 ├─ .github/workflows/ci.yml       # PR 上跑 lint / format / typecheck / test / build
@@ -261,7 +261,7 @@ export interface Site {
 | 项               | 目标              | 现状                                                                                                         |
 | ---------------- | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | 地标数据         | 60 条（M1）       | **63 条**可核验（M1 的 60 条目标已达成）；16 市全部 ≥2 条；**「示例数据」标签已清零**；**封面 63/63 已置入** |
-| 单元测试         | 覆盖率 ≥ 70%      | **124 个用例 / 9 个文件**，全绿（覆盖率报告未接）                                                            |
+| 单元测试         | 覆盖率 ≥ 70%      | **125 个用例 / 9 个文件**，全绿（覆盖率报告未接）                                                            |
 | 首屏 JS（gzip）  | ≤ 300 KB          | **258.7 KB**                                                                                                 |
 | 底图体积（gzip） | ≤ 250 KB          | 市 41 + 省界 17 + 湖 11 + 河 3 + 区县 126 = **198 KB**                                                       |
 | 线上             | main 自动发布     | https://hldwsd.github.io/xiangyu-map/ （main 自动发布，资源哈希随构建变化）                                  |

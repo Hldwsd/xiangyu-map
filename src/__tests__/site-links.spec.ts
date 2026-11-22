@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { AMAP_SITE_URLS } from '@/data/amap-links'
+import { sites } from '@/data/sites'
 import { amapSiteUrl, sourceLabel } from '@/utils/site-links'
 
 describe('amapSiteUrl', () => {
@@ -13,6 +15,14 @@ describe('amapSiteUrl', () => {
     expect(fallback).toContain(`keyword=${encodeURIComponent('宏村')}`)
     expect(fallback).toContain(`city=${encodeURIComponent('黄山市')}`)
     expect(fallback).not.toContain('position=')
+  })
+
+  it('精确短链只引用真实 site id，且必须是 https', () => {
+    const ids = new Set(sites.map((site) => site.id))
+    for (const [id, url] of Object.entries(AMAP_SITE_URLS)) {
+      expect(ids.has(id)).toBe(true)
+      expect(url.startsWith('https://')).toBe(true)
+    }
   })
 })
 
