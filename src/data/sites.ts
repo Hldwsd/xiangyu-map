@@ -265,7 +265,7 @@ export const sites: Site[] = [
     summary: '中国农村改革的起点，纪念馆与旧居讲清一纸红手印如何改变了一个村庄。',
     description:
       '小岗村在凤阳县。1978 年，18 户村民按下红手印、实行包干到户，这里因此成为中国农村改革的标志性地点。\n\n村里有纪念馆、旧居与大包干纪念场所，配合讲解看，比单看展板更能理解当时的处境。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/xiaogang-village/cover.webp',
     gallery: [],
     tags: ['农村改革', '纪念馆', '凤阳'],
     bestSeason: '3-5 月、9-11 月',
@@ -340,7 +340,7 @@ export const sites: Site[] = [
     summary: '滁州城西的山林，醉翁亭在山脚，欧阳修那句「环滁皆山也」写的就是这里。',
     description:
       '琅琊山在滁州城西南，山不算高但林木深，醉翁亭、琅琊寺沿山道分布。\n\n山脚到醉翁亭步行即可，再往上走到琅琊寺约半小时；秋季的红叶与山雾是这里常被拍到的两个题材。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/langyashan/cover.webp',
     gallery: [],
     tags: ['醉翁亭', '山林', '人文'],
     bestSeason: '4-5 月、10-11 月',
@@ -718,7 +718,7 @@ export const sites: Site[] = [
     summary: '凤阳韭山国家森林公园里的喀斯特溶洞，主洞近 1500 米，人称「江北第一洞」。',
     description:
       '韭山洞形成于寒武纪灰岩里，《水经注》已有记载；洞内分虎踞龙蟠、摘星揽月等段，元末朱元璋屯兵留下了演兵场等人文痕迹。\n\n洞内恒温约 17℃，夏天进洞记得带件薄外套；可与狼巷迷谷串成一日。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/jiushan-cave/cover.webp',
     gallery: [],
     tags: ['溶洞', '森林公园', '地质'],
     bestSeason: '全年（夏季避暑）',
@@ -1024,7 +1024,7 @@ export const sites: Site[] = [
     summary: '朱元璋为父母兄嫂营建的陵墓，皇陵碑与石刻群是全国重点文物保护单位。',
     description:
       '明皇陵在凤阳县城南，1366 年始建、历时 13 年建成；「明中都皇故城及皇陵石刻」1982 年列入第二批全国重点文物保护单位。\n\n皇陵碑的碑文由朱元璋亲自撰写，石刻群沿神道排列；与明中都皇故城遗址串成凤阳的明代遗存一日线。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/minghuangling/cover.webp',
     gallery: [],
     tags: ['明代陵墓', '全国文保', '朱元璋'],
     bestSeason: '全年',
