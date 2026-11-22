@@ -10,14 +10,15 @@ describe('amapSiteUrl', () => {
       'https://surl.amap.com/8bM7orMB7A0',
     )
 
-    const fallback = amapSiteUrl({ id: 'hongcun', name: '宏村', city: '黄山市' })
+    const fallback = amapSiteUrl({ id: 'not-in-map', name: '宏村', city: '黄山市' })
     expect(fallback.startsWith('https://uri.amap.com/search?')).toBe(true)
     expect(fallback).toContain(`keyword=${encodeURIComponent('宏村')}`)
     expect(fallback).toContain(`city=${encodeURIComponent('黄山市')}`)
     expect(fallback).not.toContain('position=')
   })
 
-  it('精确短链只引用真实 site id，且必须是 https', () => {
+  it('63 条数据都有精确短链，且只引用真实 site id、必须是 https', () => {
+    expect(Object.keys(AMAP_SITE_URLS)).toHaveLength(sites.length)
     const ids = new Set(sites.map((site) => site.id))
     for (const [id, url] of Object.entries(AMAP_SITE_URLS)) {
       expect(ids.has(id)).toBe(true)
