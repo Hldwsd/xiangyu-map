@@ -90,6 +90,21 @@ body {
   }
 }
 
+/*
+ * 窄屏也要书法：横卷在竖屏上 cover 会把字放大到只剩几个大字，
+ * 所以按 100% 宽铺成竖排条带、重复向下，再压一层纸色薄纱保证地图可读。
+ * 用 scroll 而不是 fixed：iOS 对 fixed 背景的裁剪会闪。
+ */
+@media (max-width: 1199px) {
+  body {
+    background:
+      linear-gradient(rgba(247, 241, 226, 0.84), rgba(247, 241, 226, 0.9)),
+      url('/images/bg-calligraphy.webp') center top / 100% auto repeat-y,
+      var(--paper);
+    background-attachment: scroll;
+  }
+}
+
 #app {
   min-height: 100vh;
 }

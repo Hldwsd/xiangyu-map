@@ -218,9 +218,9 @@ function clampCenter(center: [number, number]): [number, number] {
 /**
  * 双指缩放：ECharts 原生 pinch 是 1:1 映射，指尖动一点地图就跳很多。
  * 这里在 container 上捕获两指移动（capture + preventDefault/stopPropagation 挡住 zrender 的 roam），
- * 用 ratio^0.55 的阻尼曲线自己算 zoom，同时按两指中点位移平移中心。
+ * 用 ratio^0.75 的阻尼曲线自己算 zoom，同时按两指中点位移平移中心。
  */
-const PINCH_DAMPING = 0.55
+const PINCH_DAMPING = 0.75
 let pinchState: {
   distance: number
   zoom: number

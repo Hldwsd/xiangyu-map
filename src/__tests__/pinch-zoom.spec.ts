@@ -5,11 +5,11 @@ import { pinchZoom } from '@/components/map/pinch-zoom'
 const LIMITS = { min: 0.9, max: 8 }
 
 describe('pinchZoom', () => {
-  it('阻尼后比线性更不敏感：两指拉远 20% 只放大 ~10%', () => {
+  it('阻尼后比线性稍钝：两指拉远 20% 放大约 15%', () => {
     const zoom = pinchZoom(2, 1.2, LIMITS)
     expect(zoom).toBeGreaterThan(2)
     expect(zoom).toBeLessThan(2.4)
-    expect(zoom).toBeCloseTo(2 * 1.2 ** 0.55, 5)
+    expect(zoom).toBeCloseTo(2 * 1.2 ** 0.75, 5)
   })
 
   it('两指收近时同样只缩小一部分', () => {
