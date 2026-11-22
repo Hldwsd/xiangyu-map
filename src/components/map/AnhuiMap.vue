@@ -18,6 +18,7 @@ import {
   type RiverLine,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
+import { clampViewCenter } from '@/components/map/view-clamp'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
 import { FEATURED_SITE_IDS } from '@/data/sites'
 import {
@@ -50,9 +51,17 @@ const ZOOM_MAX = 8
 const LAYER_SWITCH_ZOOM = 1.9
 /** 没有拖拽、没有漫游时的兜底中心（安徽省几何中心附近） */
 const FALLBACK_CENTER: [number, number] = [117.3, 31.8]
-/** 拖动时允许的中心范围：省域外接框略收一点，避免把地图拖出视野只剩空白 */
-const CENTER_MIN: [number, number] = [115.4, 30.2]
-const CENTER_MAX: [number, number] = [119.1, 33.9]
+/**
+ * 省域经纬度外框（由合并后的底图实时算出）。
+ *
+ * 拖动夹取必须按「当前缩放」换算可见范围：固定一个中心框在放大后会把人挡住——
+ * 放到 8 倍时视野只有零点几度，却只能停在固定框内，省域最西 / 最北的角永远看不到。
+ */
+let provinceBBox: [[number, number], [number, number]] | null = null
+const FALLBACK_BBOX: [[number, number], [number, number]] = [
+  [114.88, 29.39],
+  [119.65, 34.65],
+]
 
 const props = defineProps<{
   sites: Site[]
@@ -108,6 +117,35 @@ function themePalette(): ThemePalette {
   return palette
 }
 
+function bboxOfFeatures(
+  features: { geometry?: { coordinates?: unknown } | null }[],
+): [[number, number], [number, number]] {
+  let minLng = Infinity
+  let minLat = Infinity
+  let maxLng = -Infinity
+  let maxLat = -Infinity
+
+  const visit = (node: unknown): void => {
+    if (!Array.isArray(node)) return
+    if (node.length >= 2 && typeof node[0] === 'number' && typeof node[1] === 'number') {
+      const [lng, lat] = node as [number, number]
+      minLng = Math.min(minLng, lng)
+      maxLng = Math.max(maxLng, lng)
+      minLat = Math.min(minLat, lat)
+      maxLat = Math.max(maxLat, lat)
+      return
+    }
+    for (const child of node) visit(child)
+  }
+
+  for (const feature of features) visit(feature.geometry?.coordinates)
+  if (!Number.isFinite(minLng)) return FALLBACK_BBOX
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ]
+}
+
 function clampZoom(value: number): number {
   return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, value))
 }
@@ -128,11 +166,35 @@ function geoState(): { center: [number, number]; zoom: number } {
   }
 }
 
-function clampCenter(center: [number, number]): [number, number] {
-  return [
-    Math.min(CENTER_MAX[0], Math.max(CENTER_MIN[0], center[0])),
-    Math.min(CENTER_MAX[1], Math.max(CENTER_MIN[1], center[1])),
-  ]
+/**
+ * 把中心夹到「当前缩放下的可平移范围」。
+ *
+ * 可见半幅（经纬度）= 视口像素 / 每度像素 / 2；中心允许范围就是省域外框内缩半幅后的区间。
+ * 缩得很小时半幅比省域还大，就固定在省域中心（不出现大片空白）。
+ */
+function clampCenter(center: [number, number], zoom = geoState().zoom): [number, number] {
+  const instance = chart.value
+  const containerEl = container.value
+  if (instance === null || containerEl === null) return center
+
+  const state = geoState()
+  const p0 = instance.convertToPixel({ geoIndex: 0 }, state.center)
+  const pLng = instance.convertToPixel({ geoIndex: 0 }, [state.center[0] + 0.5, state.center[1]])
+  const pLat = instance.convertToPixel({ geoIndex: 0 }, [state.center[0], state.center[1] + 0.5])
+  if (!Array.isArray(p0) || !Array.isArray(pLng) || !Array.isArray(pLat)) return center
+
+  const pxPerLng = Math.abs((pLng[0] as number) - (p0[0] as number)) / 0.5
+  const pxPerLat = Math.abs((pLat[1] as number) - (p0[1] as number)) / 0.5
+
+  return clampViewCenter({
+    center,
+    zoom,
+    currentZoom: state.zoom,
+    bbox: provinceBBox ?? FALLBACK_BBOX,
+    viewport: { width: containerEl.clientWidth, height: containerEl.clientHeight },
+    pxPerLng,
+    pxPerLat,
+  })
 }
 
 /**
@@ -152,7 +214,7 @@ function handleGeoRoam(): void {
 
   // 实时夹取：拖动过程中越界就把中心顶回边界，而不是等松手后「传送」回来。
   // 写回时带上传当前 zoom，避免只写 center 时把缩放重置成默认值。
-  const [clampedX, clampedY] = clampCenter(center)
+  const [clampedX, clampedY] = clampCenter(center, zoom)
   if (clampedX !== center[0] || clampedY !== center[1]) {
     clampingCenter = true
     instance.setOption({ geo: { center: [clampedX, clampedY], zoom } })
@@ -212,7 +274,7 @@ function animateGeoTo(center: [number, number], zoom: number, duration = CLUSTER
   if (instance === null) return
 
   const from = geoState()
-  const target = clampCenter(center)
+  const target = clampCenter(center, zoom)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   tweening = true
 
@@ -272,7 +334,7 @@ function zoomTo(target: number): void {
   const next = clampZoom(target)
   if (Math.abs(next - zoom) < 0.001) return
 
-  instance.setOption({ geo: { center: clampCenter(center), zoom: next } })
+  instance.setOption({ geo: { center: clampCenter(center, next), zoom: next } })
   zoomLevel.value = Number(next.toFixed(2))
   syncLayerMode()
   refreshMarkers()
@@ -576,6 +638,7 @@ async function render(): Promise<void> {
     outlineRings = buildOutlineRings(outline)
     const merged = mergeMapLayers(city, null, water)
     mapFeatures = merged.features
+    provinceBBox = bboxOfFeatures(merged.features)
     riverLines = buildRiverLines(rivers)
     layerMode = 'city'
     layerRegions = buildLayerRegions(mapFeatures, layerMode)
