@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { sites } from '@/data/sites'
 import {
+  PRACTICAL_MAX_LENGTH,
   SiteDataError,
   SUMMARY_MAX_LENGTH,
   isSiteCategory,
@@ -47,6 +48,37 @@ describe('validateSites', () => {
 
   it('接受一条最小合法数据', () => {
     expect(validateSites([validSite()])).toHaveLength(1)
+  })
+
+  it('接受 practical 决策信息', () => {
+    const withPractical = validSite()
+    withPractical['practical'] = {
+      duration: '3–4 小时',
+      audience: '古村、摄影',
+    }
+    expect(validateSites([withPractical])).toHaveLength(1)
+  })
+
+  it('practical 非对象、空字段、未知字段或超长时报错', () => {
+    const nonObject = validSite()
+    nonObject['practical'] = '3 小时'
+    expect(
+      expectProblems([nonObject]).some((p) => p.includes('practical: 如果填写必须是对象')),
+    ).toBe(true)
+
+    const empty = validSite()
+    empty['practical'] = { duration: '' }
+    expect(expectProblems([empty]).some((p) => p.includes('practical.duration'))).toBe(true)
+
+    const unknown = validSite()
+    unknown['practical'] = { ticketPrice: '100 元' }
+    expect(expectProblems([unknown]).some((p) => p.includes('不支持的字段'))).toBe(true)
+
+    const tooLong = validSite()
+    tooLong['practical'] = { audience: '乡'.repeat(PRACTICAL_MAX_LENGTH + 1) }
+    expect(
+      expectProblems([tooLong]).some((p) => p.includes(`超过 ${PRACTICAL_MAX_LENGTH} 字`)),
+    ).toBe(true)
   })
 
   it('顶层不是数组时直接失败', () => {

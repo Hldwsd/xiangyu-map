@@ -135,13 +135,29 @@ function markBroken(url: string): void {
       <dl class="detail__facts">
         <dt><AppIcon name="pin" :size="12" />坐标</dt>
         <dd>{{ site.location.lng }}, {{ site.location.lat }}（GCJ-02）</dd>
+        <template v-if="site.practical?.duration">
+          <dt><AppIcon name="clock" :size="12" />建议停留</dt>
+          <dd>{{ site.practical.duration }}</dd>
+        </template>
         <template v-if="site.bestSeason">
           <dt><AppIcon name="calendar" :size="12" />最佳季节</dt>
           <dd>{{ site.bestSeason }}</dd>
         </template>
+        <template v-if="site.practical?.hours">
+          <dt><AppIcon name="clock" :size="12" />开放时间</dt>
+          <dd>{{ site.practical.hours }}</dd>
+        </template>
+        <template v-if="site.practical?.ticket">
+          <dt><AppIcon name="ticket" :size="12" />门票</dt>
+          <dd>{{ site.practical.ticket }}</dd>
+        </template>
         <template v-if="site.transport">
           <dt><AppIcon name="route" :size="12" />交通</dt>
           <dd>{{ site.transport }}</dd>
+        </template>
+        <template v-if="site.practical?.audience">
+          <dt><AppIcon name="users" :size="12" />适合</dt>
+          <dd>{{ site.practical.audience }}</dd>
         </template>
         <dt><AppIcon name="pin" :size="12" />地图</dt>
         <dd>

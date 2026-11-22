@@ -67,7 +67,7 @@ describe('界面图标', () => {
     ]) {
       expect(names).toContain(name)
     }
-    for (const name of ['external', 'calendar', 'route']) {
+    for (const name of ['external', 'calendar', 'route', 'clock', 'ticket', 'users']) {
       expect(names).toContain(name)
     }
   })
