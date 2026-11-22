@@ -44,7 +44,7 @@ function jsonLdScript(data) {
   return `    <script type="application/ld+json">${json}</script>`
 }
 
-function metaBlock({ title, description, url, type, jsonLd }) {
+function metaBlock({ title, description, url, type, image, jsonLd }) {
   return [
     '    <!-- prerender:meta:start -->',
     `    <link rel="canonical" href="${escapeHtml(url)}" />`,
@@ -53,13 +53,13 @@ function metaBlock({ title, description, url, type, jsonLd }) {
     `    <meta property="og:title" content="${escapeHtml(title)}" />`,
     `    <meta property="og:description" content="${escapeHtml(description)}" />`,
     `    <meta property="og:url" content="${escapeHtml(url)}" />`,
-    `    <meta property="og:image" content="${escapeHtml(ogImage)}" />`,
+    `    <meta property="og:image" content="${escapeHtml(image)}" />`,
     '    <meta property="og:image:width" content="1200" />',
     '    <meta property="og:image:height" content="630" />',
     '    <meta name="twitter:card" content="summary_large_image" />',
     `    <meta name="twitter:title" content="${escapeHtml(title)}" />`,
     `    <meta name="twitter:description" content="${escapeHtml(description)}" />`,
-    `    <meta name="twitter:image" content="${escapeHtml(ogImage)}" />`,
+    `    <meta name="twitter:image" content="${escapeHtml(image)}" />`,
     jsonLdScript(jsonLd),
     '    <!-- prerender:meta:end -->',
   ].join('\n')
@@ -82,6 +82,7 @@ const homeMeta = {
   description: homeDescription,
   url: siteUrl,
   type: 'website',
+  image: ogImage,
   jsonLd: {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -98,17 +99,21 @@ let count = 0
 for (const site of sites) {
   const url = `${siteUrl}site/${site.id}/`
   const title = `${site.name} · 乡遇安徽`
+  const image = existsSync(path.join(distDir, 'og', 'sites', `${site.id}.jpg`))
+    ? `${siteUrl}og/sites/${site.id}.jpg`
+    : ogImage
   const meta = {
     title,
     description: site.summary,
     url,
     type: 'article',
+    image,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'TouristAttraction',
       name: site.name,
       description: site.summary,
-      image: `${siteUrl}og-cover.jpg`,
+      image,
       url,
       address: {
         '@type': 'PostalAddress',

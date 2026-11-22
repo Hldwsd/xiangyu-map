@@ -330,7 +330,7 @@ export interface Site {
 - 视觉完成两轮：纸本墨线 → 「版式融合 + 省界光晕 + cover 背景」；
 - 封面：**62/62 已置入**，素材来源与授权风险见 [ADR 0011](adr/0011-cover-source-baike.md)；
 - 详情页：新增高德地点链接（62/62 精确 POI 短链已置入，缺失时按名称 + 城市搜索，不拼经纬度）、同城其他项目、来源域名展示（2026-11-22）；
-- 分享与收录：构建后预渲染 62 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；
+- 分享与收录：构建后预渲染 62 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；头部 12 个项目已有独立分享图，其余用统一品牌图；
 - 键盘入口：移除地图内重复的隐藏地标列表，统一走顶部「项目列表」抽屉（[Issue #107](https://github.com/Hldwsd/xiangyu-map/issues/107)）；
 - 剩余：加载骨架与错误态的细粒度打磨、图片懒加载在真实图片上验证、
   列表 ↔ 地图的 hover（目前只做选中联动）。

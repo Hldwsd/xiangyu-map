@@ -25,7 +25,7 @@
    - `application/ld+json`（`TouristAttraction`，含地址与坐标）
 3. 写到 `dist/site/<id>/index.html`；首页 `dist/index.html` 也注入站点级 meta；
 4. `SITE_URL` 由 deploy/preview workflow 注入，保证 OG/canonical 是绝对地址；
-5. OG 图暂用一张统一的 `public/og-cover.jpg`（1200×630）；每项目单独出图作为后续优化。
+5. OG 图优先用 `public/og/sites/<id>.jpg`（头部 12 个项目由 `scripts/make-og-images.py` 生成），没有独立图的项目回退到统一 `public/og-cover.jpg`；后续再补剩余项目。
 
 不引入 SSG 框架，不动运行时路由与组件，构建后的 HTML 仍然加载同一个 SPA bundle。
 
@@ -41,7 +41,7 @@
 - 构建顺序固定：`build-only` → `prerender` → 复制 404；漏跑 prerender 会退回 SPA 行为；
 - 每个详情页多一个 `dist/site/<id>/index.html`，部署文件数增加 62 个；
 - 详情页的 canonical 使用带尾斜杠的 `/site/<id>/`，与静态目录一致；Vue Router 默认允许尾斜杠，运行时仍能命中；
-- 统一的 OG 图意味着分享卡片的图不是项目封面；后续可批量生成每项目 1200×630 JPG 再替换；
+- 目前只有头部 12 个项目有独立分享图，其余项目仍用统一图；后续可按同一脚本补齐剩余项目；
 - PR 预览的预渲染页可直接访问，但无尾斜杠的深链仍受 GitHub Pages 404 限制（已知限制）。
 
 ## 备选方案
