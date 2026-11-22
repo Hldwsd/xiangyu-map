@@ -43,7 +43,7 @@ export const sites: Site[] = [
     summary: '旧徽州府治所在的歙县古城，许国石坊、斗山街与渔梁坝串成读徽州的步行路线。',
     description:
       '古城是旧徽州府治所在，许国石坊（明万历年间的八脚牌坊）是城内最醒目的地标，斗山街两侧保留大量徽派宅第。\n\n徽州古城是 5A「古徽州文化旅游区」的组成部分，出城不远是渔梁坝；傍晚在坝上看练江收束，是很多人对歙县的第一印象。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huizhou-ancient-city/cover.webp',
     gallery: [],
     tags: ['徽派', '古城', '许国石坊'],
     bestSeason: '3-4 月、10-11 月',
@@ -82,7 +82,7 @@ export const sites: Site[] = [
     summary: '世界文化与自然双遗产，奇松怪石云海温泉四绝，中国山岳风景的经典。',
     description:
       '黄山 1990 年列入世界文化与自然双遗产，以奇松、怪石、云海、温泉「四绝」著称。\n\n前山后山各有索道，徒步与索道可以组合安排；看日出通常需在山上过夜，山下汤口镇是主要集散地。天气变化快，雨具与保暖衣物四季都用得上。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huangshan-scenic/cover.webp',
     gallery: [],
     tags: ['世界遗产', '山岳', '云海'],
     bestSeason: '4-5 月、9-11 月',
@@ -190,7 +190,7 @@ export const sites: Site[] = [
     summary: '世界文化遗产的牛形村落，月沼南湖的水圳流过每家门前，清晨最安静。',
     description:
       '宏村 2000 年作为「皖南古村落—西递、宏村」列入世界文化遗产，水系按牛形布局，水圳从每家门前流过。\n\n月沼与南湖是两处最开阔的水面，村内巷道窄，晨昏光线斜射时最好看；住村内可避开团队客流，西递、塔川可顺路安排。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/hongcun/cover.webp',
     gallery: [],
     tags: ['世界遗产', '徽派', '村落'],
     bestSeason: '3-4 月、11 月',
@@ -430,7 +430,7 @@ export const sites: Site[] = [
     summary: '黟县山坳里的徽派古村，牌坊、祠堂与巷弄保存完整，比宏村安静一些。',
     description:
       '西递与宏村同为皖南古村落的代表，村口的胡文光牌坊是最醒目的地标，村内街巷依山势铺开。\n\n相比宏村的水系，西递更强调宗族与宅第的格局；游客密度低一些，适合慢慢看门楼上的砖雕。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/xidi/cover.webp',
     gallery: [],
     tags: ['徽派', '古村落', '世界遗产'],
     bestSeason: '3-4 月、10-11 月',
@@ -448,7 +448,7 @@ export const sites: Site[] = [
     summary: '黄山市区的老街，徽派店面夹着石板路，是进山前后歇脚与采买的地方。',
     description:
       '屯溪老街沿新安江铺开，两侧是徽派店面与百年老字号，卖文房、茶叶与徽州小吃。\n\n它更像一条仍在生活的商业街，而不是圈起来的景区：不收门票，早晚各有各的样子。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/tunxi-old-street/cover.webp',
     gallery: [],
     tags: ['老街', '徽派', '市井'],
     bestSeason: '全年',
@@ -916,7 +916,7 @@ export const sites: Site[] = [
     summary: '新安江上游最古老的拦河坝，唐代始建、全国重点文保，坝旁渔梁街是「徽商之源」。',
     description:
       '渔梁坝横截练江，坝上水缓、坝下激流，兼具蓄水泄洪与通航之用，2001 年列入第五批全国重点文物保护单位。\n\n坝旁的渔梁古街曾是徽商水运码头，青石街巷直通坝顶；傍晚坐在坝上看练江水声，是歙县城南最省力的慢时光。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/yuliang-dam/cover.webp',
     gallery: [],
     tags: ['古代水利', '全国文保', '徽商'],
     bestSeason: '全年',
@@ -934,7 +934,7 @@ export const sites: Site[] = [
     summary: '徽州明清古建筑的异地保护博物馆，明园清园两区，「看民宅到潜口」。',
     description:
       '潜口民宅博物馆把散落徽州的明清古建筑整体迁建于紫霞山麓，曹门厅、司谏第等是黄山市首批全国重点文物保护单位。\n\n作为古徽州文化旅游区（5A）的组成部分免费参观，距徽州古城约 7 公里；「观皇宫去北京，看民宅到潜口」说的就是这里。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/qiankou-mansion/cover.webp',
     gallery: [],
     tags: ['古建筑', '全国文保', '徽州'],
     bestSeason: '全年',
@@ -1171,7 +1171,7 @@ export const sites: Site[] = [
     summary: '屯溪的国家一级博物馆，馆藏约 10 万件，是读懂徽州「一府六县」的第一站。',
     description:
       '徽州文化博物馆是安徽省第二大综合性博物馆、国家一级博物馆，馆藏约 10 万件（套），新馆 2008 年开放。\n\n展览从徽州人的由来讲到「一府六县」的形成与徽商兴衰，馆舍本身就是徽派风格；看懂了这里再看西递宏村与徽州古村，会完全不同。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huizhou-culture-museum/cover.webp',
     gallery: [],
     tags: ['一级博物馆', '徽文化', '屯溪'],
     bestSeason: '全年（周一闭馆）',
