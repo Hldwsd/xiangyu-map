@@ -1135,7 +1135,7 @@ export const sites: Site[] = [
     summary: '国家一级博物馆，新馆取「五方相连、四水归堂」的徽派格局，楚大鼎是镇馆之宝。',
     description:
       '安徽博物院是省内唯一的省级综合类博物馆，国家一级博物馆；新馆在怀宁路天鹅湖畔，建筑体现「五方相连、四水归堂」的徽派意匠。\n\n常设安徽文明史、徽州古建筑、安徽革命史等陈列，铸客大鼎（楚大鼎）是镇馆之宝，也是「国家公祭鼎」的原型；免费预约参观，老馆在安庆路。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/anhui-museum/cover.webp',
     gallery: [],
     tags: ['一级博物馆', '楚大鼎', '徽派建筑'],
     bestSeason: '全年（周一闭馆）',
