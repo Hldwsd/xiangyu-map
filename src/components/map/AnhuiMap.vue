@@ -20,6 +20,7 @@ import {
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
 import { nudgeBall, stepBalls, type BallState, type Point } from '@/components/map/marker-physics'
 import { clampViewCenter } from '@/components/map/view-clamp'
+import { pinchZoom } from '@/components/map/pinch-zoom'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
 import { FEATURED_SITE_IDS } from '@/data/sites'
 import {
@@ -214,6 +215,91 @@ function clampCenter(center: [number, number]): [number, number] {
  * `roam: 'move'` 交给 ECharts 做平移手感（惯性、指针捕获都是现成的），
  * 但默认可以把地图拖到视野外只剩空白；这里在 georoam 里做范围夹取。
  */
+/**
+ * 双指缩放：ECharts 原生 pinch 是 1:1 映射，指尖动一点地图就跳很多。
+ * 这里在 container 上捕获两指移动（capture + preventDefault/stopPropagation 挡住 zrender 的 roam），
+ * 用 ratio^0.55 的阻尼曲线自己算 zoom，同时按两指中点位移平移中心。
+ */
+const PINCH_DAMPING = 0.55
+let pinchState: {
+  distance: number
+  zoom: number
+  center: [number, number]
+  midpoint: [number, number]
+  pxPerLng: number
+  pxPerLat: number
+} | null = null
+
+function touchPoints(event: TouchEvent): [[number, number], [number, number]] | null {
+  const a = event.touches[0]
+  const b = event.touches[1]
+  if (a === undefined || b === undefined) return null
+  return [
+    [a.clientX, a.clientY],
+    [b.clientX, b.clientY],
+  ]
+}
+
+function handleTouchStart(event: TouchEvent): void {
+  if (event.touches.length !== 2) return
+  const instance = chart.value
+  const points = touchPoints(event)
+  if (instance === null || points === null) return
+  const { center, zoom } = geoState()
+
+  const base = instance.convertToPixel({ geoIndex: 0 }, center)
+  const lng = instance.convertToPixel({ geoIndex: 0 }, [center[0] + 0.01, center[1]])
+  const lat = instance.convertToPixel({ geoIndex: 0 }, [center[0], center[1] + 0.01])
+  if (!Array.isArray(base) || !Array.isArray(lng) || !Array.isArray(lat)) return
+
+  pinchState = {
+    distance: Math.hypot(points[0][0] - points[1][0], points[0][1] - points[1][1]),
+    zoom,
+    center,
+    midpoint: [(points[0][0] + points[1][0]) / 2, (points[0][1] + points[1][1]) / 2],
+    pxPerLng: Math.abs((lng[0] as number) - (base[0] as number)) / 0.01,
+    pxPerLat: Math.abs((lat[1] as number) - (base[1] as number)) / 0.01,
+  }
+}
+
+function handleTouchMove(event: TouchEvent): void {
+  if (event.touches.length !== 2 || pinchState === null) return
+  const instance = chart.value
+  const points = touchPoints(event)
+  if (instance === null || points === null) return
+  if (pinchState.distance <= 1) return
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  const distance = Math.hypot(points[0][0] - points[1][0], points[0][1] - points[1][1])
+  const ratio = distance / pinchState.distance
+  const zoom = pinchZoom(pinchState.zoom, ratio, {
+    min: ZOOM_MIN,
+    max: ZOOM_MAX,
+    damping: PINCH_DAMPING,
+  })
+  const midpoint: [number, number] = [
+    (points[0][0] + points[1][0]) / 2,
+    (points[0][1] + points[1][1]) / 2,
+  ]
+
+  const center: [number, number] = [
+    pinchState.center[0] - (midpoint[0] - pinchState.midpoint[0]) / pinchState.pxPerLng,
+    pinchState.center[1] + (midpoint[1] - pinchState.midpoint[1]) / pinchState.pxPerLat,
+  ]
+
+  instance.setOption({ geo: { center: clampCenter(center), zoom } })
+  zoomLevel.value = Number(zoom.toFixed(2))
+  roamActiveUntil = performance.now() + 180
+}
+
+function handleTouchEnd(event: TouchEvent): void {
+  if (event.touches.length >= 2) return
+  pinchState = null
+  scheduleRoamRefresh()
+}
+
 function handleGeoRoam(): void {
   const instance = chart.value
   if (instance === null || tweening || clampingCenter) return
@@ -344,7 +430,15 @@ function zoomBy(factor: number): void {
 }
 
 function onZoomInput(event: Event): void {
-  zoomTo(Number((event.target as HTMLInputElement).value))
+  const instance = chart.value
+  if (instance === null) return
+  const next = clampZoom(Number((event.target as HTMLInputElement).value))
+  // 拖动缩放条会连续触发 input：只改 geo 缩放，图层/地标刷新防抖到松手后再做
+  const { center } = geoState()
+  instance.setOption({ geo: { center: clampCenter(center), zoom: next } })
+  zoomLevel.value = Number(next.toFixed(2))
+  roamActiveUntil = performance.now() + 180
+  scheduleRoamRefresh()
 }
 
 /** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
@@ -926,6 +1020,10 @@ onMounted(() => {
   if (container.value === null) return
   resizeObserver = new ResizeObserver(handleResize)
   resizeObserver.observe(container.value)
+  container.value.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true })
+  container.value.addEventListener('touchmove', handleTouchMove, { capture: true, passive: false })
+  container.value.addEventListener('touchend', handleTouchEnd, { capture: true })
+  container.value.addEventListener('touchcancel', handleTouchEnd, { capture: true })
   handleResize()
 })
 
@@ -937,6 +1035,12 @@ onBeforeUnmount(() => {
   if (roamRefreshTimer !== null) window.clearTimeout(roamRefreshTimer)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   chart.value?.off('georoam', handleGeoRoam)
+  if (container.value !== null) {
+    container.value.removeEventListener('touchstart', handleTouchStart, { capture: true })
+    container.value.removeEventListener('touchmove', handleTouchMove, { capture: true })
+    container.value.removeEventListener('touchend', handleTouchEnd, { capture: true })
+    container.value.removeEventListener('touchcancel', handleTouchEnd, { capture: true })
+  }
   chart.value?.off('mouseover', handleMarkerHover)
   chart.value?.off('mousemove', handlePointerMove)
   if (ballRAF !== null) {
