@@ -42,6 +42,9 @@ jobs:
       - name: Unit tests
         run: pnpm test:unit --run
 
+      - name: Coverage gate (core logic >= 70%)
+        run: pnpm test:coverage
+
       - name: Build
         run: pnpm build-only
 
