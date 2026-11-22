@@ -5,6 +5,7 @@
 > 项目中文名于 2026-11-19 由「乡遇地图」定为「**乡遇安徽**」，与范围收窄到安徽省（[ADR 0002](docs/adr/0002-scope-anhui.md)）同步；仓库名与技术标识仍为 `xiangyu-map`，未随改名迁移，避免打死链。
 
 - 产品与项目规划：[docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)
+- 当前交接文档：[docs/HANDOFF.md](docs/HANDOFF.md)
 - 两人协作规范：[docs/COLLABORATION.md](docs/COLLABORATION.md)
 - 两台机器上的 DSH 协作设置：[docs/DSH_COLLAB.md](docs/DSH_COLLAB.md)
 - 技术决策记录：[docs/adr/](docs/adr/README.md)
