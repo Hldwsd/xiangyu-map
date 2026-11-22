@@ -1,7 +1,7 @@
 /**
  * 高德精确 POI 短链，按 site id 索引。
  *
- * 62/62 均由浏览器打开高德搜索、确认地点后点「分享」取回，不按经纬度拼 marker。
+ * 70/70 均由浏览器打开高德搜索、确认地点后点「分享」取回，不按经纬度拼 marker。
  * 坐标是千米级精度，按坐标打开容易落到隔壁点位；短链是人工核对过的地点页。
  * 以后新增项目没有短链时，详情页会退化为「名称 + 城市」搜索，仍然不使用经纬度。
  */
@@ -68,4 +68,12 @@ export const AMAP_SITE_URLS: Readonly<Record<string, string>> = {
   'anhui-innovation-museum': 'https://surl.amap.com/1NCdJpp8vahq',
   'huizhou-culture-museum': 'https://surl.amap.com/1NPcx1QKMbb9',
   'chu-culture-museum': 'https://surl.amap.com/1O3SzgPwla5e',
+  'jingxian-xuan-paper': 'https://surl.amap.com/21yw1homE2e7',
+  'shexian-ink-garden': 'https://surl.amap.com/22fsjImmg35I',
+  'shexian-inkstone-museum': 'https://surl.amap.com/21WRbO5It1Px',
+  'wangmantian-village': 'https://surl.amap.com/21SXZCSK60CJ',
+  'chizhou-nuo-culture-park': 'https://surl.amap.com/21Tr1FnAt591',
+  'wanan-compass-museum': 'https://surl.amap.com/21LLO4p41f9UM',
+  'fengzaizi-village': 'https://surl.amap.com/21MfnG4aZ0uF',
+  'huicai-museum': 'https://surl.amap.com/3MwjF42F7Oj',
 }

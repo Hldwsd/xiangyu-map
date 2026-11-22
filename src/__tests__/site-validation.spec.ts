@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 
 import { sites } from '@/data/sites'
 import {
@@ -41,7 +41,7 @@ function expectProblems(raw: unknown): string[] {
 describe('validateSites', () => {
   it('接受仓库里的全部数据', () => {
     const validated = validateSites(sites)
-    expect(validated).toHaveLength(62)
+    expect(validated).toHaveLength(70)
     expect(validated.map((site) => site.id)).toContain('hongcun')
     expect(validated.every((site) => site.province === '安徽省')).toBe(true)
   })
