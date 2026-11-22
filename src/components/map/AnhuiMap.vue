@@ -43,6 +43,18 @@ echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRen
  */
 const CLUSTER_MIN_GAP = 36
 /** 不合并时，屏幕距离小于它的地标才散开：只在「真的叠住」时动手，避免满屏引线 */
+const reduceMotionQuery =
+  typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
+/** 系统开了「减少动态效果」时：不放入场动画、不响应 hover 拨球，静止布局仍保留 */
+const reduceMotion = ref(reduceMotionQuery?.matches === true)
+if (reduceMotionQuery !== null) {
+  const onChange = (event: MediaQueryListEvent): void => {
+    reduceMotion.value = event.matches
+  }
+  reduceMotionQuery.addEventListener('change', onChange)
+  onBeforeUnmount(() => reduceMotionQuery.removeEventListener('change', onChange))
+}
+
 /** 软碰撞半径：比针径小，球会推开一点但仍重叠 */
 const BALL_COLLIDE = 18
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
@@ -568,6 +580,7 @@ function handleMarkerHover(params: unknown): void {
   if (payload.seriesId !== 'sites') return
   const id = payload.data?.siteId
   if (typeof id !== 'string') return
+  if (reduceMotion.value) return
   const ball = balls.find((item) => item.id === id)
   if (ball === undefined) return
 
