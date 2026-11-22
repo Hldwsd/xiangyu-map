@@ -394,7 +394,7 @@ export const sites: Site[] = [
     summary: '淮南城边的低山，豆腐的传说与汉淮南王墓都在这一带，登顶能望到淮河平原。',
     description:
       '八公山在淮南市西，山势低缓，因八公与豆腐的传说得名，山上有汉淮南王墓等旧迹。\n\n登顶不难，视野开阔，能望到淮河与平原；山下的豆腐宴是当地招牌，值得留在午饭。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/bagongshan/cover.webp',
     gallery: [],
     tags: ['豆腐', '淮河', '低山'],
     bestSeason: '4-5 月、9-10 月',
