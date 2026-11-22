@@ -25,7 +25,7 @@ export const sites: Site[] = [
     summary: '丰乐河、杭埠河、小南河交汇处的 5A 水乡古镇，青石板街巷与皖中民居保存完整。',
     description:
       '古镇因三条河交汇得名，主街沿河铺开，石板路两侧是晚清至民国的铺面与民居，杨振宁旧居在街内。\n\n沿河走一圈约两小时，清晨与傍晚光线最好；2015 年成为合肥首个 5A 景区。镇内祠堂与名人旧居较多，门票与开放情况以现场公示为准。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/sanhe-ancient-town/cover.webp',
     gallery: [],
     tags: ['水乡', '古镇', '5A'],
     bestSeason: '3-5 月、9-11 月',
@@ -586,7 +586,7 @@ export const sites: Site[] = [
     summary: '滨湖新区巢湖岸边的战舰形纪念馆，全国唯一全面呈现渡江战役的军事题材场馆。',
     description:
       '纪念馆在合肥滨湖新区、巢湖北岸，主体建筑以 49° 角向前倾斜，像两艘驶向江面的战舰。\n\n馆内以渡江战役为主线，解放广场、总前委群像与胜利塔连成一条轴线；免费开放，适合与巢湖岸线一起安排半天。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/dujiang-memorial/cover.webp',
     gallery: [],
     tags: ['渡江战役', '纪念馆', '合肥'],
     bestSeason: '全年（周一闭馆）',
@@ -604,7 +604,7 @@ export const sites: Site[] = [
     summary: '全国五大淡水湖之一，合肥的内湖；环湖大道串起中庙、姥山岛与湿地公园。',
     description:
       '巢湖水域约 780 平方公里，是合肥「大湖名城」的底色；环湖北路上最值得停的是中庙与姥山岛，湖天一线时像海。\n\n环湖国家风景名胜区还包括紫微洞、银屏山等景点；自驾环湖最方便，风大的日子湖面浪大，注意安全。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/chaohu/cover.webp',
     gallery: [],
     tags: ['五大淡水湖', '环湖', '姥山岛'],
     bestSeason: '4-6 月、9-10 月',
@@ -808,7 +808,7 @@ export const sites: Site[] = [
     summary: '护城河上的包拯纪念园林，包公祠、包公墓与清风阁沿水而列，4A 景区。',
     description:
       '包河原是合肥护城河，宋仁宗赐予包拯，河上有包公祠、包公墓、清风阁与浮庄四处景点。\n\n公园免费开放，祠墓单独购票；「铁面无私」的故事配上荷风柳岸，是合肥市中心的安静一隅。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/baogong-park/cover.webp',
     gallery: [],
     tags: ['包拯', '廉政文化', '城市园林'],
     bestSeason: '全年',
@@ -1135,7 +1135,7 @@ export const sites: Site[] = [
     summary: '国家一级博物馆，新馆取「五方相连、四水归堂」的徽派格局，楚大鼎是镇馆之宝。',
     description:
       '安徽博物院是省内唯一的省级综合类博物馆，国家一级博物馆；新馆在怀宁路天鹅湖畔，建筑体现「五方相连、四水归堂」的徽派意匠。\n\n常设安徽文明史、徽州古建筑、安徽革命史等陈列，铸客大鼎（楚大鼎）是镇馆之宝，也是「国家公祭鼎」的原型；免费预约参观，老馆在安庆路。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/anhui-museum/cover.webp',
     gallery: [],
     tags: ['一级博物馆', '楚大鼎', '徽派建筑'],
     bestSeason: '全年（周一闭馆）',
@@ -1153,7 +1153,7 @@ export const sites: Site[] = [
     summary: '滨湖巢湖之畔的全国首座创新主题场馆，三馆呈「原子裂变」状排布。',
     description:
       '安徽创新馆 2019 年开馆，是全国第一座以创新为主题的场馆；三栋场馆从空中看呈原子裂变状，陈列量子计算机、聚变堆模型等两千七百余件展品。\n\n一号馆看展、三号馆有球幕影院，与渡江战役纪念馆同在滨湖一线，可以一起安排半天；免费预约参观。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/anhui-innovation-museum/cover.webp',
     gallery: [],
     tags: ['科技馆', '创新主题', '滨湖'],
     bestSeason: '全年（周一闭馆）',
