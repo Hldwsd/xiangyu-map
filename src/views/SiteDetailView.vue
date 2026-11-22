@@ -6,6 +6,7 @@ import { useSitesStore } from '@/stores/sites'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import { assetUrl } from '@/utils/asset-url'
+import { amapSiteUrl, sourceLabel } from '@/utils/site-links'
 
 const FALLBACK_COVER = '/images/placeholder.svg'
 
@@ -42,6 +43,23 @@ const paragraphs = computed(() => {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line !== '')
+})
+
+/**
+ * 同城其他项目：短途游客更可能把同城几个点串成半天/一天，所以不跨城推荐。
+ * 同类项目优先，最多 3 条；数据顺序作为同分时的稳定次序。
+ */
+const nearbySites = computed(() => {
+  const current = site.value
+  if (current === null) return []
+  const sameCity = store.sites.filter(
+    (item) => item.city === current.city && item.id !== current.id,
+  )
+  return [...sameCity]
+    .sort(
+      (a, b) => Number(b.category === current.category) - Number(a.category === current.category),
+    )
+    .slice(0, 3)
 })
 
 /** 相邻项目按数据文件顺序取，不循环：首尾各给一句明确的边界提示，比绕回更可预期 */
@@ -125,6 +143,18 @@ function markBroken(url: string): void {
           <dt><AppIcon name="route" :size="12" />交通</dt>
           <dd>{{ site.transport }}</dd>
         </template>
+        <dt><AppIcon name="pin" :size="12" />地图</dt>
+        <dd>
+          <a
+            class="detail__nav"
+            :href="amapSiteUrl(site)"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="打开高德地图的地点页；没有精确短链时按名称搜索"
+          >
+            在高德地图查看位置<AppIcon name="external" :size="12" />
+          </a>
+        </dd>
         <template v-if="site.bookingUrl">
           <dt><AppIcon name="external" :size="12" />预约</dt>
           <dd>
@@ -136,11 +166,38 @@ function markBroken(url: string): void {
       </dl>
     </section>
 
+    <section v-if="nearbySites.length > 0" class="detail__section">
+      <h2>同城其他项目</h2>
+      <ul class="detail__nearby">
+        <li v-for="item in nearbySites" :key="item.id">
+          <RouterLink
+            class="detail__nearby-link"
+            :to="{ name: 'site-detail', params: { id: item.id } }"
+          >
+            <span class="detail__nearby-cat">
+              <CategoryIcon :category="item.category" :size="17" />
+            </span>
+            <span class="detail__nearby-body">
+              <b>{{ item.name }}</b>
+              <small>{{ item.category }} · {{ item.summary }}</small>
+            </span>
+          </RouterLink>
+        </li>
+      </ul>
+    </section>
+
     <section class="detail__section">
       <h2>来源</h2>
       <ul class="detail__sources">
         <li v-for="source in site.sources" :key="source">
-          <a :href="source" target="_blank" rel="noopener noreferrer">{{ source }}</a>
+          <a
+            :href="source"
+            target="_blank"
+            rel="noopener noreferrer"
+            :title="source"
+            :aria-label="`打开来源：${source}`"
+            >{{ sourceLabel(source) }}</a
+          >
         </li>
       </ul>
       <p v-if="isSample" class="detail__notice">
@@ -350,6 +407,72 @@ function markBroken(url: string): void {
 .detail__facts dd {
   margin: 0;
   line-height: var(--leading-snug);
+}
+
+.detail__nav {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  color: var(--accent);
+  text-underline-offset: 0.18em;
+}
+
+/* ---- 同城其他项目 ---- */
+
+.detail__nearby {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.detail__nearby-link {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: 0.65rem 0.8rem;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.detail__nearby-link:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+
+.detail__nearby-cat {
+  display: inline-flex;
+  margin-top: 0.1rem;
+  color: var(--ink-soft);
+}
+
+.detail__nearby-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.detail__nearby-body b {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.detail__nearby-body small {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--ink-soft);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 /* ---- 来源与提示 ---- */
