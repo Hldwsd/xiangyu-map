@@ -18,7 +18,7 @@ import {
   type RiverLine,
 } from '@/components/map/anhui-map-option'
 import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
-import { spreadOffsets, type MarkerOffset } from '@/components/map/marker-spread'
+import { nudgeBall, stepBalls, type BallState, type Point } from '@/components/map/marker-physics'
 import { clampViewCenter } from '@/components/map/view-clamp'
 import { featureName, mergeMapLayers, type TaggedFeature } from '@/components/map/merge-map-layers'
 import { FEATURED_SITE_IDS } from '@/data/sites'
@@ -43,7 +43,8 @@ echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRen
  */
 const CLUSTER_MIN_GAP = 36
 /** 不合并时，屏幕距离小于它的地标才散开：只在「真的叠住」时动手，避免满屏引线 */
-const SPREAD_MIN_GAP = 12
+/** 软碰撞半径：比针径小，球会推开一点但仍重叠 */
+const BALL_COLLIDE = 18
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
@@ -88,6 +89,12 @@ let resizeObserver: ResizeObserver | null = null
 let disposed = false
 /** 当前画在图上的一批点（单点或簇），键盘高亮要按它找下标 */
 let currentData: MapScatterDatum[] = []
+/** 地标小球的物理状态；只在「不合并」模式下使用 */
+let balls: BallState[] = []
+let ballHomes = new Map<string, Point>()
+let ballRAF: number | null = null
+let ballCalmFrames = 0
+const ballNudgeAt = new Map<string, number>()
 let refreshHandle: number | null = null
 /** 我们自己在 georoam 里写回中心时置 true，避免递归 */
 let clampingCenter = false
@@ -376,7 +383,7 @@ function refreshMarkers(): void {
     return
   }
 
-  // 不合并：每个项目单独画；重叠的沿小圆环散开，并用虚线连回真实坐标
+  // 不合并：每个项目单独画，重叠的交给「软碰撞小球的物理模拟」互相挤开一点
   currentData = toScatterData(
     props.sites,
     props.selectedId,
@@ -384,60 +391,88 @@ function refreshMarkers(): void {
     themePalette(),
     FEATURED_ID_SET,
   )
+  resetBalls(instance)
+}
 
-  const offsets = new Map<string, MarkerOffset>()
-  const pixels = new Map<string, readonly [number, number] | null>()
+function resetBalls(instance: EChartsType): void {
+  const homes = new Map<string, Point>()
+  const next: BallState[] = []
   for (const site of props.sites) {
     const point = instance.convertToPixel({ geoIndex: 0 }, [site.location.lng, site.location.lat])
-    const usable =
-      Array.isArray(point) &&
-      Number.isFinite(point[0] as number) &&
-      Number.isFinite(point[1] as number)
-    pixels.set(site.id, usable ? ([point[0] as number, point[1] as number] as const) : null)
+    if (!Array.isArray(point)) continue
+    const [x, y] = point as [number, number]
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+    homes.set(site.id, [x, y])
+    next.push({ id: site.id, x, y, vx: 0, vy: 0 })
   }
+  balls = next
+  ballHomes = homes
+  ballCalmFrames = 0
+  kickBalls()
+}
 
-  const leaders: Array<{ coords: [[number, number], [number, number]] }> = []
-  const anchors: Array<{ value: [number, number] }> = []
-  for (const group of computeGroups(instance, SPREAD_MIN_GAP)) {
-    const ids = [...group.ids].sort()
-    const ring = spreadOffsets(ids)
-    for (const id of ids) {
-      const offset = ring.get(id)
-      if (offset === undefined) continue
-      offsets.set(id, offset)
-
-      const site = props.sites.find((item) => item.id === id)
-      const pixel = pixels.get(id)
-      if (site === undefined || pixel === null || pixel === undefined) continue
-      const target = instance.convertFromPixel({ geoIndex: 0 }, [
-        pixel[0] + offset[0],
-        pixel[1] + offset[1],
-      ])
-      if (!Array.isArray(target)) continue
-      leaders.push({
-        coords: [
-          [site.location.lng, site.location.lat],
-          [target[0] as number, target[1] as number],
-        ],
-      })
-      anchors.push({ value: [site.location.lng, site.location.lat] })
-    }
+function applyBalls(): void {
+  const instance = chart.value
+  if (instance === null) return
+  const offsets = new Map<string, [number, number]>()
+  for (const ball of balls) {
+    const home = ballHomes.get(ball.id)
+    if (home === undefined) continue
+    const dx = ball.x - home[0]
+    const dy = ball.y - home[1]
+    if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) offsets.set(ball.id, [dx, dy])
   }
-
-  for (const datum of currentData) {
+  const data = currentData.map((datum) => {
     const offset = 'siteId' in datum ? offsets.get(datum.siteId) : undefined
-    if (offset !== undefined && 'siteId' in datum) {
-      datum.symbolOffset = offset
-    }
-  }
-
-  instance.setOption({
-    series: [
-      { id: 'sites', data: currentData },
-      { id: 'leader', data: leaders },
-      { id: 'anchors', data: anchors },
-    ],
+    return offset === undefined ? datum : { ...datum, symbolOffset: offset }
   })
+  instance.setOption({ series: [{ id: 'sites', data }] })
+}
+
+function kickBalls(): void {
+  if (ballRAF !== null) return
+  ballRAF = window.requestAnimationFrame(tickBalls)
+}
+
+function tickBalls(): void {
+  ballRAF = null
+  if (props.cluster || disposed) return
+  const speed = stepBalls(balls, ballHomes, {
+    spring: 0.16,
+    damping: 0.8,
+    collide: BALL_COLLIDE,
+    push: 0.35,
+  })
+  applyBalls()
+  // 速度连续 18 帧低于阈值才停：避免在弹簧转向点（速度恰好过零）提前收工
+  if (speed > 0.05) ballCalmFrames = 0
+  else ballCalmFrames += 1
+  if (ballCalmFrames < 30) {
+    ballRAF = window.requestAnimationFrame(tickBalls)
+  } else {
+    ballCalmFrames = 0
+    ballRAF = null
+  }
+}
+
+/** 鼠标滑过小球：朝指针反方向「带一下」，随后被弹簧拉回 */
+function handleMarkerHover(params: unknown): void {
+  const payload = params as {
+    seriesId?: string
+    data?: { siteId?: string }
+    event?: { offsetX?: number; offsetY?: number }
+  }
+  if (payload.seriesId !== 'sites') return
+  const id = payload.data?.siteId
+  if (typeof id !== 'string') return
+  const ball = balls.find((item) => item.id === id)
+  if (ball === undefined) return
+  const pointer: Point = [payload.event?.offsetX ?? ball.x, payload.event?.offsetY ?? ball.y]
+  const now = performance.now()
+  if (now - (ballNudgeAt.get(id) ?? 0) < 350) return
+  ballNudgeAt.set(id, now)
+  nudgeBall(ball, pointer, 6)
+  kickBalls()
 }
 
 function scheduleRefresh(): void {
@@ -693,6 +728,7 @@ async function render(): Promise<void> {
     if (chart.value === null) {
       const instance = echarts.init(container.value, undefined, { renderer: 'canvas' })
       instance.on('click', handleChartClick)
+      instance.on('mouseover', handleMarkerHover)
       // 拖动平移由 ECharts 负责（roam: 'move'），这里只做范围夹取与聚合重算
       instance.on('georoam', handleGeoRoam)
       chart.value = instance
@@ -749,6 +785,11 @@ onBeforeUnmount(() => {
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
   if (zoomTween !== null) window.cancelAnimationFrame(zoomTween)
   chart.value?.off('georoam', handleGeoRoam)
+  chart.value?.off('mouseover', handleMarkerHover)
+  if (ballRAF !== null) {
+    window.cancelAnimationFrame(ballRAF)
+    ballRAF = null
+  }
   chart.value?.dispose()
   chart.value = null
 })
