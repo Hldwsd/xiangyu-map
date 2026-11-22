@@ -100,7 +100,7 @@ export const sites: Site[] = [
     summary: '中国佛教四大名山之一，地藏菩萨道场，肉身宝殿与百岁宫沿山势层叠。',
     description:
       '九华山是中国佛教四大名山之一、国家 5A 景区，以地藏菩萨道场闻名，山上寺院密集。\n\n化城寺、肉身宝殿、百岁宫是常走的几处；山脚柯村是换乘点，景区内以步行与索道为主，清晨与傍晚山上人少。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/jiuhuashan/cover.webp',
     gallery: [],
     tags: ['佛教名山', '地藏道场', '5A'],
     bestSeason: '4-6 月、9-11 月',
@@ -412,7 +412,7 @@ export const sites: Site[] = [
     summary: '池州城西的杏花村，杜牧「牧童遥指杏花村」让这里成了一个文化地标。',
     description:
       '杏花村在池州城西，因杜牧《清明》诗得名，村内有与杏花、酒文化相关的园子与旧迹。\n\n春季杏花开时最好看；村子离城区不远，适合与池州城内的齐山、平天湖串成半日。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/xinghuacun/cover.webp',
     gallery: [],
     tags: ['杏花', '诗酒', '春游'],
     bestSeason: '3-4 月',
@@ -790,7 +790,7 @@ export const sites: Site[] = [
     summary: '石台与祁门交界的国家级自然保护区，主峰海拔 1727.6 米，人称「华东最后一片原始森林」。',
     description:
       '牯牛降古称「西黄山」，是黄山山脉向西延伸的主体，集国家级自然保护区、国家地质公园与 4A 景区于一身。\n\n石台一侧的开放区以水潭、四叠瀑布与峡谷步道为主；近年闭园改造创 5A，出行前先查开放状态。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/guniujiang/cover.webp',
     gallery: [],
     tags: ['自然保护区', '原始森林', '瀑布'],
     bestSeason: '5-10 月',
@@ -952,7 +952,7 @@ export const sites: Site[] = [
     summary: '九华山后山的森林公园主打景区，九子峰下双溪寺，游客比前山少得多。',
     description:
       '九子岩在青阳县朱备镇，是九华山国家森林公园的核心景区，九子溪穿谷汇入青通河。\n\n后山清幽，双溪寺与丛林步道是主打；想避开九华街的人流，从后山走这一线最合适。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/jiuzi-yan/cover.webp',
     gallery: [],
     tags: ['九华山', '森林公园', '后山'],
     bestSeason: '4-6 月、9-10 月',
@@ -1006,7 +1006,7 @@ export const sites: Site[] = [
     summary: '跨东至与贵池的国际重要湿地，「中国鹤湖」，白头鹤在全球最大的天然越冬地过冬。',
     description:
       '升金湖因湖中渔货价值「升金」得名，333 平方公里的永久性淡水湖泊经黄湓闸与长江相通，是安徽首个国际重要湿地。\n\n每年 10 月下旬到次年 4 月上旬，越冬水鸟最集中；湖岸多为保护区域，观鸟请走官方 designated 观测点，冬季最壮观。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/shengjin-lake/cover.webp',
     gallery: [],
     tags: ['国际湿地', '观鸟', '白头鹤'],
     bestSeason: '10 月-次年 4 月（候鸟）',
