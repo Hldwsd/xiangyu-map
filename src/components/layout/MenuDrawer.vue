@@ -108,7 +108,8 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           按形状区分，点开看详情。
         </p>
         <p class="drawer__note">
-          当前 {{ siteCount }} 条数据的来源可逐条核验；图片仍用统一占位图，底图与图层来源见
+          当前
+          {{ siteCount }} 条数据的来源可逐条核验；封面来自公开资料，版权归原作者，底图与图层来源见
           <code>public/maps/README.md</code>。
         </p>
         <p class="drawer__note">

@@ -25,10 +25,9 @@ const legendOpen = ref(false)
 const cityOpen = ref(false)
 
 /*
- * 区县界默认关闭：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界。
- * 留一个开关给需要看细节的人，选择记在本地。
+ * 区县界默认开启：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界；
+ * 区县层只作为找项目时的定位细节，菜单里可以关掉，选择记在本地。
  */
-/** 默认显示区县界：找项目时靠区县定位比只看 16 个市更准 */
 const showDistricts = ref(localStorage.getItem('xy-show-districts') !== '0')
 /** 默认不合并：每个项目都点得中，不再有「数字标签挡住单个项目」 */
 const mergeMarkers = ref(localStorage.getItem('xy-merge-markers') === '1')
@@ -67,6 +66,21 @@ function selectFromList(id: string): void {
 
 <template>
   <div class="map-shell">
+    <!--
+      顶栏放在 DOM 最前：视觉上仍是浮在地图顶部，但 Tab 的第一站是菜单/搜索/列表，
+      而不是地图的缩放条和分类图例。绝对定位不受文档顺序影响。
+    -->
+    <div class="home-topbar">
+      <TopBar
+        :query="store.query"
+        :list-count="filteredSites.length"
+        :list-open="listOpen"
+        @update:query="store.setQuery"
+        @menu="menuOpen = true"
+        @list="listOpen = !listOpen"
+      />
+    </div>
+
     <div class="map-shell__map">
       <AnhuiMap
         :sites="filteredSites"
@@ -77,24 +91,23 @@ function selectFromList(id: string): void {
       />
     </div>
 
+    <!-- 筛选到 0 条时给一个明确出路：地图本身不会解释「为什么空了」 -->
+    <div v-if="filteredSites.length === 0" class="map-shell__void" role="status">
+      <span class="map-shell__void-icon" aria-hidden="true">
+        <AppIcon name="search" :size="16" />
+      </span>
+      <p>没有匹配的项目</p>
+      <button type="button" class="map-shell__void-reset" @click="store.resetFilters()">
+        清空筛选
+      </button>
+    </div>
+
     <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
 
     <!-- 桌面右侧：选中卡片 + 城市索引（两张独立的卡） -->
     <div class="home-side">
       <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
       <CityIndex />
-    </div>
-
-    <!-- 窄屏/平板沿用顶部搜索栏；桌面版头已接管搜索与筛选 -->
-    <div class="home-topbar">
-      <TopBar
-        :query="store.query"
-        :list-count="filteredSites.length"
-        :list-open="listOpen"
-        @update:query="store.setQuery"
-        @menu="menuOpen = true"
-        @list="listOpen = !listOpen"
-      />
     </div>
 
     <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->
