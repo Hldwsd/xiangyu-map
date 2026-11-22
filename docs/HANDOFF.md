@@ -1,28 +1,27 @@
 # 交接文档 · 乡遇安徽
 
-> 更新时间：2026-11-22 19:30（Asia/Shanghai）
-> 当前 main：`fa031c4 fix(map): 缩放/拖动时小球跟着 home 平移，不再重置状态 (#147)`
+> 更新时间：2026-11-22 21:40（Asia/Shanghai）
+> 当前 main：`5c68296 fix(mobile): 手机书法背景再放大到 260%、薄纱降到 50–62% (#157)`
 > 线上：https://hldwsd.github.io/xiangyu-map/
 > 目标读者：接手本仓库的 A/B 任一方，或下一位 agent。
 
 ## 一句话状态
 
-**M0、M1 已完成；M2 的内容、详情页与分享链路基本完成；M3 质量闸门未开始；M4 未开始。**
+**M0、M1 已完成；M2 的内容、详情页与分享链路基本完成；M3 已起步（覆盖率、E2E、reduced-motion 已接，Lighthouse 与 Release 未做）；M4 未开始。**
 
 main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 practical、12 个头部项目的分享图与画廊**；
-地标已从静态针形散点改为**软碰撞小球**，最近的地图 PR（#139、#142、#144–#147）与首屏预算
-（#141/#143）都在收这块交互。
+地标是软碰撞小球；最近在收手机端拖动/双指缩放/书法背景和覆盖率闸门。
 
 ## 一、最近完成了什么
 
-### 1. 完成度文案与键盘入口（#129，已合并）
+### 1. 完成度文案与键盘入口（#129）
 
 - 全站“封面为占位/64 条”的旧文案改为真实计数；
 - 删掉地图组件里 63 个隐藏 Tab 停靠点，统一走顶部“项目列表”抽屉；
 - 顶栏移到 DOM 最前，Tab 顺序从菜单/搜索/列表开始；
 - 筛选到 0 条时补空态。
 
-### 2. 详情页高德短链、同城推荐、来源站点名（#130，已合并）
+### 2. 详情页高德短链、同城推荐、来源站点名（#130）
 
 - 不再按经纬度拼 marker；70/70 精确 `surl.amap.com` 短链，缺失时回退名称 + 城市搜索；
 - 新增“同城其他项目”（同城、同类优先、最多 3 条）；
@@ -55,6 +54,15 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 - 实现：`src/components/map/marker-physics.ts`；决策记录 [ADR 0013](adr/0013-marker-physics.md)；
 - #141/#143：新增 `pnpm bundle:size` 与 CI 首屏体积闸门（JS ≤300 KB、CSS ≤60 KB）。
 
+### 6. M3 起步与手机端修复（#150–#157）
+
+- #150/#152：接 `@vitest/coverage-v8`，核心逻辑 70% 阈值；当前全量语句 **91.89%**、分支 **85.31%**；
+- #151：尊重 `prefers-reduced-motion`，reduce 下关入场动画与 hover 拨球；
+- #153：手机拖动轻量化（roam 不逐帧 getOption、物理让路、DPR 封顶 2）；真机 p50 17→10ms、Janky 1.75→0.15%，p90 仍 34ms；
+- #154/#155：双指缩放阻尼、缩放条防抖、关闭长按系统菜单；窄屏也铺书法背景；
+- #156/#157：手机书法背景继续放大到 260%、薄纱 50–62%；
+- 本 PR：Playwright E2E 冒烟，桌面 + Pixel 5，两档视口跑首页、筛选、搜索、详情深链与预渲染 meta。
+
 ## 二、当前数据与资产
 
 | 项        | 现状                                                           |
@@ -67,36 +75,36 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 | 分享图    | 12 个头部项目独立图 + 1 张默认图；其余 58 条用默认图           |
 | 画廊      | 12 个头部项目 ×2 张；其余 58 条仍为空                          |
 | practical | 20 条有 `duration` / `audience`；`hours` / `ticket` 未填       |
-| 单测      | **136 个用例 / 12 个文件**，全绿                               |
+| 单测      | **141 个用例 / 13 个文件**，全绿                               |
+| E2E       | 5 个场景（桌面 + 移动端；移动端 2 个筛选场景跳过）             |
 
-## 三、验证结果（2026-11-22 19:27 实跑）
+## 三、验证结果（2026-11-22 21:35 实跑）
 
 ```bash
 pnpm lint              # 0
 pnpm format:check      # 0
 pnpm type-check        # 0
-pnpm test:unit --run   # 136/136
-pnpm build             # 首屏 JS 262.67 KB gzip（构建总量）
-pnpm bundle:size       # 入口 JS 253.92 / 300 KB（85%），CSS 5.85 / 60 KB
+pnpm test:unit --run   # 141/141
+pnpm test:coverage     # 语句 91.89% / 分支 85.31%（核心逻辑阈值 70%）
+pnpm build             # 构建总量 263.38 KB gzip
+pnpm bundle:size       # 入口 JS 254.64 / 300 KB（85%），CSS 6.00 / 60 KB
 pnpm prerender         # 70 detail + home
+pnpm test:e2e          # 8 passed, 2 skipped
 ```
 
-- main 最近一次 CI、Deploy（#147）均 success；
+- main 最近一次 CI、Deploy（#157）均 success；
 - 本文件 PR 之外没有其他 open PR；open issue 只剩 **#16（M1 小球真机 FPS / 命中率复测）**；
 - #107 已随 #129 关闭。
 
 ## 四、未完成与风险
 
-### 1. 地图小球还差真机验收
+### 1. #16 还差最后一轮真机验收
 
-最近 7 个 PR 改的是核心交互，但目前只有单测和桌面手工验证，缺少：
-
-- 真机 FPS（70 颗球、默认视野与 4 倍放大）；
-- 移动端触摸命中（球挤在一起时能否点中）；
-- `prefers-reduced-motion` 下悬停“带一下”是否关闭；
-- 与聚合模式、筛选、缩放/拖动的组合回归。
-
-这些是 #16 的验收项。**建议先验收，再进入 M3**。
+- #153 真机拖动 p90 仍有 **34ms**，legacy jank 45%；下一步可考虑拖动期间隐藏河道/省界光晕；
+- 70 颗球在默认视野/4 倍放大的 FPS；
+- 移动端球挤在一起时的触摸命中；
+- 与聚合模式、筛选、缩放/拖动的组合回归；
+- reduced-motion 已由 #151 关闭，但仍需真机确认系统切换后无需刷新。
 
 ### 2. 内容深度
 
@@ -105,12 +113,11 @@ pnpm prerender         # 70 detail + home
 - 演艺只有 1 条（再芬黄梅公馆），内容结构偏自然/乡村；
 - 详情页仍缺“看点”短列表、建议路线、周边联动。
 
-### 3. M3 质量闸门（未开始）
+### 3. M3 剩余
 
-- 覆盖率 ≥70% 尚未接 `@vitest/coverage-v8`；
-- Lighthouse 性能/可访问性未测；
-- Playwright E2E 未接；
+- Lighthouse 桌面 ≥85 / 移动 ≥70 未跑；
 - 没有 `v0.1.0` tag / GitHub Release；
+- E2E 只有冒烟，筛选/地图手势的边界用例可继续补；
 - 首屏入口 JS 已到 85%，再加大功能前要先看预算。
 
 ### 4. 合规（上线前必须处理）
@@ -123,7 +130,7 @@ pnpm prerender         # 70 detail + home
 
 - 未跟踪文件 `docs/research/2026-11-21-cover-sourcing.md` 是早期封面调研，内容已被 ADR 0011 取代；要么补状态说明后入库，要么删除，别直接 `git add .`；
 - 已合并/过期分支：`feat/detail-decision`、`feat/prerender-main`、`feat/prerender-seo`、`feat/detail-practical` 等，可按需清理；
-- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步；当前是 **70 条 / 136 用例 / 253.9 KB 入口 JS**。
+- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 141 用例 / 254.6 KB 入口 JS**。
 
 ## 五、关键文件
 
@@ -138,6 +145,7 @@ pnpm prerender         # 70 detail + home
 | 小球物理   | `src/components/map/marker-physics.ts`    |
 | 预渲染     | `scripts/prerender-sites.mjs`             |
 | 首屏预算   | `scripts/check-bundle-size.mjs`           |
+| E2E        | `playwright.config.ts`、`e2e/`            |
 | 分享图生成 | `scripts/make-og-images.py`               |
 | 预渲染 ADR | `docs/adr/0012-prerender-detail-pages.md` |
 | 小球 ADR   | `docs/adr/0013-marker-physics.md`         |
@@ -145,25 +153,27 @@ pnpm prerender         # 70 detail + home
 
 ## 六、接手后建议的顺序
 
-1. `git pull` → `pnpm install` → 跑完整闸门，确认 main 是绿的；
-2. 按 #16 做小球真机验收：FPS、移动端命中、reduced-motion、聚合/筛选组合；有问题先修；
-3. 接覆盖率、Lighthouse、E2E，打 `v0.1.0` tag / Release；
-4. 补 20 条 hours/ticket、58 条画廊、演艺内容与剩余分享图；
-5. 处理地图审图号与图片授权，再考虑公开推广；
-6. 最后再开 M4 多端预研。
+1. `git pull` → `pnpm install` → 跑完整闸门（含 `test:coverage` 与 `test:e2e`），确认 main 是绿的；
+2. 按 #16 做最后一轮真机验收：拖动 p90、触摸命中、聚合/筛选组合；有问题先修；
+3. 跑 Lighthouse 桌面/移动基线，补长任务/首屏图问题；
+4. 打 `v0.1.0` tag / Release，写清能力与已知问题；
+5. 补 20 条 hours/ticket、58 条画廊、演艺内容与剩余分享图；
+6. 处理地图审图号与图片授权，再考虑公开推广；
+7. 最后再开 M4 多端预研。
 
 ## 七、操作备注
 
 - **不要直推 main**：本轮已经发生过一次（`77cc466`），后续务必先开分支；
+- **E2E 前置**：`pnpm build && pnpm prerender` 后再 `pnpm test:e2e`；配置用系统 Chrome（channel=chrome），CI 的 ubuntu-latest 自带；
 - **预渲染必须在 build 之后**：`pnpm build-only` → `pnpm prerender`；deploy/preview 已写好 `SITE_URL`；
-- **预览限制**：GitHub Pages 只有根目录一个 `404.html`，PR 预览的无尾斜杠深链仍可能落到主站 404；预渲染页本身可直接访问；
+- **预览限制**：GitHub Pages 只有根目录一个 `404.html`，PR 预览的无尾斜杠深链仍可能落到主站 404；预渲染页加尾斜杠可直接访问；
 - **Browser Control**：扩展断开时 `browser-control status` 的 `extension.connected=false`；高德触发滑块时不要绕过，交由人工过验证；
 - **数据纪律**：加项目只改 `src/data/sites.ts` + 放图；图片路径必须 `/images/sites/<id>/...webp` 且 ≤300KB；`sources` 必填；`id` 上线后不可改。
 
 ## 八、交接检查清单
 
 - [ ] 当前分支不是 main，且工作区只有预期变更
-- [ ] `pnpm lint` / `format:check` / `type-check` / `test:unit --run` / `build` / `bundle:size` / `prerender` 全绿
+- [ ] `pnpm lint` / `format:check` / `type-check` / `test:unit --run` / `test:coverage` / `build` / `bundle:size` / `prerender` / `test:e2e` 全绿
 - [ ] 数据条数与 README / PROJECT_PLAN / 测试硬编码一致
 - [ ] 新增项目有封面、来源、高德短链（或明确回退）
 - [ ] 没有把低分辨率图、猜的坐标、未核验价格写进数据
