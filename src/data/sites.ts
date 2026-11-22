@@ -286,7 +286,7 @@ export const sites: Site[] = [
     summary: '皖北平原上的人工湖区，水面开阔、堤岸成林，是周边少见的亲水去处。',
     description:
       '八里河在颍上县，是在低洼湖区基础上治理而成的水利与旅游区，水面与堤岸林带构成主要景观。\n\n平原上少有这样成片的水面，适合骑行与步行；景区内也修了几处人工景点，按兴趣取舍即可。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/balihe/cover.webp',
     gallery: [],
     tags: ['湖泊', '平原', '骑行'],
     bestSeason: '4-6 月、9-10 月',
@@ -862,7 +862,7 @@ export const sites: Site[] = [
     summary: '建在古颍州西湖遗址上的生态园，欧阳修会老堂在侧，4A 级亲子目的地。',
     description:
       '颍州西湖「始于周、兴于唐、盛于宋」，宋代欧阳修、苏轼都知颍州；如今的生态乐园就建在遗址上，会老堂是遗存。\n\n园区以生态农业与园林为主，春季赏花、夏秋采摘，还有动物园与热带雨林馆；适合带孩子的半日游。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/fuyang-ecopark/cover.webp',
     gallery: [],
     tags: ['颍州西湖', '欧阳修', '生态园'],
     bestSeason: '3-5 月、9-10 月',
