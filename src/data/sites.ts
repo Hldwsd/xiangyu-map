@@ -190,7 +190,7 @@ export const sites: Site[] = [
     summary: '蚌埠城东的城中湖，环湖步道与跨湖桥串起一片开阔水面，傍晚散步的人最多。',
     description:
       '龙子湖在蚌埠市区东侧，湖面开阔，环湖有步道与几座跨湖桥，是本地人日常散步与骑行的去处。\n\n湖区周边是高校与新建城区，适合放在行程里当一个不赶时间的午后落脚点。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/longzihu/cover.webp',
     gallery: [],
     tags: ['湖泊', '城市公园', '散步'],
     bestSeason: '4-5 月、9-10 月',
@@ -622,7 +622,7 @@ export const sites: Site[] = [
     summary: '龙子湖西南岸的古民居博览园，450 栋从全国迁建修复的古建筑沿湖而立。',
     description:
       '「湖上升明月」把散落各地的 450 栋古民居整体迁到蚌埠龙子湖畔修复，徽派、闽南红砖厝同处一园，被称为露天的民居博物馆。\n\n园区很大，建议乘园内电瓶车分区逛；傍晚湖面倒影最好看。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/hushang-mingyue/cover.webp',
     gallery: [],
     tags: ['古民居', '博览园', '湖岸'],
     bestSeason: '3-5 月、9-11 月',
@@ -808,7 +808,7 @@ export const sites: Site[] = [
     summary: '蚌埠市区最大的开放式公园，张公山与张公湖山水相映，望淮塔可俯瞰全城。',
     description:
       '张公山在蚌埠禹会区，山顶海拔 71 米，望淮塔是城市地标；山下张公湖垂柳环岸。\n\n1973 年建园、免费开放，秋季湖山最好看；园中园的江南园林与淮河碑廊值得慢慢看。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/zhanggong-park/cover.webp',
     gallery: [],
     tags: ['城市公园', '望淮塔', '淮河'],
     bestSeason: '全年（秋季最佳）',
@@ -826,7 +826,7 @@ export const sites: Site[] = [
     summary: '以国家级非遗「花鼓灯」为主题的游乐园，把皖北民间歌舞搬进了游乐场。',
     description:
       '花鼓灯是流传于淮河流域的民间歌舞，2006 年列入首批国家级非遗；花鼓灯嘉年华把它做成了蚌埠的主题乐园。\n\n游乐设施之外，园内的花鼓灯表演是看头；园区曾有改造调整，出发前先确认演出与开放时段。',
-    cover: '/images/placeholder.svg',
+    cover: '/images/sites/huagudeng-carnival/cover.webp',
     gallery: [],
     tags: ['花鼓灯', '非遗', '主题乐园'],
     bestSeason: '全年',
