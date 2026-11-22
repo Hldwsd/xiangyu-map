@@ -34,6 +34,10 @@ export const sites: Site[] = [
     tags: ['水乡', '古镇', '5A'],
     bestSeason: '3-5 月、9-11 月',
     transport: '合肥市区自驾约 1 小时，或乘至肥西的班车后转乘',
+    practical: {
+      duration: '半天',
+      audience: '水乡、古镇、亲子',
+    },
     sources: ['https://baike.baidu.com/item/三河古镇', 'https://www.hefei.gov.cn/'],
     updatedAt: '2026-11-21',
   },
@@ -52,6 +56,10 @@ export const sites: Site[] = [
     tags: ['徽派', '古城', '许国石坊'],
     bestSeason: '3-4 月、10-11 月',
     transport: '黄山北站转乘至歙县，县城内步行可达',
+    practical: {
+      duration: '半天',
+      audience: '古城、徽文化',
+    },
     sources: [
       'https://baike.baidu.com/item/徽州古城',
       'https://www.huangshan.gov.cn/content/article/8297412',
@@ -73,6 +81,10 @@ export const sites: Site[] = [
     tags: ['古城', '城墙', '楚都'],
     bestSeason: '4-5 月、10 月',
     transport: '淮南市区自驾约 40 分钟',
+    practical: {
+      duration: '半天',
+      audience: '古城、楚文化',
+    },
     sources: ['https://www.shouxian.gov.cn/'],
     updatedAt: '2026-11-21',
   },
@@ -91,6 +103,10 @@ export const sites: Site[] = [
     tags: ['世界遗产', '山岳', '云海'],
     bestSeason: '4-5 月、9-11 月',
     transport: '黄山北站转乘景区班车至汤口，再换乘上山',
+    practical: {
+      duration: '1–2 天',
+      audience: '登山、摄影、观日出',
+    },
     sources: ['https://whc.unesco.org/zh/list/547', 'http://www.hsly.com/'],
     updatedAt: '2026-11-21',
   },
@@ -109,6 +125,10 @@ export const sites: Site[] = [
     tags: ['佛教名山', '地藏道场', '5A'],
     bestSeason: '4-6 月、9-11 月',
     transport: '池州站转乘至柯村换乘中心',
+    practical: {
+      duration: '1–2 天',
+      audience: '佛教文化、登山',
+    },
     sources: ['https://baike.baidu.com/item/九华山', 'http://www.jiuhuashan.gov.cn/'],
     updatedAt: '2026-11-21',
   },
@@ -127,6 +147,10 @@ export const sites: Site[] = [
     tags: ['世界地质公园', '山岳', '花岗岩'],
     bestSeason: '4-5 月、9-10 月',
     transport: '潜山站转乘至景区大门',
+    practical: {
+      duration: '1 天',
+      audience: '登山、地质',
+    },
     sources: ['http://www.tzs.com.cn/', 'https://www.anqing.gov.cn/'],
     updatedAt: '2026-11-21',
   },
@@ -181,6 +205,10 @@ export const sites: Site[] = [
     tags: ['世界遗产', '徽派', '村落'],
     bestSeason: '3-4 月、11 月',
     transport: '黄山北站转乘至黟县，再换乘至宏村',
+    practical: {
+      duration: '3–4 小时',
+      audience: '古村、摄影、亲子',
+    },
     sources: ['https://whc.unesco.org/zh/list/1002', 'https://baike.baidu.com/item/宏村'],
     updatedAt: '2026-11-21',
   },
@@ -217,6 +245,10 @@ export const sites: Site[] = [
     tags: ['长江', '李白', '矶头'],
     bestSeason: '4-5 月、9-11 月',
     transport: '马鞍山东站打车约 30 分钟',
+    practical: {
+      duration: '2–3 小时',
+      audience: '长江、李白文化',
+    },
     sources: ['https://www.csjfjq.com', 'https://www.mas.gov.cn/'],
     updatedAt: '2026-11-19',
   },
@@ -367,6 +399,10 @@ export const sites: Site[] = [
     tags: ['大别山', '瀑布', '避暑'],
     bestSeason: '5-10 月',
     transport: '金寨站转乘至景区约 1.5 小时',
+    practical: {
+      duration: '1–2 天',
+      audience: '避暑、瀑布、徒步',
+    },
     sources: ['https://www.luan.gov.cn/zjla/lyla/index.html'],
     updatedAt: '2026-11-19',
   },
@@ -421,6 +457,10 @@ export const sites: Site[] = [
     tags: ['徽派', '古村落', '世界遗产'],
     bestSeason: '3-4 月、10-11 月',
     transport: '黄山北站转乘至黟县，再换乘至西递',
+    practical: {
+      duration: '2–3 小时',
+      audience: '古村、徽派建筑',
+    },
     sources: ['https://whc.unesco.org/zh/list/1002', 'http://www.huangshan.gov.cn/'],
     updatedAt: '2026-11-19',
   },
@@ -514,6 +554,10 @@ export const sites: Site[] = [
     tags: ['古村落', '徽派', '溪流'],
     bestSeason: '3-4 月、10-11 月',
     transport: '泾县站打车约 50 分钟',
+    practical: {
+      duration: '3–4 小时',
+      audience: '古村、写生',
+    },
     sources: [
       'https://wlj.xuancheng.gov.cn/News/show/1184553.html',
       'https://www.ahjx.gov.cn/Jxwl',
@@ -961,6 +1005,10 @@ export const sites: Site[] = [
     tags: ['胡氏宗祠', '全国文保', '5A'],
     bestSeason: '3-5 月、9-11 月',
     transport: '绩溪北站打车约 20 分钟',
+    practical: {
+      duration: '2–3 小时',
+      audience: '古村、宗祠',
+    },
     sources: ['https://www.xuancheng.gov.cn/News/show/350448.html'],
     updatedAt: '2026-11-21',
   },

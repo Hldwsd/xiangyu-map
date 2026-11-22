@@ -51,6 +51,23 @@ export interface LngLat {
 }
 
 /**
+ * 详情页“实用信息”的补充决策字段。
+ *
+ * 全部可选：没有可靠来源时宁可不填，也不用“约”“仅供参考”这种模糊文案凑数。
+ * 字段都是短文本，适合放在定义列表里，不承载长段落。
+ */
+export interface SitePractical {
+  /** 建议停留，如 `3–4 小时` / `1–2 天` */
+  duration?: string
+  /** 开放时间，如 `8:00–17:00`；复杂规则放 description 或 sources */
+  hours?: string
+  /** 门票/预约提示，如 `门票 104 元`；价格会变，必须能追溯到来源 */
+  ticket?: string
+  /** 适合人群/玩法，如 `古村、摄影、亲子` */
+  audience?: string
+}
+
+/**
  * 一个文旅项目 = 地图上的一个地标 + 一页详情。
  *
  * 约定：新增项目只改 src/data/sites.ts，不改组件代码。
@@ -80,6 +97,8 @@ export interface Site {
   bestSeason?: string
   /** 交通提示 */
   transport?: string
+  /** 建议停留、开放时间、门票、适合人群等决策信息 */
+  practical?: SitePractical
   /** 预约/购票地址 */
   bookingUrl?: string
   /** 资料来源，必须可核验；示例数据为占位地址 */

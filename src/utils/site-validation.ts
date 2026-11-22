@@ -10,6 +10,11 @@ import { ANHUI_BBOX, isAnhuiCity } from '@/utils/region'
 /** summary 的字数上限，与 docs/PROJECT_PLAN.md 数据契约一致 */
 export const SUMMARY_MAX_LENGTH = 60
 
+/** practical 每个字段的字数上限：它是定义列表里的短文本，不是第二段正文 */
+export const PRACTICAL_MAX_LENGTH = 80
+
+const PRACTICAL_KEYS = new Set(['duration', 'hours', 'ticket', 'audience'])
+
 /** 示例数据的统一占位封面；正式图必须落在 public/images/sites/<id>/ 下 */
 export const PLACEHOLDER_COVER = '/images/placeholder.svg'
 
@@ -195,6 +200,25 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
     const value = raw[optional]
     if (value !== undefined && value !== null && typeof value !== 'string') {
       problems.push(`${label}.${optional}: 如果填写必须是字符串`)
+    }
+  }
+
+  const practical = raw['practical']
+  if (practical !== undefined && practical !== null) {
+    if (!isRecord(practical)) {
+      problems.push(`${label}.practical: 如果填写必须是对象`)
+    } else {
+      for (const [key, value] of Object.entries(practical)) {
+        if (!PRACTICAL_KEYS.has(key)) {
+          problems.push(`${label}.practical.${key}: 不支持的字段`)
+        } else if (!isNonEmptyString(value)) {
+          problems.push(`${label}.practical.${key}: 必须是非空字符串`)
+        } else if (value.trim().length > PRACTICAL_MAX_LENGTH) {
+          problems.push(
+            `${label}.practical.${key}: 超过 ${PRACTICAL_MAX_LENGTH} 字（当前 ${value.trim().length} 字）`,
+          )
+        }
+      }
     }
   }
 
