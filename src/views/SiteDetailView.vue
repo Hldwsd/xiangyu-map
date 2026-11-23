@@ -23,6 +23,7 @@ const shareOpen = ref(false)
 const shareStatus = ref('')
 const canNativeShare = ref(false)
 const shareClose = ref<HTMLButtonElement | null>(null)
+const shareDialog = ref<HTMLElement | null>(null)
 const shareTrigger = ref<HTMLButtonElement | null>(null)
 
 function openShare(): void {
@@ -36,8 +37,39 @@ function closeShare(): void {
   void nextTick(() => shareTrigger.value?.focus())
 }
 
+/** modal 内的焦点循环：Tab / Shift+Tab 不跑到弹层外，Esc 关闭 */
 function handleShareKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') closeShare()
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeShare()
+    return
+  }
+  if (event.key !== 'Tab') return
+  const dialog = shareDialog.value
+  if (dialog === null) return
+  const focusables = [
+    ...dialog.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    ),
+  ].filter(
+    (element) =>
+      !element.hasAttribute('disabled') && element.getAttribute('aria-hidden') !== 'true',
+  )
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+  if (first === undefined || last === undefined) {
+    event.preventDefault()
+    return
+  }
+  const active = document.activeElement
+  const inside = active !== null && dialog.contains(active)
+  if (event.shiftKey && (active === first || !inside)) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && (active === last || !inside)) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 
 watch(shareOpen, (open) => {
@@ -360,9 +392,8 @@ function markBroken(url: string): void {
         aria-modal="true"
         aria-labelledby="share-title"
         @click.self="closeShare"
-        @keydown.esc="closeShare"
       >
-        <div class="share-card">
+        <div ref="shareDialog" class="share-card">
           <header class="share-card__head">
             <h2 id="share-title">分享这张卡片</h2>
             <button

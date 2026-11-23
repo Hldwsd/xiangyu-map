@@ -34,9 +34,20 @@ test('分享弹层展示专属卡片，非头部项目回退默认图', async ({
 
   const dialog = page.getByRole('dialog', { name: '分享这张卡片' })
   await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: '关闭分享' })).toBeFocused()
   await expect(dialog.locator('img')).toHaveAttribute('src', /\/og\/sites\/huangshan-scenic\.jpg$/)
-  await dialog.getByRole('button', { name: '关闭分享' }).click()
+
+  await page.keyboard.press('Shift+Tab')
+  await expect
+    .poll(() => dialog.evaluate((element) => element.contains(document.activeElement)))
+    .toBe(true)
+  await expect(page.getByRole('button', { name: '关闭分享' })).not.toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: '关闭分享' })).toBeFocused()
+
+  await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '分享' })).toBeFocused()
 
   await page.goto('/site/huicai-museum/')
   await page.getByRole('button', { name: '分享' }).click()

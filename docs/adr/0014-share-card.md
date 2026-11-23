@@ -1,4 +1,4 @@
-# 0014. 分享图：数据显式 `shareImage` + 详情页分享弹层
+﻿# 0014. 分享图：数据显式 `shareImage` + 详情页分享弹层
 
 - 状态：已接受
 - 日期：2026-11-23
@@ -52,9 +52,9 @@
 
 ## 验证
 
-- `pnpm test:unit --run`：143 用例，新增 shareImage 合法/非法路径用例；
+- `pnpm test:unit --run`：144 用例，新增 shareImage 合法/非法路径用例；
 - `pnpm prerender`：70 个详情页；黄山输出 `/og/sites/huangshan-scenic.jpg`，
   徽菜博物馆回退 `/og-cover.jpg`；
 - `pnpm test:e2e`：10 passed, 2 skipped；覆盖分享弹层、专属图与默认图；
 - `og:image:alt` / `twitter:image:alt` 在预渲染 HTML 中可见；
-- 入口 JS 256.22 KB / 300 KB（85%）。
+- 入口 JS 256.14 KB / 300 KB（85%）。
