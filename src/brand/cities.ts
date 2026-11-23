@@ -66,14 +66,13 @@ function initPreview(grid: HTMLUListElement): void {
   const caption = qs<HTMLElement>('[data-city-caption]', preview)
   const countLabel = qs<HTMLElement>('[data-city-count]', preview)
 
-  const xTo = gsap.quickTo(preview, 'x', { duration: 0.35, ease: 'power3.out' })
-  const yTo = gsap.quickTo(preview, 'y', { duration: 0.35, ease: 'power3.out' })
+  const xTo = gsap.quickTo(preview, 'x', { duration: 0.22, ease: 'power3.out' })
+  const yTo = gsap.quickTo(preview, 'y', { duration: 0.22, ease: 'power3.out' })
 
   let visible = false
   let currentRow: HTMLElement | null = null
-  /* 滚动后浏览器会重新计算 hover，可能补发 pointerover 把封面又弹出来：
-     滚动的这段时间里先拒绝出现，停手后再接受 */
-  let suppressedUntil = 0
+  let lastPointerX = Number.NaN
+  let lastPointerY = Number.NaN
 
   // 提前把 16 张城封面放进缓存：第一次悬停不用等图片下载，卡片才「跟手」
   let preloaded = false
@@ -122,7 +121,6 @@ function initPreview(grid: HTMLUListElement): void {
   }
 
   const show = (row: HTMLElement, clientX: number, clientY: number): void => {
-    if (performance.now() < suppressedUntil) return
     preload()
     if (currentRow !== row) fill(row)
     currentRow = row
@@ -130,28 +128,41 @@ function initPreview(grid: HTMLUListElement): void {
 
     if (!visible) {
       visible = true
-      gsap.to(preview, { opacity: 1, duration: 0.16, ease: 'power2.out' })
+      // 预取过的封面是一次本地绘制：直接亮出来，不做淡入，悬停即出现
+      gsap.set(preview, { opacity: 1 })
     }
   }
 
   const hide = (): void => {
-    suppressedUntil = performance.now() + 260
     currentRow = null
     if (!visible) return
     visible = false
-    gsap.to(preview, { opacity: 0, duration: 0.22, ease: 'power2.out' })
+    gsap.to(preview, { opacity: 0, duration: 0.18, ease: 'power2.out' })
   }
 
-  grid.addEventListener('pointerover', (event) => {
-    const row = (event.target as Element | null)?.closest<HTMLElement>('.city__row')
-    if (row === null || row === undefined) return
-    show(row, event.clientX, event.clientY)
-  })
+  /**
+   * 只在指针「真的动了」时出现。
+   * 浏览器在滚动后会重新计算指针下的元素并补发 hover 事件，坐标却不变；
+   * 用位移判断可以把这类合成事件过滤掉——滚动时封面收起，手一动就立刻回来。
+   */
+  const onPointerMove = (event: PointerEvent): void => {
+    const moved =
+      Number.isNaN(lastPointerX) ||
+      Math.abs(event.clientX - lastPointerX) > 2 ||
+      Math.abs(event.clientY - lastPointerY) > 2
+    lastPointerX = event.clientX
+    lastPointerY = event.clientY
+    if (!moved) return
 
-  grid.addEventListener('pointermove', (event) => {
-    if (!visible) return
-    place(event.clientX, event.clientY)
-  })
+    const row = (event.target as Element | null)?.closest<HTMLElement>('.city__row')
+    if (row !== null && row !== undefined) {
+      show(row, event.clientX, event.clientY)
+      return
+    }
+    if (visible) place(event.clientX, event.clientY)
+  }
+
+  grid.addEventListener('pointermove', onPointerMove)
 
   grid.addEventListener('pointerleave', hide)
 

@@ -28,6 +28,10 @@ import {
 import { initSights } from './sights'
 import { initSmoothScroll } from './smooth'
 
+// 关键样式已经在 import 时注入：撤掉 HTML 里的首屏遮罩，
+// 让「纸 + 红印」直接换成有样式的 loader，不闪未渲染的界面
+document.documentElement.classList.add('brand-ready')
+
 // 刷新一律从顶端开始读（history.scrollRestoration 在 index.html 里设成 manual），
 // 这样重载后看到的是开场动画，而不是「半路被丢下」的页面。
 // 书法底纹在 public/ 下，CSS 里没法套部署基地址，这里交给变量

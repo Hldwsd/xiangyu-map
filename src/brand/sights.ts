@@ -8,7 +8,7 @@ import type { Site } from '@/types/site'
 import { assetUrl } from '@/utils/asset-url'
 
 import { featuredSites } from './data'
-import { gsap, prefersReducedMotion, qs, qsa } from './motion'
+import { gsap, prefersReducedMotion, qs, qsa, ScrollTrigger } from './motion'
 
 const ARROW = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`
 
@@ -90,7 +90,51 @@ export function initSights(): void {
 
   const media = gsap.matchMedia()
   media.add('(min-width: 901px)', () => {
+    const panels = qsa<HTMLElement>('.panel', track)
     const distance = (): number => Math.max(0, track.scrollWidth - window.innerWidth)
+
+    /** 每块画板的左缘落在起点时的进度；末尾补 1，让最后一屏也吸附得住 */
+    const snapPoints = (): number[] => {
+      const max = distance()
+      if (max <= 0) return [0]
+      const padLeft = Number.parseFloat(getComputedStyle(track).paddingLeft) || 0
+      const points = panels
+        .map((panel) => (panel.offsetLeft - padLeft) / max)
+        .filter((point) => point > 0.03 && point < 0.93)
+      return [0, ...points, 1]
+    }
+
+    const snapTo = (value: number): number => {
+      const points = snapPoints()
+      return points.reduce(
+        (closest, point) => (Math.abs(point - value) < Math.abs(closest - value) ? point : closest),
+        points[0] ?? 0,
+      )
+    }
+
+    /** 当前贴住左侧的那一块（也就是吸附目标）立起来，前后两块依次退后 */
+    const focusPanels = (): void => {
+      const padLeft = Number.parseFloat(getComputedStyle(track).paddingLeft) || 0
+      const trackX = Number(gsap.getProperty(track, 'x')) || 0
+      let active = 0
+      let best = Number.POSITIVE_INFINITY
+      panels.forEach((panel, index) => {
+        const offset = Math.abs(panel.offsetLeft + trackX - padLeft)
+        if (offset < best) {
+          best = offset
+          active = index
+        }
+      })
+
+      panels.forEach((panel, index) => {
+        const influence = Math.max(0, 1 - Math.abs(index - active) * 0.55)
+        gsap.set(panel, {
+          scale: 0.93 + 0.07 * influence,
+          y: 22 * (1 - influence),
+          transformOrigin: '50% 50%',
+        })
+      })
+    }
 
     const scrollTween = gsap.to(track, {
       x: () => -distance(),
@@ -103,9 +147,22 @@ export function initSights(): void {
         scrub: 1,
         anticipatePin: 1,
         invalidateOnRefresh: true,
-        onUpdate: (self) => setProgress(self.progress),
+        // 吸附：一次手势停在某块画板上，不会在最后一段「咔」一下突然到底
+        snap: {
+          snapTo,
+          duration: { min: 0.2, max: 0.65 },
+          delay: 0.06,
+          ease: 'power1.inOut',
+        },
+        onUpdate: (self) => {
+          setProgress(self.progress)
+          focusPanels()
+        },
       },
     })
+
+    focusPanels()
+    ScrollTrigger.addEventListener('refresh', focusPanels)
 
     // 图片在自己的画框里反向小幅位移，横移才有纵深
     for (const figure of qsa<HTMLElement>('.panel__figure', track)) {
@@ -125,6 +182,10 @@ export function initSights(): void {
           },
         },
       )
+    }
+
+    return () => {
+      ScrollTrigger.removeEventListener('refresh', focusPanels)
     }
   })
 }

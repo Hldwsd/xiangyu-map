@@ -64,7 +64,7 @@ test('品牌页：刷新从顶端重播，不恢复上次位置', async ({ page 
   expect(scrollY).toBeLessThan(20)
 })
 
-test('品牌页：风物抽屉按实际数量换图，演艺类只有一张', async ({ page }) => {
+test('品牌页：风物抽屉按实际数量换图，点照片置顶', async ({ page }) => {
   test.skip(test.info().project.name === 'mobile', '窄屏没有图片抽屉')
   await page.goto('/brand/')
 
@@ -81,8 +81,21 @@ test('品牌页：风物抽屉按实际数量换图，演艺类只有一张', as
   await expect(page.locator('[data-craft-name]')).toHaveText('演艺')
   await expect(page.locator('.craft-drawer__photo:not([hidden])')).toHaveCount(1)
 
-  // 点照片切到下一类（分类顺序：… 演艺 → 乡村 → 场馆）
-  await stack.evaluate((element) => (element as HTMLElement).click())
-  await expect(page.locator('[data-craft-name]')).toHaveText('乡村')
-  await expect(stack).toHaveAttribute('data-photo-count', '3')
+  // 回到古镇：点背面的照片，它应该被抽到最前，类别不变
+  await page
+    .locator('.craft__row')
+    .nth(0)
+    .evaluate((element) => (element as HTMLElement).click())
+  await expect(page.locator('[data-craft-name]')).toHaveText('古镇')
+
+  const backSrc = await page.locator('.craft-drawer__photo--back img').getAttribute('src')
+  expect(backSrc).toBeTruthy()
+  await page
+    .locator('.craft-drawer__photo--back')
+    .evaluate((element) => (element as HTMLElement).click())
+  await expect(page.locator('.craft-drawer__photo--front img')).toHaveAttribute(
+    'src',
+    backSrc ?? '',
+  )
+  await expect(page.locator('[data-craft-name]')).toHaveText('古镇')
 })

@@ -1276,12 +1276,6 @@
   aspect-ratio: 16 / 11;
   margin-bottom: 1rem;
   perspective: 900px;
-  cursor: pointer;
-}
-
-.craft-drawer__stack:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 8px;
 }
 
 .craft-drawer__photo {
@@ -1293,7 +1287,20 @@
   border: 5px solid var(--paper-light);
   border-radius: 10px;
   box-shadow: var(--shadow-paper);
+  cursor: pointer;
   will-change: transform;
+  transition: box-shadow 0.35s var(--ease-out);
+}
+
+.craft-drawer__photo:hover {
+  box-shadow:
+    0 30px 60px -38px rgb(23 20 15 / 90%),
+    0 0 0 2px rgb(164 123 60 / 35%);
+}
+
+.craft-drawer__photo:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
 }
 
 .craft-drawer__photo[hidden] {
@@ -1343,32 +1350,6 @@
   bottom: 6%;
   height: 88%;
   aspect-ratio: 4 / 3;
-}
-
-.craft-drawer__cycle {
-  position: absolute;
-  right: 0.35rem;
-  bottom: 0.35rem;
-  z-index: 6;
-  display: grid;
-  place-items: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  color: var(--paper);
-  pointer-events: none;
-  background: rgb(23 20 15 / 82%);
-  border-radius: 50%;
-  box-shadow: 0 10px 22px -14px #000;
-  transition: background-color 0.3s var(--ease-out);
-}
-
-.craft-drawer__cycle svg {
-  width: 0.95rem;
-  height: 0.95rem;
-}
-
-.craft-drawer__stack:hover .craft-drawer__cycle {
-  background: var(--ink);
 }
 
 .craft-drawer__meta {

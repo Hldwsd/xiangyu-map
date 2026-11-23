@@ -15,9 +15,48 @@
     <meta property="og:title" content="乡遇安徽 · 一张纸上的七十处山水" />
     <meta property="og:description" content="不急着打卡，先看看地图上还有哪些值得停一停的地方。" />
     <meta property="og:image" content="%BASE_URL%og-cover.jpg" />
+    <style>
+      /* 首屏遮罩：样式与脚本就位前，先盖住未渲染/无样式的 HTML，避免闪一下旧版界面 */
+      html {
+        background: #f2ebde;
+      }
+
+      body {
+        margin: 0;
+        color: #17140f;
+        background: #f2ebde;
+      }
+
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: #f2ebde;
+        animation: boot-failsafe 0.4s ease 8s forwards;
+      }
+
+      #boot img {
+        width: 2rem;
+        height: auto;
+      }
+
+      html.brand-ready #boot {
+        display: none;
+      }
+
+      @keyframes boot-failsafe {
+        to {
+          visibility: hidden;
+          opacity: 0;
+        }
+      }
+    </style>
     <noscript>
       <style>
-        .loader {
+        .loader,
+        #boot {
           display: none;
         }
       </style>
@@ -32,6 +71,9 @@
     </script>
   </head>
   <body>
+    <div id="boot" aria-hidden="true">
+      <img src="%BASE_URL%brand/icon-red-32.png" alt="" width="32" height="32" />
+    </div>
     <a class="skip" href="#manifesto">跳到正文</a>
 
     <div class="grain" aria-hidden="true"></div>
@@ -361,13 +403,7 @@
           <ul class="craft-list" data-crafts></ul>
 
           <aside class="craft-drawer" data-craft-drawer aria-label="风物图片抽屉">
-            <div
-              class="craft-drawer__stack"
-              data-craft-stack
-              role="button"
-              tabindex="0"
-              aria-label="点击切换到下一类风物"
-            >
+            <div class="craft-drawer__stack" data-craft-stack>
               <figure class="craft-drawer__photo craft-drawer__photo--back">
                 <img alt="" data-craft-photo="2" />
               </figure>
@@ -377,30 +413,11 @@
               <figure class="craft-drawer__photo craft-drawer__photo--front">
                 <img alt="" data-craft-photo="0" />
               </figure>
-              <span class="craft-drawer__cycle" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M20 12a8 8 0 1 1-2.3-5.7"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M20 4v5h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
             </div>
             <div class="craft-drawer__meta">
               <p class="craft-drawer__kicker">
                 <span data-craft-kicker>01 / SEVEN</span>
-                <span class="craft-drawer__hint">点击照片切换</span>
+                <span class="craft-drawer__hint">点击照片置顶</span>
               </p>
               <h3 class="craft-drawer__name" data-craft-name>古镇</h3>
               <p class="craft-drawer__desc" data-craft-desc></p>
