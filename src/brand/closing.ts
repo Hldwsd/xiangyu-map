@@ -18,7 +18,7 @@ export function initClosing(): void {
     scrollTrigger: { trigger: '.closing__title', start: 'top 86%', once: true },
   })
 
-  gsap.from('.seal', {
+  gsap.from('.closing__seal', {
     scale: 1.7,
     opacity: 0,
     rotate: -16,

@@ -26,6 +26,30 @@ export interface HeroMap {
   cityPaths: SVGPathElement[]
   siteDots: SVGAElement[]
   cityDots: SVGGElement[]
+  labels: SVGTextElement[]
+}
+
+/**
+ * 地名标注的偏移：数字大小不代表行政级别，只用来把字从密集处挪开。
+ * [dx, dy, text-anchor]，dy 正值向下。
+ */
+const LABEL_OFFSETS: Record<string, [number, number, 'middle' | 'start' | 'end']> = {
+  合肥市: [0, -9, 'middle'],
+  芜湖市: [7, 3, 'start'],
+  蚌埠市: [0, -9, 'middle'],
+  淮南市: [-7, 2, 'end'],
+  马鞍山市: [8, 2, 'start'],
+  淮北市: [-6, -5, 'end'],
+  铜陵市: [8, 3, 'start'],
+  安庆市: [-7, 4, 'end'],
+  黄山市: [-7, 4, 'end'],
+  滁州市: [8, 2, 'start'],
+  阜阳市: [-7, 2, 'end'],
+  宿州市: [7, 3, 'start'],
+  六安市: [-7, 3, 'end'],
+  亳州市: [-7, 2, 'end'],
+  池州市: [7, 4, 'start'],
+  宣城市: [8, 2, 'start'],
 }
 
 function svgMarkup(): string {
@@ -43,6 +67,7 @@ function svgMarkup(): string {
       <path class="map__outline" d="${PROVINCE_OUTLINE}"/>
     </g>
     <g class="map__city-dots"></g>
+    <g class="map__labels"></g>
     <g class="map__dots"></g>
   `
 }
@@ -120,6 +145,28 @@ function buildCityDots(group: SVGGElement, cityPaths: Map<string, SVGPathElement
   return dots
 }
 
+function buildCityLabels(group: SVGGElement): SVGTextElement[] {
+  const labels: SVGTextElement[] = []
+
+  for (const city of cityStats) {
+    const shape = CITY_SHAPES.find((item) => item.name === city.name)
+    if (shape === undefined) continue
+
+    const [dx, dy, anchor] = LABEL_OFFSETS[city.name] ?? [0, -9, 'middle']
+    const text = document.createElementNS(SVG_NS, 'text')
+    text.setAttribute('class', `map__label${city.count < 4 ? ' map__label--minor' : ''}`)
+    text.setAttribute('x', String(shape.x + dx))
+    text.setAttribute('y', String(shape.y + dy))
+    text.setAttribute('text-anchor', anchor)
+    text.setAttribute('dominant-baseline', 'middle')
+    text.textContent = city.short
+    group.appendChild(text)
+    labels.push(text)
+  }
+
+  return labels
+}
+
 /** 悬停说明：跟着指针走的一个小纸片，鼠标离开就收起来 */
 function attachTooltip(root: HTMLElement): void {
   const tip = qs<HTMLElement>('[data-map-tip]')
@@ -167,6 +214,7 @@ export function prepareHero(): HeroMap {
 
   const siteDots = buildSiteDots(qs<SVGGElement>('.map__dots', svg))
   const cityDots = buildCityDots(qs<SVGGElement>('.map__city-dots', svg), cityPaths)
+  const labels = buildCityLabels(qs<SVGGElement>('.map__labels', svg))
   const outline = qs<SVGPathElement>('.map__outline', svg)
 
   attachTooltip(container)
@@ -175,9 +223,10 @@ export function prepareHero(): HeroMap {
     gsap.set(qsa('.map__city', svg), { opacity: 0 })
     gsap.set(qsa('.map__water, .map__river', svg), { opacity: 0 })
     gsap.set([...siteDots, ...cityDots], { opacity: 0, scale: 0.2 })
+    gsap.set(labels, { opacity: 0 })
   }
 
-  return { svg, outline, cityPaths: [...cityPaths.values()], siteDots, cityDots }
+  return { svg, outline, cityPaths: [...cityPaths.values()], siteDots, cityDots, labels }
 }
 
 export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
@@ -190,6 +239,7 @@ export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
   gsap.set(introItems, { y: 20, opacity: 0 })
   gsap.set('.hero__frame-line', { scaleX: 0, scaleY: 0 })
   gsap.set('.hero__scroll', { opacity: 0 })
+  gsap.set('.hero__seal', { opacity: 0, scale: 1.45, rotate: -16 })
 
   const length = map.outline.getTotalLength()
   gsap.set(map.outline, { strokeDasharray: length, strokeDashoffset: length })
@@ -222,6 +272,7 @@ export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
       { opacity: 1, scale: 1, duration: 0.6, stagger: 0.045, ease: 'back.out(2.2)' },
       1.4,
     )
+    .to(map.labels, { opacity: 1, duration: 0.9, stagger: 0.03, ease: 'power1.out' }, 1.55)
     .to(
       map.siteDots,
       {
@@ -239,6 +290,11 @@ export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
       0.35,
     )
     .to(introItems, { y: 0, opacity: 1, duration: 1, stagger: 0.09, ease: 'power3.out' }, 0.8)
+    .to(
+      '.hero__seal',
+      { opacity: 0.95, scale: 1, rotate: -7, duration: 0.85, ease: 'back.out(2)' },
+      1.05,
+    )
     .to('.hero__scroll', { opacity: 1, duration: 0.8 }, 1.8)
 
   if (!prefersReducedMotion) {

@@ -63,13 +63,19 @@ export interface CraftStat {
   name: SiteCategory
   count: number
   note: string
+  /** 抽屉里展示的三处代表项目（取数据里的前三处） */
+  picks: Site[]
 }
 
-export const craftStats: CraftStat[] = SITE_CATEGORIES.map((name) => ({
-  name,
-  count: sites.filter((site) => site.category === name).length,
-  note: CRAFT_NOTES[name],
-}))
+export const craftStats: CraftStat[] = SITE_CATEGORIES.map((name) => {
+  const list = sites.filter((site) => site.category === name)
+  return {
+    name,
+    count: list.length,
+    note: CRAFT_NOTES[name],
+    picks: list.slice(0, 3),
+  }
+})
 
 /** 英雄区图例里那句「70 处」，以数据为准 */
 export const HERO_META = `${TOTAL_CITIES} 城 · ${TOTAL_SITES} 处 · ${SITE_CATEGORIES.length} 类`

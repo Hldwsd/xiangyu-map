@@ -39,6 +39,7 @@
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --shadow-soft: 0 18px 40px -28px rgb(23 20 15 / 60%);
+  --shadow-paper: 0 26px 60px -42px rgb(23 20 15 / 85%);
 }
 
 *,
@@ -50,6 +51,13 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: auto;
+  /* 原生滚动条交给 .scrollbar，浏览器那条在深色分节上太跳 */
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 body {
@@ -97,6 +105,7 @@ img {
 
 button {
   font: inherit;
+  color: inherit;
 }
 
 :focus-visible {
@@ -146,22 +155,82 @@ button {
   pointer-events: none;
 }
 
-/* ---- 顶部阅读进度 ---- */
-.progress {
+/* ---- 自绘滚动条：细金线 + 可拖拽的墨点 ---- */
+.scrollbar {
   position: fixed;
-  inset: 0 0 auto;
-  z-index: 96;
-  height: 2px;
-  background: transparent;
+  top: calc(var(--topbar-h) + 1.6rem);
+  right: 0.55rem;
+  bottom: 1.6rem;
+  z-index: 78;
+  display: none;
+  width: 1.6rem;
+  pointer-events: none;
 }
 
-.progress__bar {
-  display: block;
-  width: 100%;
-  height: 100%;
+@media (hover: hover) and (pointer: fine) {
+  .scrollbar {
+    display: block;
+  }
+}
+
+.scrollbar__track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: rgb(164 123 60 / 28%);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.scrollbar__thumb {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 3px;
+  height: 3rem;
+  margin-left: -1.5px;
   background: var(--gold);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
+  border-radius: 2px;
+  cursor: grab;
+  pointer-events: auto;
+  transition:
+    width 0.25s var(--ease-out),
+    margin-left 0.25s var(--ease-out),
+    background-color 0.25s var(--ease-out);
+  will-change: transform;
+}
+
+.scrollbar__thumb::after {
+  position: absolute;
+  inset: -4px -6px;
+  content: '';
+}
+
+.scrollbar:hover .scrollbar__thumb {
+  width: 5px;
+  margin-left: -2.5px;
+  background: #7d5c28;
+}
+
+.scrollbar__thumb--active {
+  background: #7d5c28;
+  cursor: grabbing;
+}
+
+.scrollbar__label {
+  position: absolute;
+  top: auto;
+  bottom: -1.35rem;
+  left: 50%;
+  font-family: var(--font-num);
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
 }
 
 /* ---- 跟随光标的小环：只是陪衬，不替换系统指针 ---- */
@@ -200,7 +269,7 @@ button {
   transform: translate(-50%, -50%) scale(1.35);
 }
 
-/* ---- 载入：两片纸从中间拉开 ---- */
+/* ---- 载入：一枚红印 + 两片纸从中间拉开 ---- */
 .loader {
   position: fixed;
   inset: 0;
@@ -208,7 +277,6 @@ button {
   display: grid;
   place-items: center;
   background: var(--paper);
-  /* 没有 JS 时的兜底：八秒后自己让开，页面不会被一张纸盖死 */
   animation: loader-failsafe 0.6s ease 8s forwards;
 }
 
@@ -236,6 +304,19 @@ button {
   bottom: 0;
 }
 
+.loader__seal {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 1.9rem;
+  opacity: 0;
+}
+
+.loader__seal img {
+  width: clamp(2.6rem, 4.4vw, 3.4rem);
+  height: auto;
+  filter: drop-shadow(0 10px 18px rgb(156 42 33 / 18%));
+}
+
 .loader__mark {
   position: relative;
   z-index: 2;
@@ -254,9 +335,9 @@ button {
 
 .loader__meta {
   position: absolute;
+  right: var(--pad);
   bottom: 2rem;
   left: var(--pad);
-  right: var(--pad);
   display: flex;
   justify-content: space-between;
   font-size: 0.56rem;
@@ -281,9 +362,21 @@ button {
 }
 
 .brand {
-  display: grid;
-  gap: 0.1rem;
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
   line-height: 1;
+}
+
+.brand__logo {
+  width: 2.05rem;
+  height: auto;
+  transform: rotate(-2deg);
+}
+
+.brand__text {
+  display: grid;
+  gap: 0.18rem;
 }
 
 .brand__cn {
@@ -398,7 +491,7 @@ button {
   gap: clamp(1rem, 2vw, 2rem);
   align-items: baseline;
   padding-top: 0.85rem;
-  margin-bottom: clamp(2.2rem, 5vw, 3.8rem);
+  margin-bottom: clamp(1.8rem, 3.8vw, 3rem);
   border-top: 1px solid var(--line);
 }
 

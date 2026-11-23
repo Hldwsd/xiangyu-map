@@ -15,6 +15,13 @@ test('品牌页：首屏、地图点数与各分节都渲染出来', async ({ pa
   await expect(page).toHaveTitle(/乡遇安徽 · 一张纸上的七十处山水/)
   await expect(page.locator('.loader')).toHaveCount(0)
 
+  // 标识：顶栏、首屏印章、页脚都用同一枚「乡」印
+  await expect(page.locator('.brand__logo')).toBeVisible()
+  await expect(page.locator('.hero__seal')).toBeVisible()
+  if (test.info().project.name === 'desktop') {
+    await expect(page.locator('.scrollbar__thumb')).toBeVisible()
+  }
+
   await expect(page.locator('.hero__title .char')).toHaveCount(4)
   await expect(page.locator('.map__dot')).toHaveCount(70)
   await expect(page.locator('.map__city-dot')).toHaveCount(16)

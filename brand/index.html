@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/brand/icon-red-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/brand/icon-red-180.png" />
     <title>乡遇安徽 · 一张纸上的七十处山水</title>
     <meta
       name="description"
@@ -22,8 +23,9 @@
       </style>
     </noscript>
     <script>
-      // 有 JS 且有动效偏好时，才把「待入场」的元素藏起来（样式里 .motion 前缀）。
-      // 没有 JS 的极端情况下整页仍然可读，不会被动画的初始态锁死。
+      // 刷新时自己决定回到哪：滚动位置在 session 里记着，见 src/brand/main.ts
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+      // 没有 JS 时不要把内容锁在动画初始态里
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.documentElement.dataset.motion = 'on'
       }
@@ -33,20 +35,38 @@
     <a class="skip" href="#manifesto">跳到正文</a>
 
     <div class="grain" aria-hidden="true"></div>
-    <div class="progress" aria-hidden="true"><span class="progress__bar" data-progress></span></div>
     <div class="cursor" aria-hidden="true"><span class="cursor__ring" data-cursor></span></div>
+
+    <!-- 自绘滚动条：原生滚动条在深色分节上太抢眼 -->
+    <div class="scrollbar" data-scrollbar aria-hidden="true">
+      <span class="scrollbar__track" data-scroll-track></span>
+      <span class="scrollbar__thumb" data-scroll-thumb></span>
+      <span class="scrollbar__label" data-scroll-label>00</span>
+    </div>
 
     <div class="loader" data-loader aria-hidden="true">
       <div class="loader__half loader__half--top"></div>
       <div class="loader__half loader__half--bottom"></div>
+      <div class="loader__seal">
+        <img src="%BASE_URL%brand/logo-red.webp" alt="" width="192" height="214" />
+      </div>
       <div class="loader__mark"><span>乡</span><span>遇</span><span>安</span><span>徽</span></div>
       <p class="loader__meta"><span>XIANGYU · ANHUI</span><span>2016 → 2026</span></p>
     </div>
 
     <header class="topbar">
-      <a class="brand" href="./">
-        <span class="brand__cn">乡遇安徽</span>
-        <span class="brand__en">XIANGYU&nbsp;/&nbsp;ANHUI</span>
+      <a class="brand" href="./" aria-label="乡遇安徽 · 品牌页">
+        <img
+          class="brand__logo"
+          src="%BASE_URL%brand/logo-black.webp"
+          alt=""
+          width="192"
+          height="220"
+        />
+        <span class="brand__text">
+          <span class="brand__cn">乡遇安徽</span>
+          <span class="brand__en">XIANGYU&nbsp;/&nbsp;ANHUI</span>
+        </span>
       </a>
       <nav class="topbar__nav" aria-label="页内导航">
         <a href="#manifesto"><i>01</i>缘起</a>
@@ -67,6 +87,9 @@
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero__wash" aria-hidden="true"></div>
         <p class="hero__rail" aria-hidden="true">一纸山河 · 十六座城</p>
+        <p class="hero__folio" aria-hidden="true">
+          <span>卷壹 · 皖</span><span>北纬 29.4°–34.6° · 东经 114.9°–119.6°</span>
+        </p>
         <div class="hero__frame" aria-hidden="true">
           <i class="hero__frame-line hero__frame-line--top"></i>
           <i class="hero__frame-line hero__frame-line--right"></i>
@@ -78,12 +101,22 @@
           <div class="hero__copy">
             <p class="eyebrow" data-intro><span class="eyebrow__rule"></span>一张纸上的安徽</p>
 
-            <h1 class="hero__title" id="hero-title" data-hero-title>
-              <span class="mask"><span class="char">乡</span></span>
-              <span class="mask"><span class="char">遇</span></span>
-              <span class="mask"><span class="char">安</span></span>
-              <span class="mask"><span class="char">徽</span></span>
-            </h1>
+            <div class="hero__title-wrap">
+              <h1 class="hero__title" id="hero-title" data-hero-title>
+                <span class="mask"><span class="char">乡</span></span>
+                <span class="mask"><span class="char">遇</span></span>
+                <span class="mask"><span class="char">安</span></span>
+                <span class="mask"><span class="char">徽</span></span>
+              </h1>
+              <img
+                class="hero__seal"
+                src="%BASE_URL%brand/logo-red.webp"
+                alt=""
+                width="192"
+                height="214"
+                aria-hidden="true"
+              />
+            </div>
 
             <p class="hero__lede" data-intro>
               在安徽，把值得专程一去的地方，一处一处标在同一张纸上。<br />
@@ -172,6 +205,61 @@
         </div>
       </section>
 
+      <!-- 02.5 · 纸上的近景：五张图，把节奏打散 -->
+      <section class="band" aria-labelledby="band-title">
+        <div class="band__head">
+          <h2 class="band__title" id="band-title">纸上所见</h2>
+          <p class="band__meta"><span>FROM THE ROAD</span><span>五页近景</span></p>
+        </div>
+        <div class="band__strip" data-band>
+          <figure class="band__item">
+            <span class="band__frame"
+              ><img
+                src="%BASE_URL%images/sites/tianzhushan/cover.webp"
+                alt="天柱山的花岗岩峰与红叶"
+                loading="lazy"
+            /></span>
+            <figcaption><b>天柱山</b><span>安庆 · 自然</span></figcaption>
+          </figure>
+          <figure class="band__item">
+            <span class="band__frame"
+              ><img
+                src="%BASE_URL%images/sites/taohuatan/cover.webp"
+                alt="清晨的桃花潭水面与一条小船"
+                loading="lazy"
+            /></span>
+            <figcaption><b>桃花潭</b><span>宣城 · 乡村</span></figcaption>
+          </figure>
+          <figure class="band__item">
+            <span class="band__frame"
+              ><img
+                src="%BASE_URL%images/sites/chaji-village/cover.webp"
+                alt="查济村的黑瓦屋顶与远山"
+                loading="lazy"
+            /></span>
+            <figcaption><b>查济</b><span>宣城 · 乡村</span></figcaption>
+          </figure>
+          <figure class="band__item">
+            <span class="band__frame"
+              ><img
+                src="%BASE_URL%images/sites/jiuhuashan/cover.webp"
+                alt="九华山的云雾与山脊"
+                loading="lazy"
+            /></span>
+            <figcaption><b>九华山</b><span>池州 · 自然</span></figcaption>
+          </figure>
+          <figure class="band__item">
+            <span class="band__frame"
+              ><img
+                src="%BASE_URL%images/sites/huaxilou/cover.webp"
+                alt="亳州花戏楼的彩绘戏台"
+                loading="lazy"
+            /></span>
+            <figcaption><b>花戏楼</b><span>亳州 · 非遗</span></figcaption>
+          </figure>
+        </div>
+      </section>
+
       <!-- 03 · 所见：横向画廊 -->
       <section class="sights" id="sights" aria-labelledby="sights-title">
         <div class="sights__head">
@@ -225,26 +313,36 @@
           <span class="section-head__en">16 Cities</span>
         </div>
 
-        <div class="cities__grid-wrap">
-          <h2 class="cities__title visually-hidden" id="cities-title">安徽十六城</h2>
-          <ul class="city-grid" data-cities></ul>
+        <div class="cities__head">
+          <h2 class="cities__title" id="cities-title">
+            <span class="line"><span>十六座城，</span></span>
+            <span class="line"><span>各有各的走法。</span></span>
+          </h2>
+          <div class="cities__aside">
+            <p class="cities__note" data-reveal>
+              从皖北的平原到皖南的山，抵达方式都不一样。<br />
+              鼠标停在城名上，先看一眼封面。
+            </p>
+            <p class="cities__count" data-reveal>合计 <span data-count="70">70</span> 处</p>
+          </div>
         </div>
 
-        <div class="cities__aside">
-          <p class="cities__note" data-reveal>
-            每座城都有自己的走法：一条老街、一碗吃食、一段戏。<br />
-            鼠标停在城名上，先看一眼。
-          </p>
-          <p class="cities__count" data-reveal>合计 <span data-count="70">70</span> 处</p>
-        </div>
+        <ul class="city-grid" data-cities></ul>
 
         <div class="city-preview" data-city-preview aria-hidden="true">
-          <img alt="" data-city-image />
-          <span data-city-caption></span>
+          <div class="city-preview__frame">
+            <img alt="" data-city-image />
+            <span class="city-preview__index" data-city-index>01</span>
+          </div>
+          <div class="city-preview__meta">
+            <b data-city-name>合肥</b>
+            <span data-city-caption>三河古镇</span>
+            <span class="city-preview__count" data-city-count>6 处</span>
+          </div>
         </div>
       </section>
 
-      <!-- 05 · 风物 -->
+      <!-- 05 · 风物：左侧目录 + 右侧图片抽屉 -->
       <section class="crafts" id="categories" aria-labelledby="crafts-title">
         <div class="section-head" data-reveal>
           <span class="section-head__index">04</span>
@@ -260,7 +358,30 @@
           <p class="crafts__note" data-reveal>分类只用来帮你挑一天怎么过，不用来给地方排座次。</p>
         </div>
 
-        <ul class="craft-list" data-crafts></ul>
+        <div class="crafts__body">
+          <ul class="craft-list" data-crafts></ul>
+
+          <aside class="craft-drawer" data-craft-drawer aria-label="风物图片抽屉">
+            <div class="craft-drawer__stack" data-craft-stack>
+              <figure class="craft-drawer__photo craft-drawer__photo--back">
+                <img alt="" data-craft-photo="2" />
+              </figure>
+              <figure class="craft-drawer__photo craft-drawer__photo--mid">
+                <img alt="" data-craft-photo="1" />
+              </figure>
+              <figure class="craft-drawer__photo craft-drawer__photo--front">
+                <img alt="" data-craft-photo="0" />
+              </figure>
+            </div>
+            <div class="craft-drawer__meta">
+              <span class="craft-drawer__kicker" data-craft-kicker>01 / SEVEN</span>
+              <h3 class="craft-drawer__name" data-craft-name>古镇</h3>
+              <p class="craft-drawer__desc" data-craft-desc></p>
+              <ul class="craft-drawer__sites" data-craft-sites></ul>
+              <p class="craft-drawer__count"><b data-craft-count>9</b> 处</p>
+            </div>
+          </aside>
+        </div>
       </section>
 
       <!-- 06 · 尾声 -->
@@ -287,17 +408,26 @@
             </svg>
           </span>
         </a>
-        <div class="seal" aria-hidden="true">
-          <span>乡遇</span>
-          <span class="seal__sub">安徽</span>
+        <div class="closing__seal" aria-hidden="true">
+          <img src="%BASE_URL%brand/logo-red.webp" alt="" width="192" height="214" />
+          <span>乡遇 · 二〇二六</span>
         </div>
       </section>
     </main>
 
     <footer class="colophon">
       <div class="colophon__brand">
-        <span class="colophon__cn">乡遇安徽</span>
-        <span class="colophon__en">一张纸上的七十处山水 · 2026</span>
+        <img
+          class="colophon__logo"
+          src="%BASE_URL%brand/logo-red.webp"
+          alt=""
+          width="192"
+          height="214"
+        />
+        <div>
+          <span class="colophon__cn">乡遇安徽</span>
+          <span class="colophon__en">一张纸上的七十处山水 · 2026</span>
+        </div>
       </div>
       <dl class="colophon__meta">
         <div>

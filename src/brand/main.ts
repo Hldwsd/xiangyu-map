@@ -9,6 +9,7 @@ import './sections.css'
 
 import { assetUrl } from '@/utils/asset-url'
 
+import { initBand } from './band'
 import { initChrome } from './chrome'
 import { initCities } from './cities'
 import { initClosing } from './closing'
@@ -27,6 +28,8 @@ import {
 import { initSights } from './sights'
 import { initSmoothScroll } from './smooth'
 
+const SCROLL_KEY = 'xy-brand-scroll'
+
 // 书法底纹在 public/ 下，CSS 里没法套部署基地址，这里交给变量
 document.documentElement.style.setProperty(
   '--bg-calligraphy',
@@ -34,11 +37,12 @@ document.documentElement.style.setProperty(
 )
 
 const lenis = initSmoothScroll()
-initChrome()
+initChrome(lenis)
 
 const hero = prepareHero()
 initHeroScroll()
 initManifesto()
+initBand()
 initSights()
 initCities()
 initCrafts()
@@ -50,6 +54,37 @@ countUpOnScroll(qsa('[data-count]').filter((element) => element.closest('.hero')
 /** 首屏那三个数字不跟着滚动触发，而是等标题入场后自己数上来 */
 const heroCounts = qsa<HTMLElement>('.ledger [data-count]')
 
+// 记住读到哪：刷新回来还在原处，而不是被弹回顶端
+let saveQueued = false
+const saveScroll = (): void => {
+  if (saveQueued) return
+  saveQueued = true
+  requestAnimationFrame(() => {
+    saveQueued = false
+    try {
+      sessionStorage.setItem(SCROLL_KEY, String(Math.round(window.scrollY)))
+    } catch {
+      // 隐私模式下 sessionStorage 可能不可写；记不住就算了，不影响阅读
+    }
+  })
+}
+window.addEventListener('scroll', saveScroll, { passive: true })
+
+function restoreScroll(): void {
+  let saved = 0
+  try {
+    saved = Number(sessionStorage.getItem(SCROLL_KEY) ?? '0')
+  } catch {
+    saved = 0
+  }
+  if (!Number.isFinite(saved) || saved < 60) return
+
+  // Pin 会让文档高度的计算依赖刷新后的布局，跳回去之前先量一次
+  ScrollTrigger.refresh()
+  if (lenis !== null) lenis.scrollTo(saved, { immediate: true, force: true })
+  else window.scrollTo(0, saved)
+}
+
 // 开发期把滚动实例与入场时间线挂到 window 上，方便在浏览器里
 // 精确跳到某一节、或把动画拨到某一帧看排版（不影响生产构建）
 const debugRef: Record<string, unknown> = { lenis, ScrollTrigger }
@@ -60,6 +95,8 @@ if (import.meta.env.DEV) {
 runLoader(() => {
   const timeline = playHeroIntro(hero)
   debugRef.intro = timeline
+
+  restoreScroll()
 
   if (prefersReducedMotion) return
   timeline.add(() => {
