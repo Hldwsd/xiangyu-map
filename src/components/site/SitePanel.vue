@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -6,18 +7,65 @@ import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 
 import type { Site } from '@/types/site'
 import { assetUrl } from '@/utils/asset-url'
+import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
 defineProps<{ site: Site }>()
+
+const panel = ref<HTMLElement | null>(null)
+const cover = ref<HTMLImageElement | null>(null)
+let stopParallax: (() => void) | null = null
+
+/**
+ * 封面视差：鼠标在卡片上移动时，封面反向位移 2–3px。
+ * 只给精确指针设备；减少动效、触屏、加载失败都不做。
+ */
+onMounted(() => {
+  if (prefersReducedMotion()) return
+  if (typeof window.matchMedia !== 'function') return
+  if (!window.matchMedia('(pointer: fine)').matches) return
+  const root = panel.value
+  const img = cover.value
+  if (root === null || img === null) return
+
+  void loadGsap()
+    .then((gsap) => {
+      const xTo = gsap.quickTo(img, 'x', { duration: 0.45, ease: 'power2.out' })
+      const yTo = gsap.quickTo(img, 'y', { duration: 0.45, ease: 'power2.out' })
+      const onMove = (event: PointerEvent): void => {
+        const rect = root.getBoundingClientRect()
+        if (rect.width === 0 || rect.height === 0) return
+        const nx = (event.clientX - rect.left) / rect.width - 0.5
+        const ny = (event.clientY - rect.top) / rect.height - 0.5
+        xTo(nx * -6)
+        yTo(ny * -4)
+      }
+      const onLeave = (): void => {
+        xTo(0)
+        yTo(0)
+      }
+      root.addEventListener('pointermove', onMove)
+      root.addEventListener('pointerleave', onLeave)
+      stopParallax = () => {
+        root.removeEventListener('pointermove', onMove)
+        root.removeEventListener('pointerleave', onLeave)
+        gsap.killTweensOf(img)
+      }
+    })
+    .catch(() => {})
+})
+
+onBeforeUnmount(() => stopParallax?.())
 const emit = defineEmits<{ close: [] }>()
 </script>
 
 <template>
-  <article class="panel">
+  <article ref="panel" class="panel">
     <button type="button" class="panel__close" aria-label="关闭" @click="emit('close')">
       <AppIcon name="close" :size="15" />
     </button>
 
     <img
+      ref="cover"
       class="panel__cover"
       :src="assetUrl(site.cover)"
       :alt="`${site.name} 封面`"

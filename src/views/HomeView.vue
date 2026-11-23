@@ -13,6 +13,7 @@ import TopBar from '@/components/layout/TopBar.vue'
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { useSitesStore } from '@/stores/sites'
+import type { AnhuiCity } from '@/types/site'
 import { shouldMergeMarkers } from '@/utils/map-defaults'
 import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
@@ -25,6 +26,8 @@ const listOpen = ref(false)
 /** 窄屏侧边抽屉：左「分类」、右「城市索引」 */
 const legendOpen = ref(false)
 const cityOpen = ref(false)
+/** 城市索引 hover 时高亮的地级市；离开/失焦清空 */
+const hoverCity = ref<AnhuiCity | null>(null)
 
 /*
  * 区县界默认开启：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界；
@@ -214,6 +217,7 @@ function sheetLeave(el: Element, done: () => void): void {
         :selected-id="selectedId"
         :show-districts="showDistricts"
         :cluster="mergeMarkers"
+        :highlight-city="hoverCity"
         @select="store.selectSite"
       />
     </div>
@@ -238,7 +242,7 @@ function sheetLeave(el: Element, done: () => void): void {
       <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
         <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
       </Transition>
-      <CityIndex />
+      <CityIndex @hover="hoverCity = $event" />
     </div>
 
     <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->

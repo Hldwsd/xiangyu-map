@@ -95,6 +95,8 @@ const props = defineProps<{
   showDistricts?: boolean
   /** 是否把靠得近的地标合并成一个数字标签。关掉后每个项目单独画，便于逐个点选 */
   cluster?: boolean
+  /** 城市索引 hover 时高亮对应市域（值形如「合肥」，null 取消） */
+  highlightCity?: string | null
 }>()
 
 const emit = defineEmits<{ select: [id: string] }>()
@@ -485,7 +487,40 @@ function syncLayerMode(): void {
   layerMode = next
   layerRegions = buildLayerRegions(mapFeatures, layerMode)
   chart.value?.setOption({ geo: { regions: layerRegions } })
+  applyCityHighlight()
 }
+
+/**
+ * 城市索引 hover：把对应市域压深一档 + 描边加粗。
+ * 只在市级图层生效（高倍下区县名不是市名），其它情况按 null 处理。
+ */
+function applyCityHighlight(): void {
+  const instance = chart.value
+  if (instance === null || status.value !== 'ready') return
+  const city = props.highlightCity ?? null
+  const name = city === null ? null : city.endsWith('市') ? city : `${city}市`
+  const palette = themePalette()
+  const regions = layerRegions.map((region) => {
+    if (name === null || region.name !== name || layerMode !== 'city') return region
+    return {
+      ...region,
+      itemStyle: {
+        ...region.itemStyle,
+        areaColor: palette.mapTier2,
+        borderColor: palette.mapBorder,
+        borderWidth: 1.8,
+      },
+    }
+  })
+  instance.setOption({ geo: { regions } })
+}
+
+watch(
+  () => props.highlightCity,
+  () => {
+    if (status.value === 'ready') applyCityHighlight()
+  },
+)
 
 /**
  * 缩放条 / 加减按钮：一次性设置 zoom，不做补间。
