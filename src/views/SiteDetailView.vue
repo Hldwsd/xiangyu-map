@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useSitesStore } from '@/stores/sites'
@@ -14,6 +14,94 @@ const props = defineProps<{ id: string }>()
 
 const store = useSitesStore()
 const site = computed(() => store.getSiteById(props.id))
+
+const DEFAULT_SHARE_IMAGE = '/og-cover.jpg'
+const shareImageUrl = computed(() => assetUrl(site.value?.shareImage ?? DEFAULT_SHARE_IMAGE))
+const shareImageAlt = computed(() => `${site.value?.name ?? '项目'} · 分享图`)
+
+const shareOpen = ref(false)
+const shareStatus = ref('')
+const canNativeShare = ref(false)
+const shareClose = ref<HTMLButtonElement | null>(null)
+const shareTrigger = ref<HTMLButtonElement | null>(null)
+
+function openShare(): void {
+  shareStatus.value = ''
+  shareOpen.value = true
+}
+
+function closeShare(): void {
+  shareOpen.value = false
+  shareStatus.value = ''
+  void nextTick(() => shareTrigger.value?.focus())
+}
+
+function handleShareKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeShare()
+}
+
+watch(shareOpen, (open) => {
+  if (open) {
+    window.addEventListener('keydown', handleShareKeydown)
+    void nextTick(() => shareClose.value?.focus())
+    return
+  }
+  window.removeEventListener('keydown', handleShareKeydown)
+})
+
+onBeforeUnmount(() => window.removeEventListener('keydown', handleShareKeydown))
+
+function legacyCopy(text: string): boolean {
+  try {
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.position = 'fixed'
+    area.style.opacity = '0'
+    document.body.appendChild(area)
+    area.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(area)
+    return ok
+  } catch {
+    return false
+  }
+}
+
+async function copyShareLink(): Promise<void> {
+  const text = window.location.href
+  const clipboard = navigator.clipboard
+  if (typeof clipboard?.writeText === 'function') {
+    try {
+      // 某些浏览器里 clipboard 权限弹窗不出现、Promise 一直挂起，加个超时免得按钮像没反应
+      await Promise.race([
+        clipboard.writeText(text),
+        new Promise((_resolve, reject) => {
+          window.setTimeout(() => reject(new Error('clipboard-timeout')), 1200)
+        }),
+      ])
+      shareStatus.value = '链接已复制'
+      return
+    } catch {
+      // 落到 execCommand 兜底
+    }
+  }
+  shareStatus.value = legacyCopy(text) ? '链接已复制' : '复制失败，请手动复制地址栏'
+}
+
+async function nativeShare(): Promise<void> {
+  const current = site.value
+  if (current === null || typeof navigator.share !== 'function') return
+  try {
+    await navigator.share({
+      title: `${current.name} · 乡遇安徽`,
+      text: current.summary,
+      url: window.location.href,
+    })
+  } catch {
+    // 用户取消系统分享时浏览器会抛 AbortError，不需要提示
+  }
+}
 
 /** 只有还带「示例数据」标签的条目才提示「内容为占位」；其余只说明封面来源与授权状态 */
 const isSample = computed(() => site.value?.tags.includes('示例数据') === true)
@@ -31,7 +119,10 @@ function focusHeading(): void {
   void nextTick(() => heading.value?.focus({ preventScroll: true }))
 }
 
-onMounted(focusHeading)
+onMounted(() => {
+  focusHeading()
+  canNativeShare.value = typeof navigator.share === 'function'
+})
 
 // 详情页之间用「上一条 / 下一条」互跳时不得整页重挂，靠监听 id 重新聚焦
 watch(() => props.id, focusHeading)
@@ -102,6 +193,17 @@ function markBroken(url: string): void {
       </p>
       <h1 ref="heading" class="detail__title" tabindex="-1">{{ site.name }}</h1>
       <p class="detail__summary">{{ site.summary }}</p>
+      <div class="detail__actions">
+        <button
+          ref="shareTrigger"
+          type="button"
+          class="detail__share"
+          aria-haspopup="dialog"
+          @click="openShare"
+        >
+          <AppIcon name="share" :size="14" />分享
+        </button>
+      </div>
     </header>
 
     <img
@@ -249,6 +351,55 @@ function markBroken(url: string): void {
     <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }">
       <AppIcon name="back" :size="14" />返回地图
     </RouterLink>
+
+    <Teleport to="body">
+      <div
+        v-if="shareOpen"
+        class="share-layer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-title"
+        @click.self="closeShare"
+        @keydown.esc="closeShare"
+      >
+        <div class="share-card">
+          <header class="share-card__head">
+            <h2 id="share-title">分享这张卡片</h2>
+            <button
+              ref="shareClose"
+              type="button"
+              class="share-card__close"
+              aria-label="关闭分享"
+              @click="closeShare"
+            >
+              <AppIcon name="close" :size="16" />
+            </button>
+          </header>
+          <img class="share-card__image" :src="shareImageUrl" :alt="shareImageAlt" loading="lazy" />
+          <p class="share-card__caption">
+            {{ site.name }} · {{ site.city }}<br />
+            <span>分享到社交平台时会显示这张 1200×630 卡片。</span>
+          </p>
+          <div class="share-card__actions">
+            <button type="button" class="share-card__button" @click="copyShareLink">
+              复制链接
+            </button>
+            <a class="share-card__button" :href="shareImageUrl" :download="`${site.id}-share.jpg`">
+              保存图片
+            </a>
+            <button
+              v-if="canNativeShare"
+              type="button"
+              class="share-card__button share-card__button--primary"
+              @click="nativeShare"
+            >
+              系统分享
+            </button>
+          </div>
+          <p class="share-card__status" aria-live="polite">{{ shareStatus }}</p>
+        </div>
+      </div>
+    </Teleport>
   </article>
 
   <div v-else class="detail detail--missing">
@@ -343,6 +494,39 @@ function markBroken(url: string): void {
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);
   color: var(--ink-soft);
+}
+
+.detail__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-3);
+}
+
+.detail__share {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  cursor: pointer;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.detail__share:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+
+.detail__share:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .detail__cover {
@@ -572,6 +756,132 @@ function markBroken(url: string): void {
 
 .detail__back--bottom {
   margin-top: var(--space-5);
+}
+
+/* ---- 分享卡片 ---- */
+
+.share-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(20 18 15 / 58%);
+  backdrop-filter: blur(2px);
+}
+
+.share-card {
+  width: min(44rem, 100%);
+  max-height: calc(100vh - 2rem);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.share-card__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.share-card__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--ink);
+}
+
+.share-card__close {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.share-card__close:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.share-card__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.share-card__caption {
+  margin: var(--space-3) 0;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.share-card__caption span {
+  color: var(--ink-soft);
+}
+
+.share-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.share-card__button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.share-card__button:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+
+.share-card__button--primary {
+  color: var(--surface);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.share-card__button--primary:hover {
+  color: var(--surface);
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+}
+
+.share-card__status {
+  min-height: 1.2em;
+  margin: 0.6rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--accent);
+}
+
+.share-card__status:empty {
+  display: none;
 }
 
 .detail--missing {

@@ -25,6 +25,7 @@ const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const URL_PATTERN = /^https?:\/\/\S+$/
 const IMAGE_PATH_PATTERN = /^\/images\/sites\/([a-z0-9-]+)\/[a-z0-9][a-z0-9._-]*\.webp$/
+const SHARE_IMAGE_PATTERN = /^\/og\/sites\/([a-z0-9-]+)\.jpg$/
 
 const CATEGORY_SET: ReadonlySet<string> = new Set(SITE_CATEGORIES)
 
@@ -176,6 +177,20 @@ export function collectSiteProblems(raw: unknown, label: string): string[] {
         problems.push(`${label}.gallery[${index}]: 目录名 "${dir}" 与 id "${id}" 不一致`)
       }
     })
+  }
+
+  const shareImage = raw['shareImage']
+  if (shareImage !== undefined && shareImage !== null) {
+    if (!isNonEmptyString(shareImage)) {
+      problems.push(`${label}.shareImage: 如果填写必须是非空字符串`)
+    } else {
+      const matched = SHARE_IMAGE_PATTERN.exec(shareImage)
+      if (matched === null) {
+        problems.push(`${label}.shareImage: 必须是 /og/sites/<id>.jpg`)
+      } else if (isNonEmptyString(id) && matched[1] !== id) {
+        problems.push(`${label}.shareImage: 文件名 "${matched[1]}" 与 id "${id}" 不一致`)
+      }
+    }
   }
 
   if (readStringArray(raw['tags']) === null) problems.push(`${label}.tags: 必须是字符串数组`)
