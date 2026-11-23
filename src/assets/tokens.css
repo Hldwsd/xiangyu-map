@@ -47,7 +47,7 @@
   /* 按市收录项目数分档的纸色加深（choropleth）：0–1 个用 --map-area 原色 */
   --map-tier-1: #f8f1e1;
   --map-tier-2: #efe3c8;
-  --map-border: #574a3b;
+  --map-border: #3a3126;
   --map-label: #574c3e;
   --map-area-hover: #f7f1e5;
   --cluster: #1c1a17;
