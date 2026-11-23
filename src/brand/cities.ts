@@ -141,9 +141,9 @@ function initPreview(grid: HTMLUListElement): void {
   }
 
   /**
-   * 只在指针「真的动了」时出现。
+   * 只在指针「真的动了」时开始显示。
    * 浏览器在滚动后会重新计算指针下的元素并补发 hover 事件，坐标却不变；
-   * 用位移判断可以把这类合成事件过滤掉——滚动时封面收起，手一动就立刻回来。
+   * 用位移判断可以把这类合成事件过滤掉——滚动本身不再打断预览。
    */
   const onPointerMove = (event: PointerEvent): void => {
     const moved =
@@ -164,8 +164,6 @@ function initPreview(grid: HTMLUListElement): void {
 
   grid.addEventListener('pointermove', onPointerMove)
 
-  grid.addEventListener('pointerleave', hide)
-
   // 键盘：Tab 到某个城名也能看到封面，位置落在行的右侧
   grid.addEventListener('focusin', (event) => {
     const row = (event.target as Element | null)?.closest<HTMLElement>('.city__row')
@@ -175,16 +173,40 @@ function initPreview(grid: HTMLUListElement): void {
   })
   grid.addEventListener('focusout', hide)
 
-  // 滚走就收起：这是上一版最容易出问题的地方——封面会跟着页面一直飘
-  window.addEventListener('scroll', hide, { passive: true })
+  /**
+   * 滚动期间继续显示：指针没动，但目录在指针下滚过去了。
+   * 用固定坐标重新找一遍指针下的行，跟着换封面；离开城市段再由观察器收起。
+   */
+  const syncToPointer = (): void => {
+    if (!visible || Number.isNaN(lastPointerX)) return
+    const target = document.elementFromPoint(lastPointerX, lastPointerY)
+    const row = target?.closest<HTMLElement>('.city__row')
+    if (row === null || row === undefined) return
+    if (row !== currentRow) fill(row)
+    currentRow = row
+    place(lastPointerX, lastPointerY)
+  }
+  window.addEventListener('scroll', syncToPointer, { passive: true })
+
+  // 指针真的移到城市段之外才收起（滚动时不动指针，预览继续显示）
+  document.addEventListener(
+    'pointermove',
+    (event) => {
+      if (!visible) return
+      const target = event.target as Element | null
+      if (target?.closest('.cities') === null || target?.closest('.cities') === undefined) hide()
+    },
+    { passive: true },
+  )
+
   document.addEventListener('pointerleave', hide)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) hide()
   })
 
-  // 目录离开视口时也收起（滚动很快时 IntersectionObserver 更稳）
+  // 整个城市段离开视口才收起，段内滚动不打断预览
   const observer = new IntersectionObserver((entries) => {
     if (entries.every((entry) => !entry.isIntersecting)) hide()
   })
-  observer.observe(grid)
+  observer.observe(section)
 }

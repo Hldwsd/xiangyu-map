@@ -6,7 +6,7 @@
  */
 import { gsap, prefersReducedMotion, qs, qsa } from './motion'
 
-export function runLoader(onReveal: () => void): void {
+export function runLoader(onReveal: () => void, onDone?: () => void): void {
   const loader = qs<HTMLElement>('[data-loader]')
   const halves = qsa<HTMLElement>('.loader__half', loader)
   const chars = qsa<HTMLElement>('.loader__mark span', loader)
@@ -15,12 +15,14 @@ export function runLoader(onReveal: () => void): void {
   if (prefersReducedMotion) {
     loader.remove()
     onReveal()
+    onDone?.()
     return
   }
 
   const timeline = gsap.timeline({
     onComplete: () => {
       loader.remove()
+      onDone?.()
     },
   })
 

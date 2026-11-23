@@ -155,6 +155,13 @@ button {
   pointer-events: none;
 }
 
+/* 开场动画播放时锁住滚动 */
+html.scroll-locked,
+html.scroll-locked body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* ---- 自绘滚动条：细金线 + 可拖拽的墨点 ---- */
 .scrollbar {
   position: fixed;
