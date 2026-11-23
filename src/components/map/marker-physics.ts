@@ -57,6 +57,10 @@ const bodyByBall = new WeakMap<BallState, MatterBody>()
 
 /** 离 home 超过它的距离就硬夹回来，避免一次甩飞出屏 */
 const MAX_OFFSET = 48
+/** 每步额外速度衰减：matter 的 frictionAir 之外再压一道，避免挤压造成的持续微动 */
+const REST_DECAY = 0.9
+/** 低于这个速度直接归零，否则会永久在 0.01 量级抖 */
+const REST_SPEED = 0.18
 
 function createState(): EngineState {
   const engine = Engine.create({ gravity: { x: 0, y: 0, scale: 0 } })
@@ -85,7 +89,7 @@ function ensureBody(
   const body = Bodies.circle(ball.x, ball.y, radiusFor(options), {
     restitution: 0,
     friction: 0,
-    frictionAir: Math.min(0.6, 1 - options.damping),
+    frictionAir: Math.min(0.65, Math.max(0.35, 1 - options.damping)),
     density: 0.001,
     label: ball.id,
   })
@@ -98,8 +102,8 @@ function ensureBody(
     length: 0,
     // 手写模型里 spring 是「每帧加速度系数」，matter 的 stiffness 是 0–1 的位置修正比例，
     // 用 0.5 倍近似手感，再配 damping 抑制来回摆
-    stiffness: Math.min(0.3, Math.max(0.005, options.spring * 0.5)),
-    damping: 0.08,
+    stiffness: Math.min(0.3, Math.max(0.005, options.spring * 0.35)),
+    damping: 0.2,
   })
 
   Composite.add(state.engine.world, [body, constraint])
@@ -156,6 +160,23 @@ export function stepBalls(
   }
 
   Engine.update(state.engine, 1000 / 60)
+
+  // 互相挤压时，约束回拉与碰撞外推会形成极小速度的来回摆动，
+  // 只靠 frictionAir 收敛不到动画停止阈值。这里每步再衰减一次，
+  // 并把亚像素速度直接清零，让「静止」真的能停下来。
+  for (const ball of balls) {
+    const body = state.bodies.get(ball.id)
+    if (body === undefined) continue
+    const speed = Math.hypot(body.velocity.x, body.velocity.y)
+    if (speed < REST_SPEED) {
+      Body.setVelocity(body, { x: 0, y: 0 })
+      continue
+    }
+    Body.setVelocity(body, {
+      x: body.velocity.x * REST_DECAY,
+      y: body.velocity.y * REST_DECAY,
+    })
+  }
 
   let maxSpeed = 0
   for (const ball of balls) {

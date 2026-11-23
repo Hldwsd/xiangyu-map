@@ -69,3 +69,24 @@ describe('stepBalls', () => {
     expect(Math.hypot(b.x - 100, b.y - 100)).toBeLessThan(4)
   })
 })
+
+describe('静止判定', () => {
+  it('被挤在一起的球停稳后不再持续漂移', () => {
+    const balls = ['a', 'b', 'c', 'd', 'e'].map((id) => ball(id, 200, 200))
+    const homes = new Map(balls.map((item) => [item.id, [200, 200] as const]))
+    let speed = 0
+    for (let i = 0; i < 600; i += 1) speed = stepBalls(balls, homes)
+    expect(speed).toBeLessThan(0.05)
+
+    const before = balls.map((item) => [item.x, item.y] as const)
+    for (let i = 0; i < 180; i += 1) stepBalls(balls, homes)
+    const drift = Math.max(
+      ...balls.map((item, i) => {
+        const prev = before[i]!
+        return Math.hypot(item.x - prev[0], item.y - prev[1])
+      }),
+    )
+    // 组件在速度为 0 后停止 step；这里继续推 180 步模拟「万一没停」，允许亚像素级的求解器漂移
+    expect(drift).toBeLessThan(1.5)
+  })
+})

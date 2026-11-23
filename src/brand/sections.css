@@ -12,25 +12,22 @@
 }
 
 /*
- * 书法横披只做一小段「纸的底子」：压在标题下方、两侧渐隐。
- * 铺满全屏会变成字比标题还大的一层噪点——那是背景抢戏，不是质感。
+ * 书法横披铺满首屏：这是「纸」本身的一部分，不是标题下方一条装饰。
+ * 压得够大、够深，才看得出是字；再靠四周渐隐和 multiply 让正文压得住。
  */
 .hero__wash {
   position: absolute;
-  top: clamp(7rem, 20vh, 13rem);
-  right: -6%;
-  left: -6%;
-  height: clamp(9rem, 26vh, 17rem);
+  inset: calc(var(--topbar-h) + 0.4rem) -8% 5% -8%;
   background-image: var(--bg-calligraphy, none);
   background-repeat: no-repeat;
-  background-position: center 42%;
+  background-position: 50% 34%;
   background-size: cover;
-  opacity: 0.2;
+  opacity: 0.34;
   mix-blend-mode: multiply;
   pointer-events: none;
   mask-image:
-    linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+    linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 12%, #000 84%, transparent 100%);
   mask-composite: intersect;
 }
 
@@ -468,25 +465,6 @@
   color: var(--ink-soft);
 }
 
-.manifesto__note {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.4rem;
-  justify-content: space-between;
-  padding-top: 1.1rem;
-  margin-top: 0.4rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
-  color: var(--ink);
-  border-top: 1px solid var(--line);
-}
-
-.manifesto__note span {
-  font-size: 0.62rem;
-  letter-spacing: 0.22em;
-  color: var(--ink-faint);
-}
-
 .stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -665,15 +643,6 @@
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: 0.02em;
-}
-
-.sights__note {
-  max-width: 14rem;
-  padding-bottom: 0.5rem;
-  font-size: 0.72rem;
-  line-height: 2;
-  letter-spacing: 0.08em;
-  color: rgb(242 235 222 / 45%);
 }
 
 .sights__viewport {
@@ -1700,6 +1669,12 @@
     height: clamp(19rem, 52vh, 32rem);
   }
 
+  .hero__wash {
+    inset: calc(var(--topbar-h) + 0.3rem) -14% 4% -14%;
+    opacity: 0.26;
+    background-position: 50% 28%;
+  }
+
   .hero__scroll,
   .hero__rail,
   .hero__folio {
@@ -1738,10 +1713,6 @@
   .sights__head-row {
     grid-template-columns: minmax(0, 1fr);
     gap: 1.2rem;
-  }
-
-  .sights__note {
-    display: none;
   }
 
   .sights__viewport {

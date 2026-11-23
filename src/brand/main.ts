@@ -46,6 +46,13 @@ if (window.location.hash === '') window.scrollTo(0, 0)
 const lenis = initSmoothScroll()
 initChrome(lenis)
 
+/** 开场播放时锁住滚动：纸还没拉开就滚，会把首屏位置和 pin 计算全带歪 */
+function setScrollLocked(locked: boolean): void {
+  document.documentElement.classList.toggle('scroll-locked', locked)
+  if (locked) lenis?.stop()
+  else lenis?.start()
+}
+
 const hero = prepareHero()
 initHeroScroll()
 initManifesto()
@@ -68,17 +75,23 @@ if (import.meta.env.DEV) {
   ;(window as Window & { __brand?: Record<string, unknown> }).__brand = debugRef
 }
 
-runLoader(() => {
-  const timeline = playHeroIntro(hero)
-  debugRef.intro = timeline
+// 先上锁，等纸完全拉开再解锁；之后的首屏动画继续播，但页面已经可以滚
+setScrollLocked(true)
 
-  if (prefersReducedMotion) return
-  timeline.add(() => {
-    heroCounts.forEach((element, index) => {
-      countUp(element, { duration: 1.1, delay: index * 0.08 })
-    })
-  }, 1.3)
-})
+runLoader(
+  () => {
+    const timeline = playHeroIntro(hero)
+    debugRef.intro = timeline
+
+    if (prefersReducedMotion) return
+    timeline.add(() => {
+      heroCounts.forEach((element, index) => {
+        countUp(element, { duration: 1.1, delay: index * 0.08 })
+      })
+    }, 1.3)
+  },
+  () => setScrollLocked(false),
+)
 
 // 图片落位后重新量一次，避免 ScrollTrigger 按错误高度算 pin 的收尾点
 window.addEventListener('load', () => ScrollTrigger.refresh())
