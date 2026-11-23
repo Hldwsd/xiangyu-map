@@ -567,7 +567,28 @@ function resetBalls(instance: EChartsType): void {
   ballHomes = homes
   ballStillFrames = 0
   ballLastPos = new Map()
-  kickBalls()
+  // 初次落位不要在页面加载时逐帧 setOption：节流的手机上会变成几十个长任务（Lighthouse TBT 爆表）。
+  // 先静默把物理跑到平衡，再一次性写入偏移。
+  settleBallsSilently()
+}
+
+/** 不打 RAF、不渲染，只把物理跑到静止，然后一次性应用 */
+function settleBallsSilently(): void {
+  for (let i = 0; i < 240; i += 1) {
+    const speed = stepBalls(balls, ballHomes, {
+      spring: 0.06,
+      damping: 0.72,
+      collide: BALL_COLLIDE,
+      contact: 0.12,
+    })
+    if (speed < 0.02) break
+  }
+  for (const ball of balls) {
+    ball.vx = 0
+    ball.vy = 0
+  }
+  ballLastPos = new Map(balls.map((ball) => [ball.id, [ball.x, ball.y] as [number, number]]))
+  applyBalls()
 }
 
 function applyBalls(): void {
