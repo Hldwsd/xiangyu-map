@@ -47,13 +47,13 @@
   /* 按市收录项目数分档的纸色加深（choropleth）：0–1 个用 --map-area 原色 */
   --map-tier-1: #f8f1e1;
   --map-tier-2: #efe3c8;
-  --map-border: #3a3126;
+  --map-border: #6e5f4c;
   --map-label: #574c3e;
   --map-area-hover: #f7f1e5;
   --cluster: #1c1a17;
   --water-fill: #dce4e1;
   --water-border: #c3d0cb;
-  --district-line: #d8cebc;
+  --district-line: #a2957d;
   --river-line: #8fa39d;
 
   /* 分类色：单色方向下七类同色；保留变量名便于将来恢复颜色编码 */

@@ -44,7 +44,7 @@ export const DEFAULT_PALETTE: ThemePalette = {
   cluster: '#1c1a17',
   waterFill: '#dce4e1',
   waterBorder: '#c3d0cb',
-  districtLine: '#d8cebc',
+  districtLine: '#a2957d',
   riverLine: '#8fa39d',
 }
 
