@@ -490,6 +490,35 @@ function syncLayerMode(): void {
 }
 
 /** 从一个市的 GeoJSON feature 里取出多边形环（Polygon / MultiPolygon） */
+let cityBorderDataCache: { coords: number[][] }[] | null = null
+
+function applyCityBorders(): void {
+  const instance = chart.value
+  if (instance === null || status.value !== 'ready') return
+  if (cityBorderDataCache === null) {
+    const collection = cachedCity as {
+      features?: {
+        properties?: { name?: string }
+        geometry?: { type?: string; coordinates?: unknown }
+      }[]
+    } | null
+    const data: { coords: number[][] }[] = []
+    for (const feature of collection?.features ?? []) {
+      const geometry = feature.geometry
+      if (geometry === undefined) continue
+      if (geometry.type === 'Polygon') {
+        for (const ring of geometry.coordinates as number[][][]) data.push({ coords: ring })
+      } else if (geometry.type === 'MultiPolygon') {
+        for (const polygon of geometry.coordinates as number[][][][]) {
+          for (const ring of polygon) data.push({ coords: ring })
+        }
+      }
+    }
+    cityBorderDataCache = data
+  }
+  instance.setOption({ series: [{ id: 'city-borders', data: cityBorderDataCache }] })
+}
+
 function cityRings(city: string): number[][][] {
   const name = city.endsWith('市') ? city : `${city}市`
   const collection = cachedCity as {
@@ -1014,6 +1043,7 @@ function refreshMarkers(): void {
     applyClusterOffsets()
     applySingleOffsets()
     applyMarkerOffsets()
+    applyCityBorders()
     applyCityHighlight()
     return
   }
@@ -1039,6 +1069,7 @@ function refreshMarkers(): void {
   syncBalls(instance)
   // 数据重建后必须把球的当前位置重新写回：否则选中/刷新会让所有球叠回原点（看起来「碰撞消失」）
   applyBalls()
+  applyCityBorders()
   applyCityHighlight()
 }
 
@@ -1430,8 +1461,9 @@ function buildLayerRegions(
         name,
         itemStyle: {
           areaColor,
-          borderColor: paletteNow.mapBorder,
-          borderWidth: 1.3,
+          // 市界由 city-borders 线条系列负责：region border 会被区县要素盖住、发虚
+          borderColor: 'transparent',
+          borderWidth: 0,
         },
         // hover 只加深描边、保持档位底色：铺灰底会把压在上面的河道盖成一片灰，
         // 变回原色则会让深色市在悬停时「变浅」，两者都会破坏 choropleth 的读法
@@ -1440,8 +1472,8 @@ function buildLayerRegions(
         emphasis: {
           itemStyle: {
             areaColor,
-            borderColor: paletteNow.mapLabel,
-            borderWidth: 1.6,
+            borderColor: 'transparent',
+            borderWidth: 0,
           },
         },
         silent: interactive !== 'city',
@@ -1472,7 +1504,7 @@ function buildLayerRegions(
       itemStyle: {
         areaColor: 'transparent',
         borderColor: districtVisible ? paletteNow.districtLine : 'transparent',
-        borderWidth: districtVisible ? 0.7 : 0,
+        borderWidth: districtVisible ? 0.9 : 0,
       },
       emphasis: {
         itemStyle: {
@@ -1584,6 +1616,7 @@ async function render(): Promise<void> {
     )
     lastClusterSignature = ''
     refreshMarkers()
+    applyCityBorders()
     applyCityHighlight()
 
     // 区县界已在开头并行预取，这里直接合并进底图（重注册地图并保留当前视野）
