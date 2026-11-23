@@ -75,38 +75,85 @@ export function initSights(): void {
   const panels = featuredSites.map(createPanel)
   track.replaceChildren(...panels)
 
-  // 水圳：一条细水线从六张图背后穿过去，在每道缝里露出半圆月沼。
-  // 图本身把线挡住，只在图与图之间看得到，像是六张照片被同一道水串起来。
-  const thread = document.createElement('div')
-  thread.className = 'sights__thread'
-  thread.setAttribute('aria-hidden', 'true')
-  const line = document.createElement('span')
-  line.className = 'sights__thread-line'
-  thread.appendChild(line)
-  track.prepend(thread)
+  // 一道马头墙的檐线从六张图顶上走过去：每经过一张图是一段平檐，
+  // 图与图高低不同，檐线就在缝里落一级。图本身不进这条线，只借它串起来。
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+  const roof = document.createElement('div')
+  roof.className = 'sights__roof'
+  roof.setAttribute('aria-hidden', 'true')
+  const roofSvg = document.createElementNS(SVG_NS, 'svg')
+  roofSvg.setAttribute('class', 'sights__roof-svg')
+  roof.appendChild(roofSvg)
+  track.prepend(roof)
 
-  const layoutThread = (): void => {
+  const layoutRoof = (): void => {
     if (window.innerWidth <= 900) return
-    const y = Math.round(track.clientHeight * 0.58)
-    line.style.top = `${y}px`
-    for (const old of qsa<HTMLElement>('.sights__thread-pond', thread)) old.remove()
-    for (let i = 0; i < panels.length - 1; i += 1) {
-      const current = panels[i]
-      const next = panels[i + 1]
-      if (current === undefined || next === undefined) continue
-      const right = current.offsetLeft + current.offsetWidth
-      const left = next.offsetLeft
-      const pond = document.createElement('span')
-      pond.className = 'sights__thread-pond'
-      pond.style.left = `${(right + left) / 2}px`
-      pond.style.top = `${y - 30}px`
-      thread.appendChild(pond)
+    const width = Math.max(1, Math.round(track.scrollWidth))
+    const height = Math.max(1, Math.round(track.clientHeight))
+    roofSvg.setAttribute('width', String(width))
+    roofSvg.setAttribute('height', String(height))
+    roofSvg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+    roofSvg.replaceChildren()
+
+    const bounds = panels.map((panel, index) => {
+      const prev = panels[index - 1]
+      const next = panels[index + 1]
+      const left =
+        prev === undefined
+          ? panel.offsetLeft
+          : (prev.offsetLeft + prev.offsetWidth + panel.offsetLeft) / 2
+      const right =
+        next === undefined
+          ? panel.offsetLeft + panel.offsetWidth
+          : (panel.offsetLeft + panel.offsetWidth + next.offsetLeft) / 2
+      return { left, right, y: Math.max(10, panel.offsetTop - 12) }
+    })
+    if (bounds.length === 0) return
+
+    const pathFor = (offset: number): string => {
+      const first = bounds[0]
+      if (first === undefined) return ''
+      let d = `M${first.left} ${first.y + offset}`
+      bounds.forEach((bound, index) => {
+        d += ` H${bound.right}`
+        const next = bounds[index + 1]
+        if (next !== undefined) d += ` V${next.y + offset}`
+      })
+      return d
     }
+
+    const band = document.createElementNS(SVG_NS, 'path')
+    band.setAttribute('class', 'sights__roof-band')
+    band.setAttribute('d', pathFor(0))
+    const ghost = document.createElementNS(SVG_NS, 'path')
+    ghost.setAttribute('class', 'sights__roof-line sights__roof-line--ghost')
+    ghost.setAttribute('d', pathFor(-3))
+    const line = document.createElementNS(SVG_NS, 'path')
+    line.setAttribute('class', 'sights__roof-line')
+    line.setAttribute('d', pathFor(0))
+    roofSvg.append(band, ghost, line)
+
+    // 每道缝里立一小段马头墙：阶梯轮廓压在檐线上，六张图靠它串成一条街
+    bounds.forEach((bound, index) => {
+      const next = bounds[index + 1]
+      if (next === undefined) return
+      const x = bound.right
+      const y = Math.max(bound.y, next.y)
+      const shape = (offset: number): string =>
+        `M${x - 30} ${y + offset} H${x - 20} V${y - 8 + offset} H${x - 10} V${y - 16 + offset} H${x + 10} V${y - 8 + offset} H${x + 20} V${y + offset} H${x + 30}`
+      const gable = document.createElementNS(SVG_NS, 'path')
+      gable.setAttribute('class', 'sights__roof-gable')
+      gable.setAttribute('d', shape(0))
+      const cap = document.createElementNS(SVG_NS, 'path')
+      cap.setAttribute('class', 'sights__roof-gable sights__roof-gable--cap')
+      cap.setAttribute('d', shape(2))
+      roofSvg.append(gable, cap)
+    })
   }
 
-  requestAnimationFrame(layoutThread)
-  window.addEventListener('load', layoutThread)
-  window.addEventListener('resize', layoutThread)
+  requestAnimationFrame(layoutRoof)
+  window.addEventListener('load', layoutRoof)
+  window.addEventListener('resize', layoutRoof)
 
   const bar = qs<HTMLElement>('[data-gallery-progress]')
   const indexLabel = qs<HTMLElement>('[data-gallery-index]')
