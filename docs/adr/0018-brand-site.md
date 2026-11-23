@@ -52,9 +52,8 @@
 - 原生滚动条在品牌页隐藏（`scrollbar-width: none`），由 `.scrollbar` 自绘：金线轨道 + 可拖拽墨点 +
   百分比，深色分节上也可见。代价是浏览器自带的滚动条无障碍支持（例如系统级别的拖拽手柄）不再可用，
   滚轮、键盘、触控板仍然正常。
-- 阅读位置记在 `sessionStorage`，并在 `<head>` 里把 `history.scrollRestoration` 设为 `manual`；
-  刷新后由 `main.ts` 在布局量完（`ScrollTrigger.refresh()`）后跳回。多标签页各自独立，
-  关掉标签即清空。
+- 刷新不恢复阅读位置：`history.scrollRestoration = 'manual'`，重载后从顶端重播开场。
+  这是产品选择——品牌页是一条「从头看起」的叙事，不是需要接着读的文档。
 
 ## 备选方案
 

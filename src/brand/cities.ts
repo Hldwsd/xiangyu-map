@@ -66,14 +66,36 @@ function initPreview(grid: HTMLUListElement): void {
   const caption = qs<HTMLElement>('[data-city-caption]', preview)
   const countLabel = qs<HTMLElement>('[data-city-count]', preview)
 
-  const xTo = gsap.quickTo(preview, 'x', { duration: 0.55, ease: 'power3.out' })
-  const yTo = gsap.quickTo(preview, 'y', { duration: 0.55, ease: 'power3.out' })
+  const xTo = gsap.quickTo(preview, 'x', { duration: 0.35, ease: 'power3.out' })
+  const yTo = gsap.quickTo(preview, 'y', { duration: 0.35, ease: 'power3.out' })
 
   let visible = false
   let currentRow: HTMLElement | null = null
   /* 滚动后浏览器会重新计算 hover，可能补发 pointerover 把封面又弹出来：
      滚动的这段时间里先拒绝出现，停手后再接受 */
   let suppressedUntil = 0
+
+  // 提前把 16 张城封面放进缓存：第一次悬停不用等图片下载，卡片才「跟手」
+  let preloaded = false
+  const preload = (): void => {
+    if (preloaded) return
+    preloaded = true
+    for (const city of cityStats) {
+      const image = new Image()
+      image.src = assetUrl(city.cover)
+    }
+  }
+
+  const section = grid.closest<HTMLElement>('.cities') ?? grid
+  const preloadObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return
+      preload()
+      preloadObserver.disconnect()
+    },
+    { rootMargin: '900px 0px' },
+  )
+  preloadObserver.observe(section)
 
   /** 把封面限制在视口内：指针贴着屏幕边时，卡片不能有一半跑到屏幕外 */
   const place = (clientX: number, clientY: number): void => {
@@ -101,13 +123,14 @@ function initPreview(grid: HTMLUListElement): void {
 
   const show = (row: HTMLElement, clientX: number, clientY: number): void => {
     if (performance.now() < suppressedUntil) return
+    preload()
     if (currentRow !== row) fill(row)
     currentRow = row
     place(clientX, clientY)
 
     if (!visible) {
       visible = true
-      gsap.to(preview, { opacity: 1, duration: 0.28, ease: 'power2.out' })
+      gsap.to(preview, { opacity: 1, duration: 0.16, ease: 'power2.out' })
     }
   }
 

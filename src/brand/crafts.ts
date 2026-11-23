@@ -66,16 +66,22 @@ function initDrawer(list: HTMLUListElement): void {
   const sitesLabel = qs<HTMLUListElement>('[data-craft-sites]', drawer)
   const countLabel = qs<HTMLElement>('[data-craft-count]', drawer)
   const rows = qsa<HTMLButtonElement>('.craft__row', list)
-
-  const placeholder = assetUrl('/images/placeholder.svg')
+  const figures = photos.map((photo) => photo.parentElement)
 
   const apply = (index: number): void => {
     const craft = craftStats[index]
     if (craft === undefined) return
-    const covers = craft.picks.map((site) => assetUrl(site.cover))
+
+    // 有几处就画几张：不要拿同一张图重复堆，演艺类只有一处就是一张。
+    // 属性名不能用 data-count：那是全站数字滚动的选择器，会把照片摞的节点整个换成数字。
+    stack.dataset.photoCount = String(craft.picks.length)
     photos.forEach((photo, photoIndex) => {
-      photo.src = covers[photoIndex] ?? covers[0] ?? placeholder
+      const pick = craft.picks[photoIndex]
+      const figure = figures[photoIndex]
+      if (figure !== null && figure !== undefined) figure.hidden = pick === undefined
+      if (pick !== undefined) photo.src = assetUrl(pick.cover)
     })
+
     kicker.textContent = `${pad(index + 1)} / SEVEN`
     nameLabel.textContent = craft.name
     desc.textContent = craft.note
@@ -114,6 +120,17 @@ function initDrawer(list: HTMLUListElement): void {
     row.addEventListener('pointerenter', () => activate(index, true))
     row.addEventListener('focus', () => activate(index, true))
     row.addEventListener('click', () => activate(index, true))
+  })
+
+  // 照片摞本身也是按钮：点一下切到下一类，键盘 Enter / Space 同理
+  const cycle = (): void => {
+    activate((activeIndex + 1) % craftStats.length, true)
+  }
+  stack.addEventListener('click', cycle)
+  stack.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    cycle()
   })
 
   if (prefersReducedMotion) return

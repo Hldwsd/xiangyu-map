@@ -23,7 +23,7 @@
       </style>
     </noscript>
     <script>
-      // 刷新时自己决定回到哪：滚动位置在 session 里记着，见 src/brand/main.ts
+      // 刷新一律从顶端开始（不恢复上次位置），先把阅读节奏交给开场动画
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
       // 没有 JS 时不要把内容锁在动画初始态里
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -355,14 +355,19 @@
             <span class="line"><span>七类风物，</span></span>
             <span class="line"><span>七种走法。</span></span>
           </h2>
-          <p class="crafts__note" data-reveal>分类只用来帮你挑一天怎么过，不用来给地方排座次。</p>
         </div>
 
         <div class="crafts__body">
           <ul class="craft-list" data-crafts></ul>
 
           <aside class="craft-drawer" data-craft-drawer aria-label="风物图片抽屉">
-            <div class="craft-drawer__stack" data-craft-stack>
+            <div
+              class="craft-drawer__stack"
+              data-craft-stack
+              role="button"
+              tabindex="0"
+              aria-label="点击切换到下一类风物"
+            >
               <figure class="craft-drawer__photo craft-drawer__photo--back">
                 <img alt="" data-craft-photo="2" />
               </figure>
@@ -372,9 +377,31 @@
               <figure class="craft-drawer__photo craft-drawer__photo--front">
                 <img alt="" data-craft-photo="0" />
               </figure>
+              <span class="craft-drawer__cycle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M20 12a8 8 0 1 1-2.3-5.7"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M20 4v5h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
             </div>
             <div class="craft-drawer__meta">
-              <span class="craft-drawer__kicker" data-craft-kicker>01 / SEVEN</span>
+              <p class="craft-drawer__kicker">
+                <span data-craft-kicker>01 / SEVEN</span>
+                <span class="craft-drawer__hint">点击照片切换</span>
+              </p>
               <h3 class="craft-drawer__name" data-craft-name>古镇</h3>
               <p class="craft-drawer__desc" data-craft-desc></p>
               <ul class="craft-drawer__sites" data-craft-sites></ul>

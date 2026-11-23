@@ -1126,11 +1126,7 @@
 }
 
 .crafts__head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(1.5rem, 4vw, 4rem);
-  align-items: end;
-  margin-bottom: clamp(1.6rem, 3.6vh, 2.8rem);
+  margin-bottom: clamp(1.4rem, 3vh, 2.2rem);
 }
 
 .crafts__title {
@@ -1139,15 +1135,6 @@
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: 0.02em;
-}
-
-.crafts__note {
-  max-width: 15rem;
-  padding-bottom: 0.4rem;
-  font-size: 0.74rem;
-  line-height: 2;
-  letter-spacing: 0.06em;
-  color: var(--ink-soft);
 }
 
 .crafts__body {
@@ -1277,72 +1264,136 @@
 /* ---- 图片抽屉：三张照片叠成一摞，像摊在桌上的样片 ---- */
 
 .craft-drawer {
-  position: sticky;
-  top: calc(var(--topbar-h) + 1.6rem);
   display: grid;
   gap: clamp(1rem, 2vw, 1.5rem);
+  align-self: start;
 }
 
 .craft-drawer__stack {
   position: relative;
-  height: clamp(17rem, 34vh, 23rem);
+  /* 高度跟着栏宽走：照片用百分比高度定位，永远不会溢出到下面的文字上 */
+  height: auto;
+  aspect-ratio: 16 / 11;
+  margin-bottom: 1rem;
   perspective: 900px;
+  cursor: pointer;
+}
+
+.craft-drawer__stack:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 8px;
 }
 
 .craft-drawer__photo {
   position: absolute;
   overflow: hidden;
   margin: 0;
-  background: var(--paper);
+  /* 像一张刚洗出来的相纸：纸白边 + 圆角 + 轻投影 */
+  background: var(--paper-light);
+  border: 5px solid var(--paper-light);
+  border-radius: 10px;
   box-shadow: var(--shadow-paper);
   will-change: transform;
+}
+
+.craft-drawer__photo[hidden] {
+  display: none;
 }
 
 .craft-drawer__photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 5px;
 }
 
 .craft-drawer__photo--back {
   top: 0;
-  right: 0;
+  right: 2%;
   z-index: 1;
-  width: 54%;
+  width: auto;
+  height: 44%;
   aspect-ratio: 4 / 3;
-  transform: rotate(4.5deg);
+  transform: rotate(5deg);
 }
 
 .craft-drawer__photo--mid {
-  top: 14%;
+  top: 15%;
   left: 0;
   z-index: 2;
-  width: 56%;
+  width: auto;
+  height: 50%;
   aspect-ratio: 4 / 3;
-  transform: rotate(-4deg);
+  transform: rotate(-5deg);
 }
 
 .craft-drawer__photo--front {
-  right: 4%;
-  bottom: 0;
+  right: 0;
+  bottom: 4%;
   z-index: 3;
-  width: 66%;
+  width: auto;
+  height: 64%;
   aspect-ratio: 4 / 3;
   transform: rotate(1.5deg);
+}
+
+/* 只有一张图时别装作有三张：放大居前，下面两张直接不出现 */
+.craft-drawer__stack[data-photo-count='1'] .craft-drawer__photo--front {
+  right: 8%;
+  bottom: 6%;
+  height: 88%;
+  aspect-ratio: 4 / 3;
+}
+
+.craft-drawer__cycle {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  color: var(--paper);
+  pointer-events: none;
+  background: rgb(23 20 15 / 82%);
+  border-radius: 50%;
+  box-shadow: 0 10px 22px -14px #000;
+  transition: background-color 0.3s var(--ease-out);
+}
+
+.craft-drawer__cycle svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.craft-drawer__stack:hover .craft-drawer__cycle {
+  background: var(--ink);
 }
 
 .craft-drawer__meta {
   display: grid;
   gap: 0.55rem;
-  padding-top: 0.4rem;
+  padding-top: 0.7rem;
   border-top: 1px solid rgb(23 20 15 / 22%);
 }
 
 .craft-drawer__kicker {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
   font-family: var(--font-num);
   font-size: 0.56rem;
   letter-spacing: 0.24em;
   color: var(--gold);
+}
+
+.craft-drawer__hint {
+  font-family: var(--font-sans);
+  font-size: 0.54rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
 }
 
 .craft-drawer__name {
@@ -1679,24 +1730,28 @@
   }
 
   .band__strip {
-    gap: 0.9rem;
-    padding-bottom: 1rem;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-
-  .band__strip::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    padding: 0 var(--pad);
+    overflow: visible;
   }
 
   .band__item {
-    flex: 0 0 62vw;
-    scroll-snap-align: start;
+    min-width: 0;
   }
 
   .band__item:nth-child(n) {
     padding-top: 0;
+  }
+
+  /* 第五张横过来占满一行：五张都能完整看到，不再靠横向滑动 */
+  .band__item:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .band__item:last-child .band__frame {
+    aspect-ratio: 16 / 9;
   }
 
   .sights__head-row {
@@ -1776,15 +1831,6 @@
 
   .craft__thumb {
     display: block;
-  }
-
-  .crafts__head {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
-  }
-
-  .crafts__note {
-    max-width: 24rem;
   }
 
   .colophon {
