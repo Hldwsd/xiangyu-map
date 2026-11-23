@@ -186,6 +186,7 @@ export const sites: Site[] = [
     description:
       '1938–1941 年新四军军部驻扎泾县云岭，军部机关、大会堂与领导人旧居散布在几个村落之间，多为皖南民居形制。\n\n旧址 1961 年列入第一批全国重点文物保护单位；纪念馆按时间线梳理皖南事变前后的经过，看完再走旧址群更容易理解这片山地的空间关系。',
     cover: '/images/sites/yunling-memorial/cover.webp',
+    shareImage: '/og/sites/yunling-memorial.jpg',
     gallery: [],
     tags: ['新四军', '红色', '全国文保'],
     bestSeason: '全年',
@@ -204,6 +205,7 @@ export const sites: Site[] = [
     description:
       '花戏楼本名山陕会馆（大关帝庙），是清代晋陕商人在亳州集资所建；1988 年列入第三批全国重点文物保护单位。\n\n戏台木雕与外墙砖雕是核心看点，题材密集，值得带着耐心看细节；旁边的亳州老街与曹操运兵道可以一并安排。',
     cover: '/images/sites/huaxilou/cover.webp',
+    shareImage: '/og/sites/huaxilou.jpg',
     gallery: [],
     tags: ['砖雕', '全国文保', '会馆'],
     bestSeason: '4-5 月、9-10 月',
@@ -245,6 +247,7 @@ export const sites: Site[] = [
     description:
       '龙子湖在蚌埠市区东侧，湖面开阔，环湖有步道与几座跨湖桥，是本地人日常散步与骑行的去处。\n\n湖区周边是高校与新建城区，适合放在行程里当一个不赶时间的午后落脚点。',
     cover: '/images/sites/longzihu/cover.webp',
+    shareImage: '/og/sites/longzihu.jpg',
     gallery: [],
     tags: ['湖泊', '城市公园', '散步'],
     bestSeason: '4-5 月、9-10 月',
@@ -286,6 +289,7 @@ export const sites: Site[] = [
     description:
       '临涣在濉溪县，是皖北老街市，镇上茶馆至今保留着大壶续水、按位坐的老习惯。\n\n建筑谈不上精雕细琢，看点在市井：茶馆、集市与街边手艺人，赶集日最热闹。',
     cover: '/images/sites/linhuan-ancient-town/cover.webp',
+    shareImage: '/og/sites/linhuan-ancient-town.jpg',
     gallery: [],
     tags: ['茶馆', '集市', '皖北'],
     bestSeason: '3-5 月、9-11 月',
@@ -304,6 +308,7 @@ export const sites: Site[] = [
     description:
       '大通在铜陵市郊，长江与青通河在此交汇，旧时是盐运与商埠码头，老街与和悦洲一带还能看出当年的格局。\n\n江滩与渡口是这里的日常，适合慢慢走、看江面上来往的船。',
     cover: '/images/sites/datong-ancient-town/cover.webp',
+    shareImage: '/og/sites/datong-ancient-town.jpg',
     gallery: [],
     tags: ['长江', '盐运', '老街'],
     bestSeason: '4-5 月、10-11 月',
@@ -325,6 +330,7 @@ export const sites: Site[] = [
     description:
       '小岗村在凤阳县。1978 年，18 户村民按下红手印、实行包干到户，这里因此成为中国农村改革的标志性地点。\n\n村里有纪念馆、旧居与大包干纪念场所，配合讲解看，比单看展板更能理解当时的处境。',
     cover: '/images/sites/xiaogang-village/cover.webp',
+    shareImage: '/og/sites/xiaogang-village.jpg',
     gallery: [],
     tags: ['农村改革', '纪念馆', '凤阳'],
     bestSeason: '3-5 月、9-11 月',
@@ -346,6 +352,7 @@ export const sites: Site[] = [
     description:
       '八里河在颍上县，是在低洼湖区基础上治理而成的水利与旅游区，水面与堤岸林带构成主要景观。\n\n平原上少有这样成片的水面，适合骑行与步行；景区内也修了几处人工景点，按兴趣取舍即可。',
     cover: '/images/sites/balihe/cover.webp',
+    shareImage: '/og/sites/balihe.jpg',
     gallery: [],
     tags: ['湖泊', '平原', '骑行'],
     bestSeason: '4-6 月、9-10 月',
@@ -364,6 +371,7 @@ export const sites: Site[] = [
     description:
       '皇藏峪在萧县东南，是皖北少见的成片次生林山谷，林下阴凉，夏天比平原舒服得多。\n\n山道以石阶为主，落差集中，走完约两三小时；谷内有几处与汉高祖传说相关的旧迹。',
     cover: '/images/sites/huangcangyu/cover.webp',
+    shareImage: '/og/sites/huangcangyu.jpg',
     gallery: [],
     tags: ['森林', '山谷', '避暑'],
     bestSeason: '5-10 月',
@@ -382,6 +390,7 @@ export const sites: Site[] = [
     description:
       '金寨是著名的将军县，红军广场一带集中了革命烈士纪念碑、纪念塔与金寨县革命博物馆。\n\n博物馆按时间线展陈鄂豫皖苏区的历史，看完再走广场，对大别山根据地会有更具体的空间感。',
     cover: '/images/sites/jinzhai-red-army-square/cover.webp',
+    shareImage: '/og/sites/jinzhai-red-army-square.jpg',
     gallery: [],
     tags: ['大别山', '将军县', '纪念馆'],
     bestSeason: '全年',
@@ -400,6 +409,7 @@ export const sites: Site[] = [
     description:
       '琅琊山在滁州城西南，山不算高但林木深，醉翁亭、琅琊寺沿山道分布。\n\n山脚到醉翁亭步行即可，再往上走到琅琊寺约半小时；秋季的红叶与山雾是这里常被拍到的两个题材。',
     cover: '/images/sites/langyashan/cover.webp',
+    shareImage: '/og/sites/langyashan.jpg',
     gallery: [],
     tags: ['醉翁亭', '山林', '人文'],
     bestSeason: '4-5 月、10-11 月',
@@ -444,6 +454,7 @@ export const sites: Site[] = [
     description:
       '八公山在淮南市西，山势低缓，因八公与豆腐的传说得名，山上有汉淮南王墓等旧迹。\n\n登顶不难，视野开阔，能望到淮河与平原；山下的豆腐宴是当地招牌，值得留在午饭。',
     cover: '/images/sites/bagongshan/cover.webp',
+    shareImage: '/og/sites/bagongshan.jpg',
     gallery: [],
     tags: ['豆腐', '淮河', '低山'],
     bestSeason: '4-5 月、9-10 月',
@@ -462,6 +473,7 @@ export const sites: Site[] = [
     description:
       '杏花村在池州城西，因杜牧《清明》诗得名，村内有与杏花、酒文化相关的园子与旧迹。\n\n春季杏花开时最好看；村子离城区不远，适合与池州城内的齐山、平天湖串成半日。',
     cover: '/images/sites/xinghuacun/cover.webp',
+    shareImage: '/og/sites/xinghuacun.jpg',
     gallery: [],
     tags: ['杏花', '诗酒', '春游'],
     bestSeason: '3-4 月',
@@ -503,6 +515,7 @@ export const sites: Site[] = [
     description:
       '屯溪老街沿新安江铺开，两侧是徽派店面与百年老字号，卖文房、茶叶与徽州小吃。\n\n它更像一条仍在生活的商业街，而不是圈起来的景区：不收门票，早晚各有各的样子。',
     cover: '/images/sites/tunxi-old-street/cover.webp',
+    shareImage: '/og/sites/tunxi-old-street.jpg',
     gallery: [],
     tags: ['老街', '徽派', '市井'],
     bestSeason: '全年',
@@ -521,6 +534,7 @@ export const sites: Site[] = [
     description:
       '黄梅戏发源于安庆一带，再芬黄梅公馆是当地的驻场演出场所，常演《天仙配》《女驸马》等折子。\n\n小剧场的距离近，唱腔与乐队都在眼前；演出安排随季节调整，去之前先确认场次。',
     cover: '/images/sites/huangmeixi-zaiyfen/cover.webp',
+    shareImage: '/og/sites/huangmeixi-zaiyfen.jpg',
     gallery: [],
     tags: ['黄梅戏', '戏曲', '驻场演出'],
     bestSeason: '全年',
@@ -539,6 +553,7 @@ export const sites: Site[] = [
     description:
       '万佛湖是龙河口水库形成的湖面，湖岸曲折，岛屿散落其间，周边是大别山的余脉。\n\n环湖公路路况好、车少，适合骑行；湖区也有游船与露营点，夏天人多，春秋更自在。',
     cover: '/images/sites/wanfohu/cover.webp',
+    shareImage: '/og/sites/wanfohu.jpg',
     gallery: [],
     tags: ['水库', '骑行', '湖湾'],
     bestSeason: '4-6 月、9-10 月',
@@ -560,6 +575,7 @@ export const sites: Site[] = [
     description:
       '桃花潭在泾县西南，青弋江在此转出一个深潭，两岸是村落、古渡与踏歌岸阁。\n\n它因李白《赠汪伦》而知名；清晨江面起雾时最好看，夏季可以坐竹筏，水浅处还能下水。',
     cover: '/images/sites/taohuatan/cover.webp',
+    shareImage: '/og/sites/taohuatan.jpg',
     gallery: [],
     tags: ['青弋江', '古渡', '诗酒'],
     bestSeason: '3-4 月、9-10 月',
@@ -607,6 +623,7 @@ export const sites: Site[] = [
     description:
       '水墨汀溪在泾县汀溪乡，溪流在花岗岩河床上拐出许多浅滩与水潭，两岸是竹林与阔叶林。\n\n夏天最舒服，可以沿溪走一段、下到浅滩踩水；雨后水量大，石头滑，注意脚下。',
     cover: '/images/sites/shuimo-tingxi/cover.webp',
+    shareImage: '/og/sites/shuimo-tingxi.jpg',
     gallery: [],
     tags: ['溪谷', '竹林', '避暑'],
     bestSeason: '5-9 月',
@@ -628,6 +645,7 @@ export const sites: Site[] = [
     description:
       '1941 年皖南事变中，新四军在茂林一带被围，山坳与溪谷间留下了多处战场遗址。\n\n镇上有纪念碑与旧址群；配合周边地形看，会更容易理解当年为什么在这里被围住。',
     cover: '/images/sites/maolin-battlefield/cover.webp',
+    shareImage: '/og/sites/maolin-battlefield.jpg',
     gallery: [],
     tags: ['皖南事变', '旧址', '山地'],
     bestSeason: '全年',
@@ -649,6 +667,7 @@ export const sites: Site[] = [
     description:
       '纪念馆在合肥滨湖新区、巢湖北岸，主体建筑以 49° 角向前倾斜，像两艘驶向江面的战舰。\n\n馆内以渡江战役为主线，解放广场、总前委群像与胜利塔连成一条轴线；免费开放，适合与巢湖岸线一起安排半天。',
     cover: '/images/sites/dujiang-memorial/cover.webp',
+    shareImage: '/og/sites/dujiang-memorial.jpg',
     gallery: [],
     tags: ['渡江战役', '纪念馆', '合肥'],
     bestSeason: '全年（周一闭馆）',
@@ -667,6 +686,7 @@ export const sites: Site[] = [
     description:
       '巢湖水域约 780 平方公里，是合肥「大湖名城」的底色；环湖北路上最值得停的是中庙与姥山岛，湖天一线时像海。\n\n环湖国家风景名胜区还包括紫微洞、银屏山等景点；自驾环湖最方便，风大的日子湖面浪大，注意安全。',
     cover: '/images/sites/chaohu/cover.webp',
+    shareImage: '/og/sites/chaohu.jpg',
     gallery: [],
     tags: ['五大淡水湖', '环湖', '姥山岛'],
     bestSeason: '4-6 月、9-10 月',
@@ -685,6 +705,7 @@ export const sites: Site[] = [
     description:
       '镜湖原名陶塘，在芜湖最核心的地段，步出中山路步行街就是湖边。\n\n「水清可鉴，形似圆镜」是名字的来处；湖畔有步月桥与柳春园，夜色里对岸灯影入水，是市民散步的日常，也是旅人歇脚的中途站。',
     cover: '/images/sites/jinghu-park/cover.webp',
+    shareImage: '/og/sites/jinghu-park.jpg',
     gallery: [],
     tags: ['城市湖泊', '步行街', '夜景'],
     bestSeason: '全年',
@@ -703,6 +724,7 @@ export const sites: Site[] = [
     description:
       '「湖上升明月」把散落各地的 450 栋古民居整体迁到蚌埠龙子湖畔修复，徽派、闽南红砖厝同处一园，被称为露天的民居博物馆。\n\n园区很大，建议乘园内电瓶车分区逛；傍晚湖面倒影最好看。',
     cover: '/images/sites/hushang-mingyue/cover.webp',
+    shareImage: '/og/sites/hushang-mingyue.jpg',
     gallery: [],
     tags: ['古民居', '博览园', '湖岸'],
     bestSeason: '3-5 月、9-11 月',
@@ -724,6 +746,7 @@ export const sites: Site[] = [
     description:
       '李白晚年依当涂族叔李阳冰，病逝后葬于青山，李白墓是全国重点文物保护单位，历经多次修葺。\n\n文化园分前中后三区，竹木掩映、题刻众多；清明前后山脚油菜花开，适合与采石矶串成一条「李白线」。',
     cover: '/images/sites/libai-culture-park/cover.webp',
+    shareImage: '/og/sites/libai-culture-park.jpg',
     gallery: [],
     tags: ['李白墓', '全国文保', '青山'],
     bestSeason: '3-5 月、9-10 月',
@@ -745,6 +768,7 @@ export const sites: Site[] = [
     description:
       '凤凰山在铜陵义安区顺安镇，凤丹种植历史 1600 多年，与洛阳、菏泽牡丹并称国内三大名贵牡丹。\n\n清明前后是花期，相思树、滴水崖与牡丹园连成一条环线；非花期是安静的丘陵步道，适合半日。',
     cover: '/images/sites/tongling-fenghuangshan/cover.webp',
+    shareImage: '/og/sites/tongling-fenghuangshan.jpg',
     gallery: [],
     tags: ['牡丹', '凤丹', '春花'],
     bestSeason: '4 月（牡丹花期）',
@@ -763,6 +787,7 @@ export const sites: Site[] = [
     description:
       '相山国家森林公园在淮北市中心南麓，免费开放；显通寺始建于西晋，乾隆题过「惠我南黎」。\n\n环形步道一圈约一个半小时，雨后常能看到云海漫过山脊；对这座城市来说，相山是日常也是最高点。',
     cover: '/images/sites/xiangshan-huaibei/cover.webp',
+    shareImage: '/og/sites/xiangshan-huaibei.jpg',
     gallery: [],
     tags: ['森林公园', '城市山', '显通寺'],
     bestSeason: '全年',
@@ -781,6 +806,7 @@ export const sites: Site[] = [
     description:
       '公元前 209 年陈胜吴广在蕲县大泽乡揭竿而起，「涉故台」即当年筑台盟誓之处；台东南的鸿鹄苑有碑廊与陈列。\n\n遗址在宿州东南的大泽乡镇，乡野气息重，适合对秦末历史有兴趣的人专程走一趟。',
     cover: '/images/sites/shegutai/cover.webp',
+    shareImage: '/og/sites/shegutai.jpg',
     gallery: [],
     tags: ['陈胜吴广', '起义遗址', '大泽乡'],
     bestSeason: '全年',
@@ -799,6 +825,7 @@ export const sites: Site[] = [
     description:
       '韭山洞形成于寒武纪灰岩里，《水经注》已有记载；洞内分虎踞龙蟠、摘星揽月等段，元末朱元璋屯兵留下了演兵场等人文痕迹。\n\n洞内恒温约 17℃，夏天进洞记得带件薄外套；可与狼巷迷谷串成一日。',
     cover: '/images/sites/jiushan-cave/cover.webp',
+    shareImage: '/og/sites/jiushan-cave.jpg',
     gallery: [],
     tags: ['溶洞', '森林公园', '地质'],
     bestSeason: '全年（夏季避暑）',
@@ -817,6 +844,7 @@ export const sites: Site[] = [
     description:
       '焦岗湖跨淮南毛集实验区与颍上县，是国家湿地公园、国家水利风景区，湖面芦苇与荷花是主打。\n\n夏天坐船穿芦苇荡、看荷花淀最好；湖边渔家乐的鱼宴是老饕的理由。',
     cover: '/images/sites/jiaogang-lake/cover.webp',
+    shareImage: '/og/sites/jiaogang-lake.jpg',
     gallery: [],
     tags: ['湿地公园', '荷花', '芦苇荡'],
     bestSeason: '6-8 月（荷花）',
@@ -835,6 +863,7 @@ export const sites: Site[] = [
     description:
       '明堂山因汉武帝封禅天柱山时设「明堂」祭拜得名，主峰海拔 1563 米，是长江淮河两大流域的分水岭。\n\n景区以栈道出名：1800 米绝壁栈道接 130 米玻璃栈道，还有垂直落差 365 米的云端天梯；缆车可代步，体力要求不高。',
     cover: '/images/sites/mingtang-mountain/cover.webp',
+    shareImage: '/og/sites/mingtang-mountain.jpg',
     gallery: [],
     tags: ['大别山', '高空栈道', '玻璃天梯'],
     bestSeason: '5-6 月、9-10 月',
@@ -853,6 +882,7 @@ export const sites: Site[] = [
     description:
       '牯牛降古称「西黄山」，是黄山山脉向西延伸的主体，集国家级自然保护区、国家地质公园与 4A 景区于一身。\n\n石台一侧的开放区以水潭、四叠瀑布与峡谷步道为主；近年闭园改造创 5A，出行前先查开放状态。',
     cover: '/images/sites/guniujiang/cover.webp',
+    shareImage: '/og/sites/guniujiang.jpg',
     gallery: [],
     tags: ['自然保护区', '原始森林', '瀑布'],
     bestSeason: '5-10 月',
@@ -871,6 +901,7 @@ export const sites: Site[] = [
     description:
       '包河原是合肥护城河，宋仁宗赐予包拯，河上有包公祠、包公墓、清风阁与浮庄四处景点。\n\n公园免费开放，祠墓单独购票；「铁面无私」的故事配上荷风柳岸，是合肥市中心的安静一隅。',
     cover: '/images/sites/baogong-park/cover.webp',
+    shareImage: '/og/sites/baogong-park.jpg',
     gallery: [],
     tags: ['包拯', '廉政文化', '城市园林'],
     bestSeason: '全年',
@@ -889,6 +920,7 @@ export const sites: Site[] = [
     description:
       '张公山在蚌埠禹会区，山顶海拔 71 米，望淮塔是城市地标；山下张公湖垂柳环岸。\n\n1973 年建园、免费开放，秋季湖山最好看；园中园的江南园林与淮河碑廊值得慢慢看。',
     cover: '/images/sites/zhanggong-park/cover.webp',
+    shareImage: '/og/sites/zhanggong-park.jpg',
     gallery: [],
     tags: ['城市公园', '望淮塔', '淮河'],
     bestSeason: '全年（秋季最佳）',
@@ -907,6 +939,7 @@ export const sites: Site[] = [
     description:
       '公元前 202 年项羽兵败自刎乌江，后人立祠祀之；祠为安徽省重点文物保护单位，门楼上「霸王祠」三字出自董其昌手书。\n\n祠旁就是长江与驷马山河，把霸王祠、陋室（刘禹锡）与鸡笼山串成和县一日线更顺。',
     cover: '/images/sites/bawangci/cover.webp',
+    shareImage: '/og/sites/bawangci.jpg',
     gallery: [],
     tags: ['项羽', '楚汉', '长江'],
     bestSeason: '全年',
@@ -925,6 +958,7 @@ export const sites: Site[] = [
     description:
       '颍州西湖「始于周、兴于唐、盛于宋」，宋代欧阳修、苏轼都知颍州；如今的生态乐园就建在遗址上，会老堂是遗存。\n\n园区以生态农业与园林为主，春季赏花、夏秋采摘，还有动物园与热带雨林馆；适合带孩子的半日游。',
     cover: '/images/sites/fuyang-ecopark/cover.webp',
+    shareImage: '/og/sites/fuyang-ecopark.jpg',
     gallery: [],
     tags: ['颍州西湖', '欧阳修', '生态园'],
     bestSeason: '3-5 月、9-10 月',
@@ -943,6 +977,7 @@ export const sites: Site[] = [
     description:
       '曹操公园原称曹氏公园，园内的「曹四孤堆」是曹操宗族墓群，园中建有曹操纪念馆与魏武祠。\n\n免费开放的露天博物馆，松涛、墓冢与诗碑并存；可与曹操运兵道、花戏楼串成亳州三国一日线。',
     cover: '/images/sites/caocao-park/cover.webp',
+    shareImage: '/og/sites/caocao-park.jpg',
     gallery: [],
     tags: ['曹操', '三国', '墓群'],
     bestSeason: '全年',
@@ -961,6 +996,7 @@ export const sites: Site[] = [
     description:
       '渔梁坝横截练江，坝上水缓、坝下激流，兼具蓄水泄洪与通航之用，2001 年列入第五批全国重点文物保护单位。\n\n坝旁的渔梁古街曾是徽商水运码头，青石街巷直通坝顶；傍晚坐在坝上看练江水声，是歙县城南最省力的慢时光。',
     cover: '/images/sites/yuliang-dam/cover.webp',
+    shareImage: '/og/sites/yuliang-dam.jpg',
     gallery: [],
     tags: ['古代水利', '全国文保', '徽商'],
     bestSeason: '全年',
@@ -979,6 +1015,7 @@ export const sites: Site[] = [
     description:
       '潜口民宅博物馆把散落徽州的明清古建筑整体迁建于紫霞山麓，曹门厅、司谏第等是黄山市首批全国重点文物保护单位。\n\n作为古徽州文化旅游区（5A）的组成部分免费参观，距徽州古城约 7 公里；「观皇宫去北京，看民宅到潜口」说的就是这里。',
     cover: '/images/sites/qiankou-mansion/cover.webp',
+    shareImage: '/og/sites/qiankou-mansion.jpg',
     gallery: [],
     tags: ['古建筑', '全国文保', '徽州'],
     bestSeason: '全年',
@@ -997,6 +1034,7 @@ export const sites: Site[] = [
     description:
       '九子岩在青阳县朱备镇，是九华山国家森林公园的核心景区，九子溪穿谷汇入青通河。\n\n后山清幽，双溪寺与丛林步道是主打；想避开九华街的人流，从后山走这一线最合适。',
     cover: '/images/sites/jiuzi-yan/cover.webp',
+    shareImage: '/og/sites/jiuzi-yan.jpg',
     gallery: [],
     tags: ['九华山', '森林公园', '后山'],
     bestSeason: '4-6 月、9-10 月',
@@ -1015,6 +1053,7 @@ export const sites: Site[] = [
     description:
       '赭山在芜湖市中心、鸠兹广场北侧，大赭山海拔 84.8 米，因山体土石呈殷红色得名。\n\n1933 年筹建、1958 年建成，凝芳园、海棠园等园中园与广济寺相邻；登顶可环视芜湖城，与镜湖公园步行可达，适合串成市中心半日线。',
     cover: '/images/sites/zhashan-park/cover.webp',
+    shareImage: '/og/sites/zhashan-park.jpg',
     gallery: [],
     tags: ['城市山', '免费', '广济寺'],
     bestSeason: '全年',
@@ -1056,6 +1095,7 @@ export const sites: Site[] = [
     description:
       '升金湖因湖中渔货价值「升金」得名，333 平方公里的永久性淡水湖泊经黄湓闸与长江相通，是安徽首个国际重要湿地。\n\n每年 10 月下旬到次年 4 月上旬，越冬水鸟最集中；湖岸多为保护区域，观鸟请走官方 designated 观测点，冬季最壮观。',
     cover: '/images/sites/shengjin-lake/cover.webp',
+    shareImage: '/og/sites/shengjin-lake.jpg',
     gallery: [],
     tags: ['国际湿地', '观鸟', '白头鹤'],
     bestSeason: '10 月-次年 4 月（候鸟）',
@@ -1074,6 +1114,7 @@ export const sites: Site[] = [
     description:
       '凌家滩是距今约 5800–5300 年的新石器时代中心聚落，出土的高规格玉礼器被视为「古国时代」第一阶段的代表，2023 年国家考古遗址公园揭牌。\n\n遗址公园、凌家滩遗址博物馆与考古研学小镇相邻，适合对史前文明有兴趣的人专程半天；配合隔壁的运漕古镇更好。',
     cover: '/images/sites/lingjiatian/cover.webp',
+    shareImage: '/og/sites/lingjiatian.jpg',
     gallery: [],
     tags: ['史前遗址', '玉器', '考古公园'],
     bestSeason: '全年',
@@ -1092,6 +1133,7 @@ export const sites: Site[] = [
     description:
       '明皇陵在凤阳县城南，1366 年始建、历时 13 年建成；「明中都皇故城及皇陵石刻」1982 年列入第二批全国重点文物保护单位。\n\n皇陵碑的碑文由朱元璋亲自撰写，石刻群沿神道排列；与明中都皇故城遗址串成凤阳的明代遗存一日线。',
     cover: '/images/sites/minghuangling/cover.webp',
+    shareImage: '/og/sites/minghuangling.jpg',
     gallery: [],
     tags: ['明代陵墓', '全国文保', '朱元璋'],
     bestSeason: '全年',
@@ -1110,6 +1152,7 @@ export const sites: Site[] = [
     description:
       '司空山在岳西县店前镇与冶溪镇交界，公元 577 年禅宗二祖慧可携达摩衣钵在此弘法，二祖寺分上下两院。\n\n山势雄奇、人文与自然交错，李白曾避居于此留有太白书堂；3A 景区，游客不多，适合寻禅与徒步的人慢慢走。',
     cover: '/images/sites/sikong-mountain/cover.webp',
+    shareImage: '/og/sites/sikong-mountain.jpg',
     gallery: [],
     tags: ['禅宗', '二祖道场', '徒步'],
     bestSeason: '4-6 月、9-10 月',
@@ -1128,6 +1171,7 @@ export const sites: Site[] = [
     description:
       '白马尖在霍山县与岳西县交界，与多云尖、天河尖呈品字形鼎立，是大别山（六安）国家地质公园的主峰园区。\n\n上下山是同一条路，登顶约需大半天，被驴友称作「安徽最难爬的山」；东北坡有千年都枝杜鹃，体力好再上，量力而行。',
     cover: '/images/sites/baimajian/cover.webp',
+    shareImage: '/og/sites/baimajian.jpg',
     gallery: [],
     tags: ['大别山主峰', '登山', '地质公园'],
     bestSeason: '5-6 月、9-10 月',
@@ -1146,6 +1190,7 @@ export const sites: Site[] = [
     description:
       '柳孜运河遗址在濉溪县百善镇柳孜村，两次考古发掘出唐宋河道、河堤与码头实物，是还原千年运河面貌的关键地点。\n\n2014 年成为世界遗产「中国大运河」的遗产点段之一（安徽仅两处），2026 年获评省级考古遗址公园；对运河史有兴趣值得专程。',
     cover: '/images/sites/liuzi-site/cover.webp',
+    shareImage: '/og/sites/liuzi-site.jpg',
     gallery: [],
     tags: ['大运河', '世界遗产', '全国文保'],
     bestSeason: '全年',
@@ -1164,6 +1209,7 @@ export const sites: Site[] = [
     description:
       '清康熙年间大学士张英一句回诗化解了张吴两家的宅基地之争，两家各让三尺留出这条巷子；现属安徽省级文物保护单位。\n\n2024 年升级改造后由六尺巷、张府吴府遗存与勺园组成，免费参观；把桐城文庙、孔城老街串成一日线更顺。',
     cover: '/images/sites/liuchixiang/cover.webp',
+    shareImage: '/og/sites/liuchixiang.jpg',
     gallery: [],
     tags: ['礼让文化', '桐城', '历史街区'],
     bestSeason: '全年',
@@ -1185,6 +1231,7 @@ export const sites: Site[] = [
     description:
       '安徽博物院是省内唯一的省级综合类博物馆，国家一级博物馆；新馆在怀宁路天鹅湖畔，建筑体现「五方相连、四水归堂」的徽派意匠。\n\n常设安徽文明史、徽州古建筑、安徽革命史等陈列，铸客大鼎（楚大鼎）是镇馆之宝，也是「国家公祭鼎」的原型；免费预约参观，老馆在安庆路。',
     cover: '/images/sites/anhui-museum/cover.webp',
+    shareImage: '/og/sites/anhui-museum.jpg',
     gallery: [],
     tags: ['一级博物馆', '楚大鼎', '徽派建筑'],
     bestSeason: '全年（周一闭馆）',
@@ -1203,6 +1250,7 @@ export const sites: Site[] = [
     description:
       '安徽创新馆 2019 年开馆，是全国第一座以创新为主题的场馆；三栋场馆从空中看呈原子裂变状，陈列量子计算机、聚变堆模型等两千七百余件展品。\n\n一号馆看展、三号馆有球幕影院，与渡江战役纪念馆同在滨湖一线，可以一起安排半天；免费预约参观。',
     cover: '/images/sites/anhui-innovation-museum/cover.webp',
+    shareImage: '/og/sites/anhui-innovation-museum.jpg',
     gallery: [],
     tags: ['科技馆', '创新主题', '滨湖'],
     bestSeason: '全年（周一闭馆）',
@@ -1221,6 +1269,7 @@ export const sites: Site[] = [
     description:
       '徽州文化博物馆是安徽省第二大综合性博物馆、国家一级博物馆，馆藏约 10 万件（套），新馆 2008 年开放。\n\n展览从徽州人的由来讲到「一府六县」的形成与徽商兴衰，馆舍本身就是徽派风格；看懂了这里再看西递宏村与徽州古村，会完全不同。',
     cover: '/images/sites/huizhou-culture-museum/cover.webp',
+    shareImage: '/og/sites/huizhou-culture-museum.jpg',
     gallery: [],
     tags: ['一级博物馆', '徽文化', '屯溪'],
     bestSeason: '全年（周一闭馆）',
@@ -1239,6 +1288,7 @@ export const sites: Site[] = [
     description:
       '寿县是楚国最后一座都城寿春，楚幽王陵就在周边；安徽楚文化博物馆是全国唯一以「楚文化」命名的博物馆，2022 年开馆、2024 年晋升国家一级。\n\n楚式高台风格的馆舍里珍藏着 1 万余件（套）文物；与寿州古城墙一街之隔，看完博物馆再登城墙正好。',
     cover: '/images/sites/chu-culture-museum/cover.webp',
+    shareImage: '/og/sites/chu-culture-museum.jpg',
     gallery: [],
     tags: ['楚文化', '一级博物馆', '寿县'],
     bestSeason: '全年（周一闭馆）',
@@ -1257,6 +1307,7 @@ export const sites: Site[] = [
     description:
       '中国宣纸文化园在泾县榔桥镇，围绕宣纸传统制作技艺展开：捞纸、晒纸、剪纸等工序都能在园区里看到。\n\n宣纸制作技艺是首批国家级非遗；园区适合安排半天，和泾县周边的古村、查济串成一条线。',
     cover: '/images/sites/jingxian-xuan-paper/cover.webp',
+    shareImage: '/og/sites/jingxian-xuan-paper.jpg',
     gallery: [],
     tags: ['非遗', '宣纸', '研学'],
     bestSeason: '全年',
@@ -1279,6 +1330,7 @@ export const sites: Site[] = [
     description:
       '老胡开文墨厂在歙县，是徽墨制作技艺的代表性厂区；炼烟、和胶、制墨、描金等工序仍按传统流程进行。\n\n徽墨是文房四宝之一，也是国家级非遗；参观时间不长，适合和徽州古城、歙砚博物馆一起安排。',
     cover: '/images/sites/shexian-ink-garden/cover.webp',
+    shareImage: '/og/sites/shexian-ink-garden.jpg',
     gallery: [],
     tags: ['非遗', '徽墨', '歙县'],
     bestSeason: '全年',
@@ -1301,6 +1353,7 @@ export const sites: Site[] = [
     description:
       '歙县古城墨砚博物馆以歙砚为主题，展出砚石、砚雕与文房器物，能看清一块砚石如何变成一方砚。\n\n歙砚制作技艺是国家级非遗；博物馆在歙县古城附近，适合和许国石坊、斗山街串半天。',
     cover: '/images/sites/shexian-inkstone-museum/cover.webp',
+    shareImage: '/og/sites/shexian-inkstone-museum.jpg',
     gallery: [],
     tags: ['非遗', '歙砚', '文房'],
     bestSeason: '全年',
@@ -1323,6 +1376,7 @@ export const sites: Site[] = [
     description:
       '汪满田村在歙县溪头镇，以正月鱼灯民俗出名：竹骨纸糊的大鱼灯在村巷里巡游，是皖南春节最热闹的场景之一。\n\n鱼灯集中在正月十三至十六；平日村庄安静，适合看古村与山景，灯会期建议提前确认路线与停车。',
     cover: '/images/sites/wangmantian-village/cover.webp',
+    shareImage: '/og/sites/wangmantian-village.jpg',
     gallery: [],
     tags: ['非遗', '鱼灯', '民俗'],
     bestSeason: '正月十三至十六（灯会）',
@@ -1345,6 +1399,7 @@ export const sites: Site[] = [
     description:
       '池州傩文化馆在贵池，展出傩面具、傩仪与傩戏相关器物，是理解“戏曲活化石”池州傩的入口。\n\n池州傩戏是国家级非遗，宗族傩活动多在春节前后；展馆适合搭配刘街、茅坦等傩戏村一起看。',
     cover: '/images/sites/chizhou-nuo-culture-park/cover.webp',
+    shareImage: '/og/sites/chizhou-nuo-culture-park.jpg',
     gallery: [],
     tags: ['非遗', '傩戏', '面具'],
     bestSeason: '全年（春节前后有傩事活动）',
@@ -1367,6 +1422,7 @@ export const sites: Site[] = [
     description:
       '安徽万安罗经文化博物馆在休宁万安镇，讲万安罗盘的历史、工序与用途；罗盘制作技艺是国家级非遗。\n\n万安老街就在附近，博物馆不大，适合和休宁古城岩、齐云山串成一条短线。',
     cover: '/images/sites/wanan-compass-museum/cover.webp',
+    shareImage: '/og/sites/wanan-compass-museum.jpg',
     gallery: [],
     tags: ['非遗', '罗盘', '万安'],
     bestSeason: '全年',
@@ -1389,6 +1445,7 @@ export const sites: Site[] = [
     description:
       '冯嘴子村在蚌埠禹会区，是中国花鼓灯艺术传习所所在地；花鼓灯是首批国家级非遗，锣鼓、灯歌与舞蹈在这里仍有传承。\n\n村里有传习与展演空间，具体演出需提前联系；适合对民俗、民间舞蹈感兴趣的人专程安排半天。',
     cover: '/images/sites/fengzaizi-village/cover.webp',
+    shareImage: '/og/sites/fengzaizi-village.jpg',
     gallery: [],
     tags: ['非遗', '花鼓灯', '民俗'],
     bestSeason: '全年（演出需预约）',

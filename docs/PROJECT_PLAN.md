@@ -347,7 +347,7 @@ export interface Site {
 - 详情页决策信息：12 个头部项目补 `practical.duration` / `audience`；`hours` / `ticket` 待有可追溯来源后补；
 - 画廊：12 个头部项目各 2 张 `gallery-*.webp`（高德 POI 公开评论图片）；其余 58 条仍为空；
 - 内容补强：新增 8 条非遗/场馆（宣纸、徽墨、歙砚、汪满田鱼灯、池州傩、万安罗盘、冯嘴子花鼓灯、中国徽菜博物馆），数据 62→70；
-- 分享与收录：构建后预渲染 70 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；头部 12 个项目已有独立分享图，详情页可打开分享弹层（复制链接/保存图片/系统分享），其余用统一品牌图；
+- 分享与收录：构建后预渲染 70 个详情页，注入各自的 title / description / OG / JSON-LD（[ADR 0012](adr/0012-prerender-detail-pages.md)）；69/70 个项目已有独立分享图（12 张人工精选 + 57 张模板生成），徽菜博物馆保留统一品牌图作为回退样本；详情页可打开分享弹层（复制链接/保存图片/系统分享）；
 - 键盘入口：移除地图内重复的隐藏地标列表，统一走顶部「项目列表」抽屉（[Issue #107](https://github.com/Hldwsd/xiangyu-map/issues/107)）；
 - 剩余：加载骨架与错误态的细粒度打磨、图片懒加载在真实图片上验证、
   列表 ↔ 地图的 hover（目前只做选中联动）。
