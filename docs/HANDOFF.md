@@ -1,4 +1,4 @@
-# 交接文档 · 乡遇安徽
+﻿# 交接文档 · 乡遇安徽
 
 > 更新时间：2026-11-23 07:55（Asia/Shanghai）
 > 当前 main：`47a100b test(e2e): 接 Playwright 冒烟，覆盖首页/筛选/搜索/详情深链 (#158)`
@@ -82,7 +82,7 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 | 分享图    | 12 个头部项目独立图 + 1 张默认图；其余 58 条用默认图           |
 | 画廊      | 12 个头部项目 ×2 张；其余 58 条仍为空                          |
 | practical | 20 条有 `duration` / `audience`；`hours` / `ticket` 未填       |
-| 单测      | **143 个用例 / 13 个文件**，全绿                               |
+| 单测      | **144 个用例 / 13 个文件**，全绿                               |
 | E2E       | 6 个场景（桌面 + 移动端；移动端 2 个筛选场景跳过）             |
 
 ## 三、验证结果（2026-11-23 07:55 实跑）
@@ -91,10 +91,10 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 pnpm lint              # 0
 pnpm format:check      # 0
 pnpm type-check        # 0
-pnpm test:unit --run   # 143/143
+pnpm test:unit --run   # 144/144
 pnpm test:coverage     # 语句 91.84% / 分支 85.60%（核心逻辑阈值 70%）
-pnpm build             # 构建总量 265.03 KB gzip
-pnpm bundle:size       # 入口 JS 256.22 / 300 KB（85%），CSS 6.00 / 60 KB
+pnpm build             # 构建总量 264.92 KB gzip
+pnpm bundle:size       # 入口 JS 256.14 / 300 KB（85%），CSS 6.00 / 60 KB
 pnpm prerender         # 70 detail + home
 pnpm test:e2e          # 10 passed, 2 skipped
 ```
@@ -137,7 +137,7 @@ pnpm test:e2e          # 10 passed, 2 skipped
 
 - 未跟踪文件 `docs/research/2026-11-21-cover-sourcing.md` 是早期封面调研，内容已被 ADR 0011 取代；要么补状态说明后入库，要么删除，别直接 `git add .`；
 - 已合并/过期分支：`feat/detail-decision`、`feat/prerender-main`、`feat/prerender-seo`、`feat/detail-practical` 等，可按需清理；
-- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 143 用例 / 256.2 KB 入口 JS**。
+- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 144 用例 / 256.2 KB 入口 JS**。
 
 ## 五、关键文件
 

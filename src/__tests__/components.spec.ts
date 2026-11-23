@@ -270,6 +270,46 @@ describe('SiteDetailView', () => {
     wrapper.unmount()
   })
 
+  it('分享弹层把焦点关在弹层内，Esc 关闭后回到触发按钮', async () => {
+    const wrapper = mount(SiteDetailView, {
+      props: { id: 'hongcun' },
+      attachTo: document.body,
+      global: { plugins: [createPinia()], stubs: { RouterLink: routerLinkStub } },
+    })
+
+    await nextTick()
+    const trigger = wrapper.get<HTMLButtonElement>('.detail__share')
+    await trigger.trigger('click')
+    await nextTick()
+
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')
+    if (dialog === null) throw new Error('分享弹层没有挂载')
+    const closeButton = dialog.querySelector<HTMLButtonElement>('[aria-label="关闭分享"]')
+    expect(document.activeElement).toBe(closeButton)
+
+    const focusables = [...dialog.querySelectorAll<HTMLElement>('button, a')]
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (first === undefined || last === undefined) throw new Error('分享弹层没有可聚焦元素')
+
+    last.focus()
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+    expect(document.activeElement).toBe(first)
+
+    first.focus()
+    dialog.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
+    )
+    expect(document.activeElement).toBe(last)
+
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await nextTick()
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
+    expect(document.activeElement).toBe(trigger.element)
+
+    wrapper.unmount()
+  })
+
   it('封面加载失败时换成占位图，且不会无限重试', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
