@@ -106,21 +106,16 @@ export function initSights(): void {
         next === undefined
           ? panel.offsetLeft + panel.offsetWidth
           : (panel.offsetLeft + panel.offsetWidth + next.offsetLeft) / 2
-      return { left, right, y: Math.max(10, panel.offsetTop - 12) }
+      return { left, right }
     })
     if (bounds.length === 0) return
 
-    const pathFor = (offset: number): string => {
-      const first = bounds[0]
-      if (first === undefined) return ''
-      let d = `M${first.left} ${first.y + offset}`
-      bounds.forEach((bound, index) => {
-        d += ` H${bound.right}`
-        const next = bounds[index + 1]
-        if (next !== undefined) d += ` V${next.y + offset}`
-      })
-      return d
-    }
+    // 檐线整体抬到图片上方，留出空隙，不压住画面
+    const eaveY = -46
+    const first = bounds[0]
+    const last = bounds[bounds.length - 1]
+    if (first === undefined || last === undefined) return
+    const pathFor = (offset: number): string => `M${first.left} ${eaveY + offset} H${last.right}`
 
     const band = document.createElementNS(SVG_NS, 'path')
     band.setAttribute('class', 'sights__roof-band')
@@ -138,7 +133,7 @@ export function initSights(): void {
       const next = bounds[index + 1]
       if (next === undefined) return
       const x = bound.right
-      const y = Math.max(bound.y, next.y)
+      const y = eaveY
       const shape = (offset: number): string =>
         `M${x - 30} ${y + offset} H${x - 20} V${y - 8 + offset} H${x - 10} V${y - 16 + offset} H${x + 10} V${y - 8 + offset} H${x + 20} V${y + offset} H${x + 30}`
       const gable = document.createElementNS(SVG_NS, 'path')
@@ -219,9 +214,9 @@ export function initSights(): void {
       const inner = qs<HTMLElement>('.panel__media', figure)
       gsap.fromTo(
         inner,
-        { xPercent: -4 },
+        { xPercent: -6 },
         {
-          xPercent: 4,
+          xPercent: 6,
           ease: 'none',
           scrollTrigger: {
             trigger: figure,
