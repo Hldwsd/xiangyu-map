@@ -365,11 +365,14 @@ export interface Site {
 
 **DoD**：Lighthouse 性能桌面 ≥ 85、移动 ≥ 70；构建无 TS 报错与 lint warning；`v0.1.0` Release 可访问。
 
-**M3 进度**（截至 2026-11-22）：
+**M3 进度**（截至 2026-11-23）：
 
 - 覆盖率闸门已接（#150/#152）：核心逻辑 70% 阈值，当前全量语句 91.84% / 分支 85.60%；
 - E2E 冒烟已接：Playwright 桌面 + 移动端，首页计数、城市筛选、搜索列表、详情深链与预渲染 meta；
-- 待办：Lighthouse 桌面/移动基线、`v0.1.0` tag/Release、审图号与图片授权。
+- Lighthouse 基线已测（[2026-11-23](audits/2026-11-23-lighthouse.md)）：桌面 **93** / 移动 **77**，a11y 100、SEO 100，均达 DoD；
+- prefers-reduced-motion 已接（#151）：关闭入场动画与 hover 拨球；
+- 已发布 0.1.0 tag + GitHub Release；
+- 仍需外部输入：审图号与图片授权（不阻塞 v0.1.0，发布说明已注明）。
 
 ### M4 多端预研（W7–W8）
 
