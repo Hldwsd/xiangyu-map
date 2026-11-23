@@ -80,34 +80,12 @@ body {
  * 喧宾夺主；contain 又缩成一条细带。1200px 分界与首页宽窄屏布局一致。
  * 附带收益：窄屏首屏少下载 280KB 的背景图。
  */
-@media (min-width: 1200px) {
-  body {
-    background:
-      linear-gradient(rgba(250, 245, 235, 0.34), rgba(250, 245, 235, 0.42)),
-      url('/images/bg-calligraphy.webp') center / cover no-repeat fixed,
-      radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
-      radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
-      var(--paper);
-    /* 墨是灰的、纸是暖的：multiply 让灰墨带上纸色，再压一层薄纱降低对比 */
-    background-blend-mode: normal, multiply, normal, normal, normal;
-  }
-}
 
 /*
  * 窄屏也要书法：横卷在竖屏上 cover 会把字放大到只剩几个大字，
  * 所以按 100% 宽铺成竖排条带、重复向下，再压一层纸色薄纱保证地图可读。
  * 用 scroll 而不是 fixed：iOS 对 fixed 背景的裁剪会闪。
  */
-@media (max-width: 1199px) {
-  body {
-    background:
-      linear-gradient(rgba(250, 245, 235, 0.62), rgba(250, 245, 235, 0.72)),
-      url('/images/bg-calligraphy.webp') center top / 260% auto repeat-y,
-      var(--paper);
-    background-blend-mode: normal, multiply, normal;
-    background-attachment: scroll;
-  }
-}
 
 #app {
   min-height: 100vh;
