@@ -1468,6 +1468,7 @@ export const sites: Site[] = [
     description:
       '中国徽菜博物馆在黄山屯溪，展陈徽菜源流、食材与宴席，也设有小吃市集和品鉴区，是“看+吃”一体的饮食文化馆。\n\n徽菜重火功、善烧炖；博物馆适合安排在屯溪老街前后，半天足够，饭点可直接在馆内解决。',
     cover: '/images/sites/huicai-museum/cover.webp',
+    shareImage: '/og/sites/huicai-museum.jpg',
     gallery: [],
     tags: ['徽菜', '博物馆', '非遗'],
     bestSeason: '全年',

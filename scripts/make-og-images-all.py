@@ -34,8 +34,8 @@ CURATED = {
     'shouxian-ancient-city',
 }
 
-# 这张故意保留默认图，作为 shareImage 缺省回退的线上样本（E2E 也依赖它）。
-DEFAULT_ONLY = {'huicai-museum'}
+# 70/70 已全覆盖，留空；以后若要保留一张默认图样本，把 id 加到这里。
+DEFAULT_ONLY: set[str] = set()
 
 PAPER = (247, 243, 234)
 WHITE = (250, 247, 240)

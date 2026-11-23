@@ -28,7 +28,7 @@ test('详情页预渲染 meta 可被爬虫直接读到', async ({ page }) => {
   )
 })
 
-test('分享弹层展示专属卡片，非头部项目回退默认图', async ({ page }) => {
+test('分享弹层展示专属卡片，非头部项目用生成卡片', async ({ page }) => {
   await page.goto('/site/huangshan-scenic/')
   await page.getByRole('button', { name: '分享' }).click()
 
@@ -51,7 +51,10 @@ test('分享弹层展示专属卡片，非头部项目回退默认图', async ({
   await expect(page.getByRole('button', { name: '分享' })).toBeFocused()
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('')
 
-  await page.goto('/site/huicai-museum/')
+  await page.goto('/site/chaohu/')
   await page.getByRole('button', { name: '分享' }).click()
-  await expect(page.getByRole('dialog').locator('img')).toHaveAttribute('src', /\/og-cover\.jpg$/)
+  await expect(page.getByRole('dialog').locator('img')).toHaveAttribute(
+    'src',
+    /\/og\/sites\/chaohu\.jpg$/,
+  )
 })
