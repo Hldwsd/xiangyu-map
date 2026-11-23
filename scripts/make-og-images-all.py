@@ -1,6 +1,6 @@
 ﻿"""Generate 1200x630 share cards for the remaining sites.
 
-The 12 curated cards in scripts/make-og-images.py keep their hand-written copy;
+The curated cards in scripts/make-og-images.py keep their hand-written copy;
 this script only fills sites that have no public/og/sites/<id>.jpg yet. Run:
 
     python scripts/make-og-images-all.py
@@ -28,7 +28,6 @@ CURATED = {
     'tianzhushan',
     'tiantangzhai',
     'longchuan',
-    'chaji-village',
     'caishiji',
     'sanhe-ancient-town',
     'shouxian-ancient-city',
