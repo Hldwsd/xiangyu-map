@@ -1502,7 +1502,7 @@ function buildLayerRegions(
         areaColor: 'transparent',
         // 区县界始终显示（市界由 city-borders 线条压在上面，不会被冲淡）
         borderColor: paletteNow.districtLine,
-        borderWidth: 0.7,
+        borderWidth: 1,
       },
       emphasis: {
         itemStyle: {
