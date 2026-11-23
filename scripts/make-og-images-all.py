@@ -1,4 +1,4 @@
-﻿"""Generate 1200x630 share cards for the remaining sites.
+"""Generate 1200x630 share cards for the remaining sites.
 
 The curated cards in scripts/make-og-images.py keep their hand-written copy;
 this script only fills sites that have no public/og/sites/<id>.jpg yet. Run:
@@ -40,7 +40,10 @@ PAPER = (247, 243, 234)
 WHITE = (250, 247, 240)
 MUTED = (220, 214, 202)
 GOLD = (214, 178, 112)
-RED = (156, 48, 38)
+
+# 品牌标识：深底/照片上用的实底版（纸白字、印外透明），由 design/logo/build-assets.py 生成
+LOGO_PATH = Path('design/logo/derived/logo-red-solid.png')
+LOGO_H = 52
 
 
 def read_sites() -> list[dict[str, str]]:
@@ -131,11 +134,11 @@ def make_one(site: dict[str, str]) -> Path:
     font_summary = ImageFont.truetype(str(SANS), 27, index=0)
     font_sub = ImageFont.truetype(str(SANS), 22, index=0)
     font_small = ImageFont.truetype(str(SANS), 20, index=0)
-    seal_font = ImageFont.truetype(str(SERIF), 22, index=0)
 
-    draw.rectangle([52, 46, 86, 80], fill=RED)
-    draw.text((57, 49), '徽', font=seal_font, fill=WHITE)
-    shadow_text(draw, 100, 50, '乡遇安徽', font_brand, WHITE, 1)
+    logo = Image.open(LOGO_PATH).convert('RGBA')
+    logo = logo.resize((round(LOGO_H * logo.width / logo.height), LOGO_H), Image.LANCZOS)
+    img.paste(logo, (52, 36), logo)
+    shadow_text(draw, 52 + logo.width + 14, 48, '乡遇安徽', font_brand, WHITE, 1)
 
     tag = site['category']
     tb = draw.textbbox((0, 0), tag, font=font_tag)

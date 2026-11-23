@@ -88,7 +88,10 @@ PAPER = (247, 243, 234)
 WHITE = (250, 247, 240)
 MUTED = (220, 214, 202)
 GOLD = (214, 178, 112)
-RED = (156, 48, 38)
+
+# 品牌标识：深底/照片上用的实底版（纸白字、印外透明），由 design/logo/build-assets.py 生成
+LOGO_PATH = Path('design/logo/derived/logo-red-solid.png')
+LOGO_H = 52
 
 # 封面里自带水印/海报文字的项目，先裁掉再压字；坐标基于 public/images/sites/<id>/cover.webp
 CROPS = {
@@ -133,11 +136,11 @@ def make_one(site_id: str, name: str, cfg: dict[str, str]) -> Path:
     font_sub = ImageFont.truetype(str(SANS), 22, index=0)
     font_tag = ImageFont.truetype(str(SANS), 22, index=0)
     font_small = ImageFont.truetype(str(SANS), 20, index=0)
-    seal_font = ImageFont.truetype(str(SERIF), 22, index=0)
 
-    draw.rectangle([52, 46, 86, 80], fill=RED)
-    draw.text((57, 49), '徽', font=seal_font, fill=WHITE)
-    shadow_text(draw, 100, 50, '乡遇安徽', font_brand, WHITE, 1)
+    logo = Image.open(LOGO_PATH).convert('RGBA')
+    logo = logo.resize((round(LOGO_H * logo.width / logo.height), LOGO_H), Image.LANCZOS)
+    img.paste(logo, (52, 36), logo)
+    shadow_text(draw, 52 + logo.width + 14, 48, '乡遇安徽', font_brand, WHITE, 1)
 
     tag = cfg['tag']
     tb = draw.textbbox((0, 0), tag, font=font_tag)

@@ -6,6 +6,7 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 import { FEATURED_SITE_IDS } from '@/data/sites'
 import { useSitesStore } from '@/stores/sites'
 import type { Site } from '@/types/site'
+import { assetUrl } from '@/utils/asset-url'
 
 const emit = defineEmits<{ menu: []; select: [id: string] }>()
 
@@ -23,7 +24,7 @@ const picks = computed(() =>
   <aside class="rail" aria-label="地图版头">
     <div class="rail__brand">
       <h1><span>乡</span><span>遇</span><span>安</span><span>徽</span></h1>
-      <span class="rail__seal" aria-hidden="true">徽</span>
+      <img class="rail__seal" :src="assetUrl('/brand/logo-red.webp')" alt="" aria-hidden="true" />
       <p class="rail__sub">在地图上，遇见一个文旅项目</p>
       <p class="rail__quote">一生痴绝处，无梦到徽州</p>
     </div>
@@ -131,24 +132,20 @@ const picks = computed(() =>
    */
 }
 
-/* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */
+/*
+ * 落款印：改用标识图（design/logo/source/logo_red.png 的透明版），取代原来的朱砂方块 +「徽」字。
+ * 图里纸底已抠掉，字是镂空的，透出的是卡片自身的纸色——所以不要给它加底色。
+ * 2.6rem 的旧印位在 48px 量级下笔锋会糊，这里放到 3.2rem（≈51px）。
+ */
 .rail__seal {
   grid-column: 3;
   grid-row: 2;
   justify-self: center;
-  display: flex;
+  display: block;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.6rem;
-  height: 2.6rem;
+  width: 3.2rem;
+  height: auto;
   margin-top: 14px;
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
-  color: var(--surface);
-  background: var(--seal-red);
-  border: 1px solid rgb(0 0 0 / 18%);
-  box-shadow: var(--shadow-soft);
 }
 
 /* 朱砂落款印：全页唯一的高饱和色（ADR 0008 的单色纪律例外） */

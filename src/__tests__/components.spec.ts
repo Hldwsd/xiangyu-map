@@ -341,14 +341,15 @@ describe('SiteDetailView', () => {
 })
 
 describe('HomeRail 品牌区（ADR 0008）', () => {
-  it('竖排题字 + 落款朱砂印的结构存在，副题取代旧横排 tag', async () => {
+  it('竖排题字 + 落款印的结构存在，副题取代旧横排 tag', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const wrapper = mount(HomeRail, { global: { plugins: [pinia] } })
 
     // 主标题与落款印同列（传统题字位置），副题竖排
     expect(wrapper.find('.rail__brand h1').exists()).toBe(true)
-    expect(wrapper.find('.rail__seal').text()).toBe('徽')
+    expect(wrapper.find('.rail__seal').attributes('src')).toBe('/brand/logo-red.webp')
+    expect(wrapper.find('.rail__seal').attributes('alt')).toBe('')
     expect(wrapper.find('.rail__sub').text()).toContain('在地图上，遇见一个文旅项目')
     // 左列引言：填满标题左侧留白（ADR 0008 修订）
     expect(wrapper.find('.rail__quote').text()).toContain('无梦到徽州')

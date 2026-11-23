@@ -48,3 +48,7 @@ covers-review/
 
 # 桌面端（M4，Tauri）
 src-tauri/target/
+
+# Python 缓存（design/logo/build-assets.py）
+__pycache__/
+
