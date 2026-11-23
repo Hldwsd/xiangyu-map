@@ -14,7 +14,6 @@ import {
   type ClusterScatterDatum,
   type MapRegionStyle,
   type MapScatterDatum,
-  type OutlineRing,
   type RiverLine,
 } from '@/components/map/anhui-map-option'
 import {
@@ -35,7 +34,6 @@ import {
   ANHUI_MAP_NAME,
   loadAnhuiDistricts,
   loadAnhuiMap,
-  loadAnhuiOutline,
   loadAnhuiRivers,
   loadAnhuiWater,
 } from '@/services/anhui-map-loader'
@@ -168,7 +166,6 @@ let activeMapName = ANHUI_MAP_NAME
 let cachedCity: Parameters<typeof mergeMapLayers>[0] | null = null
 let cachedWater: Parameters<typeof mergeMapLayers>[2] = null
 /** 省界光晕：同一圈轮廓的三种线宽/浓度（lines 系列画，拐点用圆角） */
-let outlineRings: OutlineRing[] = []
 /** 当前可交互的层级：低倍只让市域可选中，高倍只让区县可选中 */
 let layerMode: 'city' | 'district' = 'city'
 /** 本期精选的 id 集合：地图上用金色虚线环 + 大一号圆钉标记 */
@@ -1367,7 +1364,6 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
     layerRegions,
     riverLines,
     activeMapName,
-    outlineRings,
     FEATURED_ID_SET,
     // 落墨入场只播一次：首次 setOption 为 true，之后的更新一律 false
     !firstOptionApplied,
@@ -1525,49 +1521,6 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
   refreshMarkers()
 }
 
-/** 省界 GeoJSON → 三圈折线（外圈最粗最浅，内圈最细最深） */
-function buildOutlineRings(outline: { features: unknown[] } | null): OutlineRing[] {
-  const feature = outline?.features?.[0] as
-    { geometry?: { type?: string; coordinates?: unknown } } | undefined
-  const geometry = feature?.geometry
-  if (geometry === undefined) return []
-
-  const toCoords = (ring: unknown): [number, number][] => {
-    if (!Array.isArray(ring)) return []
-    const points: [number, number][] = []
-    for (const point of ring) {
-      if (!Array.isArray(point) || point.length < 2) continue
-      const [lng, lat] = point as [unknown, unknown]
-      if (typeof lng !== 'number' || typeof lat !== 'number') continue
-      points.push([lng, lat])
-    }
-    return points
-  }
-
-  const rings: [number, number][][] = []
-  if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates)) {
-    for (const ring of geometry.coordinates) rings.push(toCoords(ring))
-  } else if (geometry.type === 'MultiPolygon' && Array.isArray(geometry.coordinates)) {
-    for (const polygon of geometry.coordinates) {
-      if (!Array.isArray(polygon)) continue
-      for (const ring of polygon) rings.push(toCoords(ring))
-    }
-  }
-
-  const styles = [
-    { width: 20, alpha: 'rgb(28 26 23 / 6%)' },
-    { width: 9, alpha: 'rgb(28 26 23 / 15%)' },
-    { width: 2.5, alpha: 'rgb(28 26 23 / 42%)' },
-  ]
-
-  const result: OutlineRing[] = []
-  for (const coords of rings) {
-    if (coords.length < 3) continue
-    for (const style of styles) result.push({ coords, width: style.width, alpha: style.alpha })
-  }
-  return result
-}
-
 async function render(): Promise<void> {
   status.value = 'loading'
   errorMessage.value = ''
@@ -1577,11 +1530,10 @@ async function render(): Promise<void> {
     // 加载器按 URL 做了 Promise 缓存，稍后 applyDistrictLayer() 再取是同一个请求，不会重复下载。
     if (props.showDistricts === true) void loadAnhuiDistricts().catch(() => null)
 
-    const [city, water, rivers, outline] = await Promise.all([
+    const [city, water, rivers] = await Promise.all([
       loadAnhuiMap(),
       loadAnhuiWater().catch(() => null),
       loadAnhuiRivers().catch(() => null),
-      loadAnhuiOutline().catch(() => null),
     ])
     if (disposed || container.value === null) return
     // 容器尺寸为 0 时不要 setOption：geo 投影拿不到绘图区，ECharts 会抛
@@ -1590,7 +1542,6 @@ async function render(): Promise<void> {
 
     cachedCity = city
     cachedWater = water
-    outlineRings = buildOutlineRings(outline)
     const merged = mergeMapLayers(city, null, water)
     mapFeatures = merged.features
     provinceBBox = bboxOfFeatures(merged.features)

@@ -143,9 +143,9 @@ describe('按市上墨（choropleth）', () => {
   it('省界光晕与河道都关掉补间：否则点簇放大时阴影/河线会比地图慢半拍', () => {
     const option = buildAnhuiMapOption(sites, null)
     const series = option.series as { id?: string; animation?: boolean }[]
-    const animated = series.filter((item) => item.id === 'province-outline' || item.id === 'rivers')
+    const animated = series.filter((item) => item.id === 'rivers')
 
-    expect(animated).toHaveLength(2)
+    expect(animated).toHaveLength(1)
     for (const item of animated) expect(item.animation).toBe(false)
   })
 
@@ -195,7 +195,6 @@ describe('落墨入场动画', () => {
       [],
       [],
       'anhui',
-      [],
       new Set(),
       true,
     )
