@@ -104,9 +104,8 @@ const emit = defineEmits<{ select: [id: string]; 'marker-hover': [city: string |
 const container = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<EChartsType | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
-/** 选中项目时对应市域的短暂高亮 */
+/** 选中项目时对应市域的持续高亮；关闭卡片（selectedId 变 null）才结束 */
 const pulseCity = ref<string | null>(null)
-let pulseTimer: number | null = null
 const errorMessage = ref('')
 /** 给缩放条用的当前倍数 */
 const zoomLevel = ref(1)
@@ -1299,19 +1298,9 @@ function handleMarkerCityOut(params: unknown): void {
 watch(
   () => props.selectedId,
   (id) => {
-    if (pulseTimer !== null) window.clearTimeout(pulseTimer)
-    if (id === null) {
-      pulseCity.value = null
-    } else {
-      const site = props.sites.find((item) => item.id === id)
-      pulseCity.value = site?.city ?? null
-    }
+    pulseCity.value =
+      id === null ? null : (props.sites.find((item) => item.id === id)?.city ?? null)
     if (status.value === 'ready') applyCityHighlight()
-    pulseTimer = window.setTimeout(() => {
-      pulseTimer = null
-      pulseCity.value = null
-      if (status.value === 'ready') applyCityHighlight()
-    }, 1600)
   },
 )
 
@@ -1674,7 +1663,6 @@ onBeforeUnmount(() => {
   chart.value?.off('mouseover', handleMarkerHover)
   chart.value?.off('mouseover', handleMarkerCityHover)
   chart.value?.off('globalout', handleMarkerCityOut)
-  if (pulseTimer !== null) window.clearTimeout(pulseTimer)
   chart.value?.off('mousemove', handlePointerMove)
   if (ballRAF !== null) {
     window.cancelAnimationFrame(ballRAF)
