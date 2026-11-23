@@ -214,9 +214,9 @@ export function initSights(): void {
       const inner = qs<HTMLElement>('.panel__media', figure)
       gsap.fromTo(
         inner,
-        { xPercent: -6 },
+        { xPercent: -18 },
         {
-          xPercent: 6,
+          xPercent: 18,
           ease: 'none',
           scrollTrigger: {
             trigger: figure,
