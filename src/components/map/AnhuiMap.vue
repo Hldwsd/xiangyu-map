@@ -121,6 +121,14 @@ let clusterRAF: number | null = null
 /** 每个项目上一次被画在屏幕上的位置，用来给拆分/合并找起点 */
 let clusterMemberPositions = new Map<string, Point>()
 let clusterStillFrames = 0
+/** 合并模式下的「普通标签」（单点）也走小球物理：hover 拨动 + 相互软碰撞 */
+const singleBalls = new Map<string, BallState>()
+const singleHomes = new Map<string, Point>()
+let singleRAF: number | null = null
+let singleStillFrames = 0
+/** 簇/单点的偏移分开算、合并写一次，避免互相覆盖 */
+const clusterOffsetMap = new Map<string, Point>()
+const singleOffsetMap = new Map<string, Point>()
 /** 缩放进行中：簇要实时重算，期间不做过渡动画 */
 let liveZoom = false
 let liveZoomRefresh: number | null = null
@@ -322,15 +330,22 @@ function handleTouchEnd(event: TouchEvent): void {
 }
 
 /** 缩放/自动放大过程中：标记 live 状态并按 rAF 触发一次实时重分组 */
+let lastLiveRefreshAt = 0
+let lastClusterSignature = ''
+let lastClusterSelected = ''
 function markLiveZoom(): void {
   if (!props.cluster) return
   liveZoom = true
-  if (liveZoomRefresh === null) {
-    liveZoomRefresh = window.requestAnimationFrame(() => {
+  if (liveZoomRefresh !== null) return
+  // 每帧都重算 70 个像素坐标 + setOption 会卡；70ms 一次肉眼仍是「实时」
+  const wait = Math.max(0, 70 - (performance.now() - lastLiveRefreshAt))
+  liveZoomRefresh = window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      lastLiveRefreshAt = performance.now()
       liveZoomRefresh = null
-      refreshMarkers()
-    })
-  }
+      if (props.cluster) refreshMarkers()
+    }, wait)
+  })
 }
 
 /** 读取当前 geo zoom；走模型而不是 getOption（后者会克隆整份 option，逐帧调用太贵） */
@@ -359,7 +374,7 @@ function handleGeoRoam(): void {
 
   // 滚轮/双指缩放：zoom 一变就实时重新分组，不等松手
   const zoom = geoZoomFast()
-  if (zoom !== null && Math.abs(zoom - lastLiveZoom) > 0.02) {
+  if (zoom !== null && Math.abs(zoom - lastLiveZoom) > 0.05) {
     lastLiveZoom = zoom
     markLiveZoom()
   }
@@ -443,8 +458,11 @@ function animateGeoTo(center: [number, number], zoom: number, duration = CLUSTER
       { lazyUpdate: true },
     )
     zoomLevel.value = Number(nextZoom.toFixed(2))
-    // 点簇自动放大时也要边放大边拆分，不能等动画结束
-    markLiveZoom()
+    // 点簇自动放大时也要边放大边拆分；但每帧重算会卡，zoom 变化超过 0.08 再算
+    if (Math.abs(nextZoom - lastLiveZoom) > 0.12) {
+      lastLiveZoom = nextZoom
+      markLiveZoom()
+    }
     if (progress < 1) {
       zoomTween = window.requestAnimationFrame(step)
       return
@@ -653,16 +671,11 @@ function applyClusterOffsets(): void {
     if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) offsets.set(node.id, [dx, dy])
   }
 
-  const data = currentData.map((datum) => {
-    const cluster = datum as Partial<ClusterScatterDatum>
-    if (cluster.clusterKey === undefined) return datum
-    const offset = offsets.get(cluster.clusterKey)
-    return offset === undefined ? datum : { ...datum, symbolOffset: offset }
-  })
-  instance.setOption({ series: [{ id: 'sites', data }] })
+  clusterOffsetMap.clear()
+  for (const [key, offset] of offsets) clusterOffsetMap.set(key, offset)
 
   // 记下每个项目当前实际屏幕位置，下一次拆分/合并从这里出发
-  for (const datum of data) {
+  for (const datum of currentData) {
     const cluster = datum as Partial<ClusterScatterDatum>
     if (cluster.clusterKey === undefined || cluster.clusterIds === undefined) continue
     const node = byKey.get(cluster.clusterKey)
@@ -673,12 +686,108 @@ function applyClusterOffsets(): void {
   }
 }
 
+/** 把簇与单点的偏移合并写一次 series.data */
+function applyMarkerOffsets(): void {
+  const instance = chart.value
+  if (instance === null) return
+  const data = currentData.map((datum) => {
+    const marker = datum as { siteId?: string; clusterKey?: string }
+    if (marker.clusterKey !== undefined) {
+      const offset = clusterOffsetMap.get(marker.clusterKey)
+      return offset === undefined ? datum : { ...datum, symbolOffset: offset }
+    }
+    const offset = marker.siteId === undefined ? undefined : singleOffsetMap.get(marker.siteId)
+    return offset === undefined ? datum : { ...datum, symbolOffset: offset }
+  })
+  instance.setOption({ series: [{ id: 'sites', data }] })
+}
+
 /**
  * 合并/拆分过渡：从旧位置缓动到新 home。
  *
  * 拆分时多个新簇的起点会重合在旧簇中心，如果直接落到各自 home，看起来像「凭空出现」；
  * 这里先给每颗一个扇形起点（半径 9px），再一起缓动出去。
  */
+/** 合并模式下，没被合并成簇的项目（普通标签）也维护一份小球状态 */
+function syncSingleBalls(instance: EChartsType, groups: MarkerGroup[]): void {
+  const singleIds = new Set<string>()
+  for (const site of props.sites) {
+    const group = groups.find((item) => item.ids.includes(site.id))
+    if (group === undefined || group.ids.length < 2) singleIds.add(site.id)
+  }
+  if (props.selectedId !== null) singleIds.add(props.selectedId)
+
+  for (const id of [...singleBalls.keys()]) {
+    if (!singleIds.has(id)) singleBalls.delete(id)
+  }
+  for (const id of singleIds) {
+    const site = props.sites.find((item) => item.id === id)
+    if (site === undefined) continue
+    const point = instance.convertToPixel({ geoIndex: 0 }, [site.location.lng, site.location.lat])
+    if (!Array.isArray(point)) continue
+    const [px, py] = point as [number, number]
+    const home: Point = [px, py]
+    const previousHome = singleHomes.get(id)
+    const ball = singleBalls.get(id)
+    if (ball === undefined) {
+      singleBalls.set(id, { id, x: home[0], y: home[1], vx: 0, vy: 0 })
+    } else if (previousHome === undefined) {
+      ball.x = home[0]
+      ball.y = home[1]
+    } else {
+      ball.x += home[0] - previousHome[0]
+      ball.y += home[1] - previousHome[1]
+    }
+    singleHomes.set(id, home)
+  }
+}
+
+function applySingleOffsets(): void {
+  const instance = chart.value
+  if (instance === null) return
+  const offsets = new Map<string, Point>()
+  for (const [id, ball] of singleBalls) {
+    const home = singleHomes.get(id)
+    if (home === undefined) continue
+    const dx = ball.x - home[0]
+    const dy = ball.y - home[1]
+    if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) offsets.set(id, [dx, dy])
+  }
+  singleOffsetMap.clear()
+  for (const [id, offset] of offsets) singleOffsetMap.set(id, offset)
+}
+
+function kickSingle(): void {
+  if (reduceMotion.value) return
+  if (singleRAF !== null) window.cancelAnimationFrame(singleRAF)
+  singleStillFrames = 0
+  singleRAF = window.requestAnimationFrame(tickSingle)
+}
+
+function tickSingle(): void {
+  singleRAF = null
+  if (!props.cluster || disposed) return
+  if (performance.now() < roamActiveUntil) {
+    singleRAF = window.requestAnimationFrame(tickSingle)
+    return
+  }
+  const speed = stepBalls([...singleBalls.values()], singleHomes, {
+    spring: 0.06,
+    damping: 0.72,
+    collide: 16,
+    contact: 0.12,
+  })
+  applySingleOffsets()
+  applyMarkerOffsets()
+  if (speed < 0.02) singleStillFrames += 1
+  else singleStillFrames = 0
+  if (singleStillFrames < 12) {
+    singleRAF = window.requestAnimationFrame(tickSingle)
+    return
+  }
+  singleStillFrames = 0
+}
+
 function startClusterTween(duration = 280): void {
   if (reduceMotion.value) {
     settleClustersSilently()
@@ -706,6 +815,7 @@ function startClusterTween(duration = 280): void {
   })
   clusterTween = { from, to, started: performance.now(), duration }
   applyClusterOffsets()
+  applyMarkerOffsets()
 
   if (clusterRAF !== null) window.cancelAnimationFrame(clusterRAF)
   clusterRAF = window.requestAnimationFrame(tickClusterTween)
@@ -723,6 +833,7 @@ function tickClusterTween(): void {
     node.y = start[1] + (target[1] - start[1]) * eased
   })
   applyClusterOffsets()
+  applyMarkerOffsets()
 
   if (progress < 1) {
     clusterRAF = window.requestAnimationFrame(tickClusterTween)
@@ -763,6 +874,7 @@ function tickClusters(): void {
     contact: 0.12,
   })
   applyClusterOffsets()
+  applyMarkerOffsets()
 
   if (speed < 0.02) clusterStillFrames += 1
   else clusterStillFrames = 0
@@ -798,15 +910,31 @@ function refreshMarkers(): void {
 
   if (props.cluster) {
     const groups = computeGroups(instance, clusterGapForWidth(container.value?.clientWidth ?? 0))
-    currentData = toScatterData(
-      props.sites,
-      props.selectedId,
-      groups,
-      themePalette(),
-      FEATURED_ID_SET,
-    )
+    const signature = groups
+      .map((group) => [...group.ids].sort().join(','))
+      .sort()
+      .join('|')
+    const selectedKey = props.selectedId ?? ''
+    if (
+      signature === '' ||
+      signature !== lastClusterSignature ||
+      selectedKey !== lastClusterSelected
+    ) {
+      lastClusterSignature = signature
+      lastClusterSelected = selectedKey
+      currentData = toScatterData(
+        props.sites,
+        props.selectedId,
+        groups,
+        themePalette(),
+        FEATURED_ID_SET,
+      )
+    }
     syncClusters(instance, groups)
+    syncSingleBalls(instance, groups)
     applyClusterOffsets()
+    applySingleOffsets()
+    applyMarkerOffsets()
     return
   }
 
@@ -814,6 +942,10 @@ function refreshMarkers(): void {
   clusterNodes = []
   clusterHomes = new Map()
   clusterMemberPositions = new Map()
+  if (singleRAF !== null) window.cancelAnimationFrame(singleRAF)
+  singleRAF = null
+  singleBalls.clear()
+  singleHomes.clear()
 
   // 不合并：每个项目单独画，重叠的交给「软碰撞小球的物理模拟」互相挤开一点
   currentData = toScatterData(
@@ -823,6 +955,7 @@ function refreshMarkers(): void {
     themePalette(),
     FEATURED_ID_SET,
   )
+  lastClusterSignature = ''
   syncBalls(instance)
   // 数据重建后必须把球的当前位置重新写回：否则选中/刷新会让所有球叠回原点（看起来「碰撞消失」）
   applyBalls()
@@ -1046,13 +1179,14 @@ function handleMarkerHover(params: unknown): void {
 
   const id = payload.data?.siteId
   if (typeof id !== 'string') return
-  const ball = balls.find((item) => item.id === id)
+  const ball = props.cluster ? singleBalls.get(id) : balls.find((item) => item.id === id)
   if (ball === undefined) return
   if (now - (ballNudgeAt.get(id) ?? 0) < 260) return
   ballNudgeAt.set(id, now)
-  const strength = Math.min(6, pointerSpeed * 2.2)
+  const strength = Math.min(6, 0.8 + pointerSpeed * 2)
   nudgeBall(ball, [pointer[0] || ball.x, pointer[1] || ball.y], strength)
-  kickBalls()
+  if (props.cluster) kickSingle()
+  else kickBalls()
 }
 
 function scheduleRoamRefresh(): void {
@@ -1358,6 +1492,7 @@ async function render(): Promise<void> {
       themePalette(),
       FEATURED_ID_SET,
     )
+    lastClusterSignature = ''
     refreshMarkers()
 
     // 区县界已在开头并行预取，这里直接合并进底图（重注册地图并保留当前视野）
