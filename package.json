@@ -27,7 +27,8 @@
     "data:anhui-districts": "node scripts/fetch-anhui-districts.mjs",
     "data:anhui-water": "node scripts/fetch-anhui-water.mjs",
     "data:anhui-rivers": "node scripts/fetch-anhui-rivers.mjs",
-    "data:anhui-outline": "node scripts/fetch-anhui-outline.mjs"
+    "data:anhui-outline": "node scripts/fetch-anhui-outline.mjs",
+    "data:bg-ink": "node scripts/make-bg-ink.mjs"
   },
   "dependencies": {
     "echarts": "^6.1.0",
