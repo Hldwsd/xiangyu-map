@@ -640,7 +640,33 @@ function syncClusters(instance: EChartsType, groups: MarkerGroup[]): void {
 }
 
 function settleClustersSilently(): void {
-  for (let i = 0; i < 240; i += 1) {
+  // matter 引擎每步都要解约束+碰撞，240 步在缩放结束时能攒出几百毫秒长任务。
+  // 没有重叠就不必跑：直接清零速度、按 home 落位即可。
+  const points = [...clusterHomes.values()]
+  let overlapped = false
+  for (let i = 0; i < points.length && !overlapped; i += 1) {
+    for (let j = i + 1; j < points.length; j += 1) {
+      const a = points[i]!
+      const b = points[j]!
+      if (Math.hypot(a[0] - b[0], a[1] - b[1]) < CLUSTER_COLLIDE) {
+        overlapped = true
+        break
+      }
+    }
+  }
+  if (!overlapped) {
+    for (const node of clusterNodes) {
+      const home = clusterHomes.get(node.id)
+      if (home === undefined) continue
+      node.x = home[0]
+      node.y = home[1]
+      node.vx = 0
+      node.vy = 0
+    }
+    applyClusterOffsets()
+    return
+  }
+  for (let i = 0; i < 24; i += 1) {
     const speed = stepBalls(clusterNodes, clusterHomes, {
       spring: 0.06,
       damping: 0.72,
