@@ -1,4 +1,4 @@
-﻿# 乡遇安徽 · Xiangyu Map
+# 乡遇安徽 · Xiangyu Map
 
 一张安徽省地图，标记值得专程一去的文旅项目。点击地标，展开这个项目的来龙去脉。
 
@@ -15,6 +15,10 @@
 首页是一张安徽省地图，按 16 个地级市分区；地图上的每个地标代表一个文旅项目（古镇、非遗、红色、自然、演艺、乡村、场馆等）。点击地标即可查看项目详情：图文介绍、位置、最佳季节、交通与预约入口。
 
 当前阶段只做网页端；桌面端与移动端在里程碑 M4 预研。
+
+另有一页**品牌页** `/brand/`：用 GSAP 做滚动叙事（省界描边、逐字显墨、横向 pin 的六处项目、
+十六城索引、七类风物），回答「这张图是什么、凭什么可信」。入口在站内菜单「品牌页 · 一纸山河」，
+品牌页的 CTA 回到地图。选型与代价见 [ADR 0018](docs/adr/0018-brand-site.md)。
 
 ## 当前状态
 
@@ -42,6 +46,7 @@
 | 框架         | Vue 3 + TypeScript + Vite                   |
 | 地图可视化   | Apache ECharts 6（geo + scatter，按需引入） |
 | 路由 / 状态  | Vue Router / Pinia                          |
+| 品牌页       | 原生 TS + GSAP 3 / ScrollTrigger + Lenis    |
 | 包管理       | pnpm（`packageManager` 字段锁 11.22.0）     |
 | 质量         | ESLint + Prettier + Vitest                  |
 | 多端（后续） | Tauri 2（桌面 + 移动壳），M4 对比 Capacitor |
@@ -59,24 +64,25 @@ pnpm dev          # http://localhost:5173
 
 常用命令：
 
-| 命令                             | 作用                                                                  |
-| -------------------------------- | --------------------------------------------------------------------- |
-| `pnpm dev`                       | 本地开发（HMR）                                                       |
-| `pnpm build`                     | 类型检查 + 生产构建（CI 与本地都跑这一条）                            |
-| `pnpm bundle:size`               | 首屏入口 JS/CSS 体积预算（JS ≤300 KB、CSS ≤60 KB，gzip）              |
-| `pnpm prerender`                 | 构建后生成 70 个详情页的静态 HTML（title/OG/JSON-LD）                 |
-| `pnpm preview`                   | 预览 `dist/`                                                          |
-| `pnpm test:unit`                 | 单元测试（`--run` 跑一次）                                            |
-| `pnpm test:coverage`             | 单元测试 + 覆盖率闸门（核心逻辑 ≥70%）                                |
-| `pnpm test:e2e`                  | Playwright E2E（先 `build` + `prerender`，再用 Chrome 跑桌面/移动端） |
-| `pnpm lint`                      | ESLint（`lint:fix` 自动修）                                           |
-| `pnpm format`                    | Prettier 格式化（`format:check` 只校验）                              |
-| `pnpm data:anhui-map`            | 重新抓取底图到 `public/maps/anhui.json`                               |
-| `pnpm data:anhui-outline`        | 重新抓取省界轮廓到 `public/maps/anhui-outline.json`                   |
-| `pnpm data:anhui-water`          | 重新抓取 9 个湖泊水面到 `public/maps/anhui-water.json`（OSM）         |
-| `pnpm data:anhui-rivers`         | 重新抓取长江/淮河河道线到 `public/maps/anhui-rivers.json`（OSM）      |
-| `pnpm data:anhui-districts`      | 重新抓取区县界线到 `public/maps/anhui-districts.json`（默认加载）     |
-| `node scripts/check-sources.mjs` | 检查每条数据的 `sources` 是否可达（加 `--strict` 有不可达时退出码 1） |
+| 命令                               | 作用                                                                  |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `pnpm dev`                         | 本地开发（HMR）                                                       |
+| `pnpm build`                       | 类型检查 + 生产构建（CI 与本地都跑这一条）                            |
+| `pnpm bundle:size`                 | 首屏入口 JS/CSS 体积预算（JS ≤300 KB、CSS ≤60 KB，gzip）              |
+| `pnpm prerender`                   | 构建后生成 70 个详情页的静态 HTML（title/OG/JSON-LD）                 |
+| `pnpm preview`                     | 预览 `dist/`                                                          |
+| `pnpm test:unit`                   | 单元测试（`--run` 跑一次）                                            |
+| `pnpm test:coverage`               | 单元测试 + 覆盖率闸门（核心逻辑 ≥70%）                                |
+| `pnpm test:e2e`                    | Playwright E2E（先 `build` + `prerender`，再用 Chrome 跑桌面/移动端） |
+| `pnpm lint`                        | ESLint（`lint:fix` 自动修）                                           |
+| `pnpm format`                      | Prettier 格式化（`format:check` 只校验）                              |
+| `pnpm data:anhui-map`              | 重新抓取底图到 `public/maps/anhui.json`                               |
+| `pnpm data:anhui-outline`          | 重新抓取省界轮廓到 `public/maps/anhui-outline.json`                   |
+| `pnpm data:anhui-water`            | 重新抓取 9 个湖泊水面到 `public/maps/anhui-water.json`（OSM）         |
+| `pnpm data:anhui-rivers`           | 重新抓取长江/淮河河道线到 `public/maps/anhui-rivers.json`（OSM）      |
+| `pnpm data:anhui-districts`        | 重新抓取区县界线到 `public/maps/anhui-districts.json`（默认加载）     |
+| `node scripts/build-brand-geo.mjs` | 重新生成品牌页的 SVG 几何 `src/brand/geo.generated.ts`（改底图后跑）  |
+| `node scripts/check-sources.mjs`   | 检查每条数据的 `sources` 是否可达（加 `--strict` 有不可达时退出码 1） |
 
 首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
 
@@ -88,6 +94,8 @@ pnpm dev          # http://localhost:5173
 | PR 预览 | https://hldwsd.github.io/xiangyu-map/pr-<n>/ | PR 打开/更新（`.github/workflows/preview.yml`），链接自动贴在该 PR 里 |
 
 - 站点是 GitHub Pages 的 `gh-pages` 分支，主站在根目录、每个 PR 一个 `pr-<n>/` 子目录，PR 关闭时自动清理；
+- 品牌页与主站同一次构建、同一个产物：`brand/index.html` → `dist/brand/index.html`，线上是
+  `/xiangyu-map/brand/`（PR 预览同理），共享同一份 `BASE_URL`，不需要单独的 workflow；
 - 构建后跑 `pnpm prerender`，把 70 个详情页写成 `dist/site/<id>/index.html`，注入各自的 title、description、OG 与 JSON-LD；`SITE_URL` 由 deploy/preview workflow 注入，用于生成绝对 URL；
 - 因为部署在子路径下，所有资源路径都走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`，`public/maps` 的加载器同理）。本地要在子路径下验证，可以 `pnpm build-only --base=/xiangyu-map/` 后用任意静态服务器挂在同名前缀下；
 - 深链（`/site/<id>` 刷新）优先命中预渲染页；未知路径仍靠 `dist/404.html` 兜底，构建时由 `deploy.yml` 复制 `index.html` 生成；

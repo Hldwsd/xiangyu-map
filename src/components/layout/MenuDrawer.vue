@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useFocusTrap } from '@/composables/use-focus-trap'
+import { assetUrl } from '@/utils/asset-url'
 
 const props = defineProps<{
   open: boolean
@@ -17,6 +18,9 @@ const emit = defineEmits<{
   'update:show-districts': [value: boolean]
   'update:merge-markers': [value: boolean]
 }>()
+
+/** 品牌页是独立的静态入口（/brand/），不在 SPA 路由表里，所以用普通链接 */
+const brandHref = assetUrl('/brand/')
 
 const panel = ref<HTMLElement | null>(null)
 useFocusTrap(
@@ -70,6 +74,10 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           <AppIcon name="map" :size="16" />
           <span>回到地图</span>
         </RouterLink>
+        <a class="drawer__item" :href="brandHref" @click="emit('close')">
+          <AppIcon name="external" :size="16" />
+          <span>品牌页 · 一纸山河</span>
+        </a>
       </nav>
 
       <section class="drawer__section">

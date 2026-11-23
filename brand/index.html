@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <title>乡遇安徽 · 一张纸上的七十处山水</title>
+    <meta
+      name="description"
+      content="乡遇安徽把安徽 16 个地级市、70 处文旅项目画在同一张纸上。这是它的品牌页：一卷纸本墨线里的安徽。"
+    />
+    <meta name="theme-color" content="#f3ecdf" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="乡遇安徽 · 一张纸上的七十处山水" />
+    <meta property="og:description" content="不急着打卡，先看看地图上还有哪些值得停一停的地方。" />
+    <meta property="og:image" content="%BASE_URL%og-cover.jpg" />
+    <noscript>
+      <style>
+        .loader {
+          display: none;
+        }
+      </style>
+    </noscript>
+    <script>
+      // 有 JS 且有动效偏好时，才把「待入场」的元素藏起来（样式里 .motion 前缀）。
+      // 没有 JS 的极端情况下整页仍然可读，不会被动画的初始态锁死。
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.dataset.motion = 'on'
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#manifesto">跳到正文</a>
+
+    <div class="grain" aria-hidden="true"></div>
+    <div class="progress" aria-hidden="true"><span class="progress__bar" data-progress></span></div>
+    <div class="cursor" aria-hidden="true"><span class="cursor__ring" data-cursor></span></div>
+
+    <div class="loader" data-loader aria-hidden="true">
+      <div class="loader__half loader__half--top"></div>
+      <div class="loader__half loader__half--bottom"></div>
+      <div class="loader__mark"><span>乡</span><span>遇</span><span>安</span><span>徽</span></div>
+      <p class="loader__meta"><span>XIANGYU · ANHUI</span><span>2016 → 2026</span></p>
+    </div>
+
+    <header class="topbar">
+      <a class="brand" href="./">
+        <span class="brand__cn">乡遇安徽</span>
+        <span class="brand__en">XIANGYU&nbsp;/&nbsp;ANHUI</span>
+      </a>
+      <nav class="topbar__nav" aria-label="页内导航">
+        <a href="#manifesto"><i>01</i>缘起</a>
+        <a href="#sights"><i>02</i>所见</a>
+        <a href="#cities"><i>03</i>十六城</a>
+        <a href="#categories"><i>04</i>风物</a>
+      </nav>
+      <a class="topbar__enter" href="../">
+        <span>进入地图</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 18 18 6M9 6h9v9" fill="none" stroke="currentColor" stroke-width="1.4" />
+        </svg>
+      </a>
+    </header>
+
+    <main>
+      <!-- 01 · 首屏：一张纸上的安徽 -->
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero__wash" aria-hidden="true"></div>
+        <p class="hero__rail" aria-hidden="true">一纸山河 · 十六座城</p>
+        <div class="hero__frame" aria-hidden="true">
+          <i class="hero__frame-line hero__frame-line--top"></i>
+          <i class="hero__frame-line hero__frame-line--right"></i>
+          <i class="hero__frame-line hero__frame-line--bottom"></i>
+          <i class="hero__frame-line hero__frame-line--left"></i>
+        </div>
+
+        <div class="hero__stage">
+          <div class="hero__copy">
+            <p class="eyebrow" data-intro><span class="eyebrow__rule"></span>一张纸上的安徽</p>
+
+            <h1 class="hero__title" id="hero-title" data-hero-title>
+              <span class="mask"><span class="char">乡</span></span>
+              <span class="mask"><span class="char">遇</span></span>
+              <span class="mask"><span class="char">安</span></span>
+              <span class="mask"><span class="char">徽</span></span>
+            </h1>
+
+            <p class="hero__lede" data-intro>
+              在安徽，把值得专程一去的地方，一处一处标在同一张纸上。<br />
+              不是打卡清单，是一张可以慢慢走的地图。
+            </p>
+
+            <dl class="ledger" data-intro>
+              <div class="ledger__item">
+                <dt>地级市</dt>
+                <dd><span data-count="16">16</span></dd>
+              </div>
+              <div class="ledger__item">
+                <dt>文旅项目</dt>
+                <dd><span data-count="70">70</span></dd>
+              </div>
+              <div class="ledger__item">
+                <dt>风物分类</dt>
+                <dd><span data-count="7">7</span></dd>
+              </div>
+            </dl>
+          </div>
+
+          <figure class="hero__map-wrap">
+            <div class="hero__map" data-map>
+              <p class="hero__map-fallback">
+                地图加载中……如果一直停在这里，请检查浏览器是否禁用了 JavaScript。
+              </p>
+            </div>
+            <figcaption class="hero__legend">
+              <span class="hero__legend-dot" aria-hidden="true"></span>一处文旅项目
+              <span class="hero__legend-ring" aria-hidden="true"></span>地级市
+            </figcaption>
+          </figure>
+        </div>
+
+        <p class="hero__scroll" aria-hidden="true"><span>向下 · SCROLL</span><i></i></p>
+
+        <div class="map-tip" data-map-tip aria-hidden="true"></div>
+      </section>
+
+      <!-- 02 · 缘起 -->
+      <section class="manifesto" id="manifesto" aria-labelledby="manifesto-title">
+        <div class="section-head" data-reveal>
+          <span class="section-head__index">01</span>
+          <span class="section-head__cn">缘起</span>
+          <span class="section-head__en">Origin</span>
+        </div>
+
+        <div class="manifesto__grid">
+          <h2 class="manifesto__statement" id="manifesto-title" data-scrub-text>
+            <span class="manifesto__line">地图不该只告诉你路怎么走，</span>
+            <span class="manifesto__line">还要告诉你，哪里值得停一停。</span>
+          </h2>
+
+          <div class="manifesto__body">
+            <p data-reveal>
+              安徽有十六座城。有人记得黄山，有人记得宏村；更多的地方散在县道尽头——一座祠堂、一处渡口、一方戏台。它们在网上往往只有三百字，在实地却要走很久。
+            </p>
+            <p data-reveal>
+              于是我们把这些地方逐条核过来源、标在同一张纸上：十六个地级市分区，七十处古镇、非遗、红色、自然、演艺、乡村与场馆。
+            </p>
+            <p class="manifesto__note" data-reveal>
+              每一条都附来源；写不清的，宁可不写。
+              <span>— 数据原则</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="stats" data-reveal>
+          <div class="stat">
+            <span class="stat__num" data-count="16">16</span>
+            <span class="stat__label">座<em>地级市</em></span>
+          </div>
+          <div class="stat">
+            <span class="stat__num" data-count="70">70</span>
+            <span class="stat__label">处<em>文旅项目</em></span>
+          </div>
+          <div class="stat">
+            <span class="stat__num" data-count="7">7</span>
+            <span class="stat__label">类<em>风物</em></span>
+          </div>
+          <div class="stat">
+            <span class="stat__num" data-count="9">9</span>
+            <span class="stat__label">片<em>主要水面</em></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 · 所见：横向画廊 -->
+      <section class="sights" id="sights" aria-labelledby="sights-title">
+        <div class="sights__head">
+          <div class="section-head section-head--invert" data-reveal>
+            <span class="section-head__index">02</span>
+            <span class="section-head__cn">所见</span>
+            <span class="section-head__en">Sights</span>
+          </div>
+          <div class="sights__head-row">
+            <h2 class="sights__title" id="sights-title">
+              <span class="line"><span>先看六处，</span></span>
+              <span class="line"><span>剩下的，</span></span>
+              <span class="line"><span>在地图上。</span></span>
+            </h2>
+            <p class="sights__note" data-reveal>
+              六处只是开场。<br />
+              往下滚，画面会横向走。
+            </p>
+          </div>
+        </div>
+
+        <div class="sights__viewport">
+          <div class="sights__track" data-track></div>
+
+          <div class="sights__foot">
+            <p class="sights__hint">
+              <span class="sights__hint-line"></span>横向滚动 · 或按住 Shift 滚动
+            </p>
+            <div class="sights__bar" aria-hidden="true"><i data-gallery-progress></i></div>
+            <p class="sights__count"><span data-gallery-index>01</span> / 06</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 · 十六城 -->
+      <section class="cities" id="cities" aria-labelledby="cities-title">
+        <div class="cities__marquee" aria-hidden="true">
+          <div class="cities__marquee-row" data-marquee>
+            <span>合肥</span><b>·</b><span>芜湖</span><b>·</b><span>蚌埠</span><b>·</b
+            ><span>淮南</span><b>·</b><span>马鞍山</span><b>·</b><span>淮北</span><b>·</b
+            ><span>铜陵</span><b>·</b><span>安庆</span><b>·</b><span>黄山</span><b>·</b
+            ><span>滁州</span><b>·</b><span>阜阳</span><b>·</b><span>宿州</span><b>·</b
+            ><span>六安</span><b>·</b><span>亳州</span><b>·</b><span>池州</span><b>·</b
+            ><span>宣城</span><b>·</b>
+          </div>
+        </div>
+
+        <div class="section-head" data-reveal>
+          <span class="section-head__index">03</span>
+          <span class="section-head__cn">十六城</span>
+          <span class="section-head__en">16 Cities</span>
+        </div>
+
+        <div class="cities__grid-wrap">
+          <h2 class="cities__title visually-hidden" id="cities-title">安徽十六城</h2>
+          <ul class="city-grid" data-cities></ul>
+        </div>
+
+        <div class="cities__aside">
+          <p class="cities__note" data-reveal>
+            每座城都有自己的走法：一条老街、一碗吃食、一段戏。<br />
+            鼠标停在城名上，先看一眼。
+          </p>
+          <p class="cities__count" data-reveal>合计 <span data-count="70">70</span> 处</p>
+        </div>
+
+        <div class="city-preview" data-city-preview aria-hidden="true">
+          <img alt="" data-city-image />
+          <span data-city-caption></span>
+        </div>
+      </section>
+
+      <!-- 05 · 风物 -->
+      <section class="crafts" id="categories" aria-labelledby="crafts-title">
+        <div class="section-head" data-reveal>
+          <span class="section-head__index">04</span>
+          <span class="section-head__cn">风物</span>
+          <span class="section-head__en">Seven Kinds</span>
+        </div>
+
+        <div class="crafts__head">
+          <h2 class="crafts__title" id="crafts-title">
+            <span class="line"><span>七类风物，</span></span>
+            <span class="line"><span>七种走法。</span></span>
+          </h2>
+          <p class="crafts__note" data-reveal>分类只用来帮你挑一天怎么过，不用来给地方排座次。</p>
+        </div>
+
+        <ul class="craft-list" data-crafts></ul>
+      </section>
+
+      <!-- 06 · 尾声 -->
+      <section class="closing" id="enter" aria-labelledby="closing-title">
+        <div class="closing__watermark" aria-hidden="true">皖</div>
+        <p class="eyebrow eyebrow--center" data-reveal>
+          <span class="eyebrow__rule"></span>尾声 · 见一面
+        </p>
+        <h2 class="closing__title" id="closing-title">
+          <span class="mask"><span>挑一个周末，</span></span>
+          <span class="mask"><span>去安徽看看。</span></span>
+        </h2>
+        <p class="closing__lede" data-reveal>七十处已经标在地图上，点开就能看见来龙去脉。</p>
+        <a class="cta" href="../" data-magnetic>
+          <span class="cta__text">进入安徽省地图</span>
+          <span class="cta__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M4 12h15m-6-6 6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+              />
+            </svg>
+          </span>
+        </a>
+        <div class="seal" aria-hidden="true">
+          <span>乡遇</span>
+          <span class="seal__sub">安徽</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="colophon">
+      <div class="colophon__brand">
+        <span class="colophon__cn">乡遇安徽</span>
+        <span class="colophon__en">一张纸上的七十处山水 · 2026</span>
+      </div>
+      <dl class="colophon__meta">
+        <div>
+          <dt>底图</dt>
+          <dd>DataV.GeoAtlas（开发期示意，上线前替换为经审核数据）</dd>
+        </div>
+        <div>
+          <dt>水面与河道</dt>
+          <dd>© OpenStreetMap contributors（ODbL）</dd>
+        </div>
+        <div>
+          <dt>书法</dt>
+          <dd>邓石如《少学琴书册》，清代，公有领域</dd>
+        </div>
+        <div>
+          <dt>图片与文字</dt>
+          <dd>来源见各项目详情页；示例内容以实际核验为准</dd>
+        </div>
+      </dl>
+      <div class="colophon__bottom">
+        <span>MIT License · xiangyu-map</span>
+        <a href="../">返回地图 ↗</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/brand/main.ts"></script>
+  </body>
+</html>
