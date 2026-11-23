@@ -88,6 +88,13 @@ function toggle(city: AnhuiCity): void {
   border-bottom: 1px solid var(--line);
 }
 
+.city {
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
 .city:hover:not(:disabled) {
   color: var(--ink);
 }
@@ -100,7 +107,12 @@ function toggle(city: AnhuiCity): void {
 /* 地图上 hover 地标时的反向联动：只做轻微描边，不与选中态抢 */
 .city--hover:not(.city--on) {
   color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
+  background: var(--surface-muted);
+  box-shadow: inset 2px 0 0 var(--seal-red);
+}
+
+.city:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .city:disabled {
