@@ -50,3 +50,39 @@ test('品牌页：窄屏没有横向溢出，页内锚点可达', async ({ page 
   await page.getByRole('link', { name: /十六城/ }).click()
   await expect(page.locator('#cities')).toBeInViewport()
 })
+
+test('品牌页：刷新从顶端重播，不恢复上次位置', async ({ page }) => {
+  await page.goto('/brand/')
+  await expect(page.locator('.panel')).toHaveCount(6)
+
+  await page.evaluate(() => window.scrollTo(0, 3200))
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(1000)
+
+  await page.reload()
+  await expect(page.locator('.panel')).toHaveCount(6)
+  const scrollY = await page.evaluate(() => Math.round(window.scrollY))
+  expect(scrollY).toBeLessThan(20)
+})
+
+test('品牌页：风物抽屉按实际数量换图，演艺类只有一张', async ({ page }) => {
+  test.skip(test.info().project.name === 'mobile', '窄屏没有图片抽屉')
+  await page.goto('/brand/')
+
+  const stack = page.locator('[data-craft-stack]')
+  await expect(stack).toHaveAttribute('data-photo-count', '3')
+
+  // 用程序化点击激活「演艺」：真实 hover 后，浏览器会在滚动后重新计算指针下的行，
+  // 测试里指针位置固定，容易被滚动带偏到下一行。
+  await page
+    .locator('.craft__row')
+    .nth(4)
+    .evaluate((element) => (element as HTMLElement).click())
+  await expect(stack).toHaveAttribute('data-photo-count', '1')
+  await expect(page.locator('[data-craft-name]')).toHaveText('演艺')
+  await expect(page.locator('.craft-drawer__photo:not([hidden])')).toHaveCount(1)
+
+  // 点照片切到下一类（分类顺序：… 演艺 → 乡村 → 场馆）
+  await stack.evaluate((element) => (element as HTMLElement).click())
+  await expect(page.locator('[data-craft-name]')).toHaveText('乡村')
+  await expect(stack).toHaveAttribute('data-photo-count', '3')
+})
