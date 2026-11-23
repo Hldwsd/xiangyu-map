@@ -234,7 +234,7 @@
   width: 5px;
   height: 5px;
   background: var(--gold);
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 .hero__legend-ring {
@@ -242,7 +242,7 @@
   height: 8px;
   margin-left: 0.9rem;
   border: 1px solid var(--ink-soft);
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 .hero__scroll {
@@ -319,23 +319,20 @@
   transform-origin: center;
 }
 
-.map__dot circle.map__dot-core {
+.map__dot-core {
   fill: var(--gold);
   stroke: var(--paper-light);
   stroke-width: 0.9;
-  transition:
-    fill 0.25s var(--ease-out),
-    r 0.25s var(--ease-out);
+  transition: fill 0.25s var(--ease-out);
 }
 
-.map__dot--featured circle.map__dot-core {
+.map__dot--featured .map__dot-core {
   fill: var(--seal);
 }
 
-.map__dot:hover circle.map__dot-core,
-.map__dot:focus-visible circle.map__dot-core {
+.map__dot:hover .map__dot-core,
+.map__dot:focus-visible .map__dot-core {
   fill: var(--ink);
-  r: 6.4;
 }
 
 .map__dot-ring {
@@ -1251,10 +1248,10 @@
   position: absolute;
   overflow: hidden;
   margin: 0;
-  /* 像一张刚洗出来的相纸：纸白边 + 圆角 + 轻投影 */
+  /* 像一张方方正正的相纸：纸白边 + 直角 + 轻投影 */
   background: var(--paper-light);
   border: 5px solid var(--paper-light);
-  border-radius: 10px;
+  border-radius: 0;
   box-shadow: var(--shadow-paper);
   cursor: pointer;
   will-change: transform;
@@ -1280,7 +1277,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: 0;
 }
 
 .craft-drawer__photo--back {
@@ -1394,9 +1391,32 @@
 
 .closing {
   position: relative;
-  padding: clamp(4rem, 9vh, 7rem) var(--pad) clamp(4.4rem, 9vh, 7rem);
+  padding: clamp(4rem, 9vh, 7rem) var(--pad) 0;
   overflow: clip;
   text-align: center;
+}
+
+/*
+ * 月沼：整页唯一的弧。
+ * 一条半圆压在版面底部（页脚上沿就是那条水线），其余全是直角与直线。
+ */
+.pond {
+  position: relative;
+  height: clamp(5.5rem, 11vh, 8.5rem);
+  margin-top: clamp(2rem, 5vh, 3.6rem);
+}
+
+.pond__arc {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: min(26rem, 46vw);
+  height: 56%;
+  background: rgb(126 154 146 / 6%);
+  border: 1px solid rgb(126 154 146 / 70%);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transform: translateX(-50%);
 }
 
 .closing__watermark {
@@ -1448,7 +1468,7 @@
   letter-spacing: 0.16em;
   color: var(--paper);
   background: var(--ink);
-  border-radius: 999px;
+  border-radius: 0;
   transition: background-color 0.4s var(--ease-out);
 }
 
@@ -1463,7 +1483,7 @@
   width: 2.2rem;
   height: 2.2rem;
   border: 1px solid rgb(242 235 222 / 35%);
-  border-radius: 50%;
+  border-radius: 0;
   transition:
     background-color 0.4s var(--ease-out),
     color 0.4s var(--ease-out);
@@ -1519,6 +1539,8 @@
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.45fr);
   gap: clamp(2rem, 5vw, 5rem);
   padding: clamp(2.6rem, 6vh, 4rem) var(--pad) 1.8rem;
+  /* 页脚上沿就是那条水线：月沼的半圆压在这条线上 */
+  border-top: 1px solid rgb(126 154 146 / 38%);
   color: rgb(242 235 222 / 62%);
   background: var(--night);
 }

@@ -87,17 +87,22 @@ function buildSiteDots(group: SVGGElement): SVGAElement[] {
     anchor.dataset.meta = `${site.category} · ${site.city}`
     anchor.dataset.city = site.city
 
-    const ring = document.createElementNS(SVG_NS, 'circle')
+    // 地标是方点，不是圆点：徽派的「方角模块」语言从地图钉就开始
+    const ringSize = isFeatured ? 19 : 14.4
+    const ring = document.createElementNS(SVG_NS, 'rect')
     ring.setAttribute('class', 'map__dot-ring')
-    ring.setAttribute('cx', String(x))
-    ring.setAttribute('cy', String(y))
-    ring.setAttribute('r', isFeatured ? '9.5' : '7.2')
+    ring.setAttribute('x', String(x - ringSize / 2))
+    ring.setAttribute('y', String(y - ringSize / 2))
+    ring.setAttribute('width', String(ringSize))
+    ring.setAttribute('height', String(ringSize))
 
-    const core = document.createElementNS(SVG_NS, 'circle')
+    const coreSize = isFeatured ? 10.4 : 8.8
+    const core = document.createElementNS(SVG_NS, 'rect')
     core.setAttribute('class', 'map__dot-core')
-    core.setAttribute('cx', String(x))
-    core.setAttribute('cy', String(y))
-    core.setAttribute('r', isFeatured ? '5.2' : '4.4')
+    core.setAttribute('x', String(x - coreSize / 2))
+    core.setAttribute('y', String(y - coreSize / 2))
+    core.setAttribute('width', String(coreSize))
+    core.setAttribute('height', String(coreSize))
 
     anchor.append(ring, core)
     group.appendChild(anchor)
@@ -122,13 +127,19 @@ function buildCityDots(group: SVGGElement, cityPaths: Map<string, SVGPathElement
     dot.dataset.tip = city.name
     dot.dataset.meta = `${city.count} 处项目`
 
-    const halo = document.createElementNS(SVG_NS, 'circle')
+    const halo = document.createElementNS(SVG_NS, 'rect')
     halo.setAttribute('class', 'map__city-halo')
-    halo.setAttribute('r', '7.2')
+    halo.setAttribute('x', '-7.2')
+    halo.setAttribute('y', '-7.2')
+    halo.setAttribute('width', '14.4')
+    halo.setAttribute('height', '14.4')
 
-    const core = document.createElementNS(SVG_NS, 'circle')
+    const core = document.createElementNS(SVG_NS, 'rect')
     core.setAttribute('class', 'map__city-core')
-    core.setAttribute('r', '2.4')
+    core.setAttribute('x', '-2.4')
+    core.setAttribute('y', '-2.4')
+    core.setAttribute('width', '4.8')
+    core.setAttribute('height', '4.8')
 
     dot.append(halo, core)
     pin.appendChild(dot)
@@ -321,12 +332,12 @@ export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
       if (ring === null) continue
       // 用 r 属性而不是 scale：SVG 圆在 transform-box 下缩放会被算到画布原点，
       // 之前 6 个精选环就是因此「飞」到了地图左上角
+      // 方形环不再缩放（缩放会连带 x/y，容易歪），改成只呼吸透明度
       gsap.fromTo(
         ring,
-        { opacity: 0.5, attr: { r: 7.2 } },
+        { opacity: 0.5 },
         {
           opacity: 0,
-          attr: { r: 21 },
           duration: 2.8,
           repeat: -1,
           delay: 2.4,

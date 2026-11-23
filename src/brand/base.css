@@ -200,7 +200,7 @@ html.scroll-locked body {
   height: 3rem;
   margin-left: -1.5px;
   background: var(--gold);
-  border-radius: 2px;
+  border-radius: 0;
   cursor: grab;
   pointer-events: auto;
   transition:
@@ -257,7 +257,7 @@ html.scroll-locked body {
   width: 2rem;
   height: 2rem;
   border: 1px solid rgb(164 123 60 / 70%);
-  border-radius: 50%;
+  border-radius: 0;
   transform: translate(-50%, -50%) scale(0.6);
   transform-origin: center;
   transition:
@@ -368,6 +368,15 @@ html.scroll-locked body {
   backdrop-filter: blur(12px) saturate(1.05);
 }
 
+/* 最上沿的一条「瓦」：深色只出现在这里 */
+.topbar::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  content: '';
+  background: var(--ink);
+}
+
 .brand {
   display: flex;
   gap: 0.7rem;
@@ -433,7 +442,7 @@ html.scroll-locked body {
   font-size: 0.73rem;
   letter-spacing: 0.14em;
   border: 1px solid rgb(23 20 15 / 55%);
-  border-radius: 999px;
+  border-radius: 0;
   transition:
     color 0.3s var(--ease-out),
     background-color 0.3s var(--ease-out);
@@ -493,6 +502,7 @@ html.scroll-locked body {
 }
 
 .section-head {
+  position: relative;
   display: grid;
   grid-template-columns: auto auto 1fr;
   gap: clamp(1rem, 2vw, 2rem);
@@ -500,6 +510,22 @@ html.scroll-locked body {
   padding-top: 0.85rem;
   margin-bottom: clamp(1.8rem, 3.8vw, 3rem);
   border-top: 1px solid var(--line);
+}
+
+/* 马头墙的阶梯线：只做一小段，压在分节线上方，不画整座墙 */
+.section-head::before {
+  position: absolute;
+  top: -6px;
+  left: 0;
+  width: 5.25rem;
+  height: 6px;
+  content: '';
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='6' viewBox='0 0 84 6'%3E%3Cpath d='M0 5h21V3.6h21V2.2h21V.8h21' fill='none' stroke='%2317140f' stroke-width='1'/%3E%3C/svg%3E")
+    no-repeat left top;
+}
+
+.section-head--invert::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='6' viewBox='0 0 84 6'%3E%3Cpath d='M0 5h21V3.6h21V2.2h21V.8h21' fill='none' stroke='%23f2ebde' stroke-width='1'/%3E%3C/svg%3E");
 }
 
 .section-head__index {
