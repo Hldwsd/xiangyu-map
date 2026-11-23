@@ -38,7 +38,7 @@ export const DEFAULT_PALETTE: ThemePalette = {
   mapArea: '#fcf8ee',
   mapTier1: '#f5eddb',
   mapTier2: '#ecdfc4',
-  mapBorder: '#6f6759',
+  mapBorder: '#b1a184',
   mapLabel: '#5e564b',
   mapAreaHover: '#f7f1e5',
   cluster: '#1c1a17',
