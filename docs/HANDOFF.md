@@ -9,7 +9,7 @@
 
 **M0、M1 已完成；M2 的内容、详情页与分享链路基本完成；M3 已起步（覆盖率、E2E、reduced-motion 已接，Lighthouse 与 Release 未做）；M4 未开始。**
 
-main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 practical、12 个头部项目的分享图与画廊**；
+main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 practical、70/70 分享图、12 个头部项目的画廊**；
 地标是软碰撞小球；最近在收手机端拖动/双指缩放/书法背景和覆盖率闸门。
 
 ## 一、最近完成了什么
@@ -31,7 +31,7 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 
 - `pnpm prerender` 生成 70 个 `dist/site/<id>/index.html`，注入 title、description、canonical、OG/Twitter、`TouristAttraction` JSON-LD；
 - 首页也注入站点级 meta；SPA 内跳转同步浏览器标题；
-- 69 个项目的 1200×630 分享图已接入（12 张人工精选 + 57 张模板生成），徽菜博物馆回退 `public/og-cover.jpg`；
+- 70 个项目的 1200×630 分享图已接入（11 张人工精选 + 59 张模板生成），数据里全部显式 shareImage；
 - CI / deploy / preview 都接入 prerender；ADR 0012 记录方案。
 
 > 合并历史提醒：#131 当时以 `feat/detail-decision` 为 base，只合进功能分支；#133 才把它带进 main。
@@ -80,7 +80,7 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 | 封面      | 70/70 WebP，单张 ≤300KB                                        |
 | 高德短链  | 70/70，`src/data/amap-links.ts`                                |
 | 预渲染    | 70 个详情页 + 首页，`pnpm prerender`                           |
-| 分享图    | 70/70 独立图（12 人工 + 58 模板）                              |
+| 分享图    | 70/70 独立图（11 人工 + 59 模板）                              |
 | 画廊      | 12 个头部项目 ×2 张；其余 58 条仍为空                          |
 | practical | 20 条有 `duration` / `audience`；`hours` / `ticket` 未填       |
 | 单测      | **144 个用例 / 13 个文件**，全绿                               |
