@@ -14,6 +14,7 @@ import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { useSitesStore } from '@/stores/sites'
 import { shouldMergeMarkers } from '@/utils/map-defaults'
+import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
 const store = useSitesStore()
 const { filteredSites, selectedSite, selectedId } = storeToRefs(store)
@@ -65,6 +66,129 @@ function selectFromList(id: string): void {
   store.selectSite(id)
   listOpen.value = false
 }
+
+/** 选中卡片：淡入 + 轻微上浮；封面从 1.05 收回来 */
+function panelEnter(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  void loadGsap()
+    .then((gsap) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 18, scale: 0.985 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.34,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          onComplete: done,
+        },
+      )
+      const cover = (el as HTMLElement).querySelector('.panel__cover')
+      if (cover !== null) {
+        gsap.fromTo(
+          cover,
+          { scale: 1.05 },
+          { scale: 1, duration: 0.55, ease: 'power2.out', clearProps: 'transform' },
+        )
+      }
+    })
+    .catch(() => done())
+}
+
+function panelLeave(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  void loadGsap()
+    .then((gsap) => {
+      gsap.to(el, {
+        opacity: 0,
+        y: 10,
+        scale: 0.99,
+        duration: 0.2,
+        ease: 'power2.in',
+        onComplete: done,
+      })
+    })
+    .catch(() => done())
+}
+
+/** 列表抽屉：从下往上滑入 */
+function sheetEnter(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  void loadGsap()
+    .then((gsap) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 26 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.28,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          onComplete: done,
+        },
+      )
+    })
+    .catch(() => done())
+}
+
+function fadeEnter(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  void loadGsap()
+    .then((gsap) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 8 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.24,
+          ease: 'power2.out',
+          clearProps: 'transform',
+          onComplete: done,
+        },
+      )
+    })
+    .catch(() => done())
+}
+
+function fadeLeave(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  void loadGsap()
+    .then((gsap) => {
+      gsap.to(el, { opacity: 0, y: 6, duration: 0.16, ease: 'power2.in', onComplete: done })
+    })
+    .catch(() => done())
+}
+
+function sheetLeave(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  void loadGsap()
+    .then((gsap) => {
+      gsap.to(el, { opacity: 0, y: 18, duration: 0.18, ease: 'power2.in', onComplete: done })
+    })
+    .catch(() => done())
+}
 </script>
 
 <template>
@@ -95,31 +219,37 @@ function selectFromList(id: string): void {
     </div>
 
     <!-- 筛选到 0 条时给一个明确出路：地图本身不会解释「为什么空了」 -->
-    <div v-if="filteredSites.length === 0" class="map-shell__void" role="status">
-      <span class="map-shell__void-icon" aria-hidden="true">
-        <AppIcon name="search" :size="16" />
-      </span>
-      <p>没有匹配的项目</p>
-      <button type="button" class="map-shell__void-reset" @click="store.resetFilters()">
-        清空筛选
-      </button>
-    </div>
+    <Transition :css="false" @enter="fadeEnter" @leave="fadeLeave">
+      <div v-if="filteredSites.length === 0" class="map-shell__void" role="status">
+        <span class="map-shell__void-icon" aria-hidden="true">
+          <AppIcon name="search" :size="16" />
+        </span>
+        <p>没有匹配的项目</p>
+        <button type="button" class="map-shell__void-reset" @click="store.resetFilters()">
+          清空筛选
+        </button>
+      </div>
+    </Transition>
 
     <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
 
     <!-- 桌面右侧：选中卡片 + 城市索引（两张独立的卡） -->
     <div class="home-side">
-      <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
+      <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
+        <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
+      </Transition>
       <CityIndex />
     </div>
 
     <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->
-    <SitePanel
-      v-if="selectedSite"
-      class="map-shell__panel"
-      :site="selectedSite"
-      @close="store.selectSite(null)"
-    />
+    <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
+      <SitePanel
+        v-if="selectedSite"
+        class="map-shell__panel"
+        :site="selectedSite"
+        @close="store.selectSite(null)"
+      />
+    </Transition>
 
     <div class="map-shell__meta">
       <span class="map-shell__scope">
@@ -139,14 +269,16 @@ function selectFromList(id: string): void {
       </button>
     </div>
 
-    <SiteListSheet
-      v-if="listOpen"
-      class="map-shell__sheet"
-      :sites="filteredSites"
-      :selected-id="selectedId"
-      @select="selectFromList"
-      @close="listOpen = false"
-    />
+    <Transition :css="false" @enter="sheetEnter" @leave="sheetLeave">
+      <SiteListSheet
+        v-if="listOpen"
+        class="map-shell__sheet"
+        :sites="filteredSites"
+        :selected-id="selectedId"
+        @select="selectFromList"
+        @close="listOpen = false"
+      />
+    </Transition>
 
     <!-- 窄屏：左右两侧抽拉「分类」「城市索引」 -->
     <div class="edge-tabs">
