@@ -3,6 +3,7 @@ import { ALL_CITIES, useSitesStore } from '@/stores/sites'
 import { ANHUI_CITIES, type AnhuiCity } from '@/types/site'
 
 const store = useSitesStore()
+const emit = defineEmits<{ hover: [city: AnhuiCity | null] }>()
 
 function toggle(city: AnhuiCity): void {
   store.setCity(store.city === city ? ALL_CITIES : city)
@@ -25,6 +26,10 @@ function toggle(city: AnhuiCity): void {
         :aria-pressed="store.city === city"
         :disabled="store.cityCounts[city] === 0"
         @click="toggle(city)"
+        @mouseenter="emit('hover', city)"
+        @mouseleave="emit('hover', null)"
+        @focus="emit('hover', city)"
+        @blur="emit('hover', null)"
       >
         <span>{{ city.replace('市', '') }}</span>
         <span class="city__n">{{ store.cityCounts[city] }}</span>
