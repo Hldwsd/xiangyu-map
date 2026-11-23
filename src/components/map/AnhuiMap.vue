@@ -321,6 +321,18 @@ function handleTouchEnd(event: TouchEvent): void {
   scheduleRoamRefresh()
 }
 
+/** 缩放/自动放大过程中：标记 live 状态并按 rAF 触发一次实时重分组 */
+function markLiveZoom(): void {
+  if (!props.cluster) return
+  liveZoom = true
+  if (liveZoomRefresh === null) {
+    liveZoomRefresh = window.requestAnimationFrame(() => {
+      liveZoomRefresh = null
+      refreshMarkers()
+    })
+  }
+}
+
 /** 读取当前 geo zoom；走模型而不是 getOption（后者会克隆整份 option，逐帧调用太贵） */
 function geoZoomFast(): number | null {
   const instance = chart.value
@@ -349,13 +361,7 @@ function handleGeoRoam(): void {
   const zoom = geoZoomFast()
   if (zoom !== null && Math.abs(zoom - lastLiveZoom) > 0.02) {
     lastLiveZoom = zoom
-    liveZoom = true
-    if (liveZoomRefresh === null) {
-      liveZoomRefresh = window.requestAnimationFrame(() => {
-        liveZoomRefresh = null
-        refreshMarkers()
-      })
-    }
+    markLiveZoom()
   }
 
   scheduleRoamRefresh()
@@ -437,14 +443,18 @@ function animateGeoTo(center: [number, number], zoom: number, duration = CLUSTER
       { lazyUpdate: true },
     )
     zoomLevel.value = Number(nextZoom.toFixed(2))
+    // 点簇自动放大时也要边放大边拆分，不能等动画结束
+    markLiveZoom()
     if (progress < 1) {
       zoomTween = window.requestAnimationFrame(step)
       return
     }
     zoomTween = null
     tweening = false
+    liveZoom = false
     syncLayerMode()
     refreshMarkers()
+    if (props.cluster) settleClustersSilently()
   }
 
   zoomTween = window.requestAnimationFrame(step)
@@ -567,15 +577,26 @@ function syncClusters(instance: EChartsType, groups: MarkerGroup[]): void {
   clusterHomes = homes
   clusterStillFrames = 0
 
-  // 缩放进行中：实时分组，簇直接落到新锚点，不播过渡（边缩放边动画会互相打架）
+  // 缩放进行中：实时分组。组成不变时按 home 平移、保留 hover 的偏移，
+  // 只有真的合并/拆分才把簇落到新锚点（否则 hover 的回弹会被逐帧刷新打断）。
   if (liveZoom) {
-    for (const node of clusterNodes) {
-      const home = clusterHomes.get(node.id)
-      if (home === undefined) continue
-      node.x = home[0]
-      node.y = home[1]
-      node.vx = 0
-      node.vy = 0
+    if (sameSet) {
+      for (const node of clusterNodes) {
+        const home = clusterHomes.get(node.id)
+        const oldHome = previousHomes.get(node.id)
+        if (home === undefined || oldHome === undefined) continue
+        node.x += home[0] - oldHome[0]
+        node.y += home[1] - oldHome[1]
+      }
+    } else {
+      for (const node of clusterNodes) {
+        const home = clusterHomes.get(node.id)
+        if (home === undefined) continue
+        node.x = home[0]
+        node.y = home[1]
+        node.vx = 0
+        node.vy = 0
+      }
     }
     applyClusterOffsets()
     return
@@ -715,8 +736,14 @@ function tickClusterTween(): void {
 }
 
 function kickClusters(): void {
+  if (reduceMotion.value) return
+  // hover 要立刻接管：正在播的合并/拆分缓动先取消，
+  // 否则它在下一帧发现 tween 为 null 就直接退出，hover 的力被吞掉。
+  if (clusterRAF !== null) {
+    window.cancelAnimationFrame(clusterRAF)
+    clusterRAF = null
+  }
   clusterTween = null
-  if (clusterRAF !== null || reduceMotion.value) return
   clusterStillFrames = 0
   clusterRAF = window.requestAnimationFrame(tickClusters)
 }
@@ -1002,7 +1029,7 @@ function handleMarkerHover(params: unknown): void {
   const now = performance.now()
   const pointer: Point = [payload.event?.offsetX ?? 0, payload.event?.offsetY ?? 0]
   if (pointerLast === null || now - pointerLast.t > 150) return
-  if (pointerSpeed < 0.15) return
+  if (pointerSpeed < 0.06) return
 
   const clusterIds = payload.data?.clusterIds
   if (Array.isArray(clusterIds) && clusterIds.length > 1) {
@@ -1011,7 +1038,7 @@ function handleMarkerHover(params: unknown): void {
     if (node === undefined) return
     if (now - (ballNudgeAt.get(key) ?? 0) < 260) return
     ballNudgeAt.set(key, now)
-    const strength = Math.min(6, pointerSpeed * 2.2)
+    const strength = Math.min(6, 0.8 + pointerSpeed * 2)
     nudgeBall(node, [pointer[0] || node.x, pointer[1] || node.y], strength)
     kickClusters()
     return
@@ -1050,6 +1077,7 @@ function scheduleRoamRefresh(): void {
     }
 
     refreshMarkers()
+    if (props.cluster) settleClustersSilently()
   }, 140)
 }
 
