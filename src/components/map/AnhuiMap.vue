@@ -502,16 +502,16 @@ function applyCityHighlight(): void {
   if (instance === null || status.value !== 'ready') return
   const city = props.highlightCity ?? pulseCity.value ?? null
   const name = city === null ? null : city.endsWith('市') ? city : `${city}市`
-  const palette = themePalette()
   const regions = layerRegions.map((region) => {
     if (name === null || region.name !== name || layerMode !== 'city') return region
     return {
       ...region,
       itemStyle: {
         ...region.itemStyle,
-        areaColor: palette.mapTier2,
-        borderColor: palette.mapBorder,
-        borderWidth: 1.8,
+        // 纸底上用「暖金底 + 朱砂描边」才看得出来；只压深一档在米色地图上几乎不可见
+        areaColor: '#ecd4a4',
+        borderColor: '#9e2a22',
+        borderWidth: 2.6,
       },
     }
   })
@@ -1311,7 +1311,7 @@ watch(
       pulseTimer = null
       pulseCity.value = null
       if (status.value === 'ready') applyCityHighlight()
-    }, 1100)
+    }, 1600)
   },
 )
 

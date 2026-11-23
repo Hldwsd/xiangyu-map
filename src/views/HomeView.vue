@@ -57,7 +57,11 @@ function animateMapSwap(): void {
   if (map === null || prefersReducedMotion()) return
   void loadGsap()
     .then((gsap) => {
-      gsap.fromTo(map, { opacity: 0.55 }, { opacity: 1, duration: 0.26, ease: 'power2.out' })
+      gsap.fromTo(
+        map,
+        { opacity: 0.3, scale: 0.995 },
+        { opacity: 1, scale: 1, duration: 0.34, ease: 'power2.out', clearProps: 'transform' },
+      )
     })
     .catch(() => {})
 }

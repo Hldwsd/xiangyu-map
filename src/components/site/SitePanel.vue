@@ -36,8 +36,8 @@ onMounted(() => {
         if (rect.width === 0 || rect.height === 0) return
         const nx = (event.clientX - rect.left) / rect.width - 0.5
         const ny = (event.clientY - rect.top) / rect.height - 0.5
-        xTo(nx * -6)
-        yTo(ny * -4)
+        xTo(nx * -12)
+        yTo(ny * -8)
       }
       const onLeave = (): void => {
         xTo(0)
