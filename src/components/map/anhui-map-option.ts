@@ -504,6 +504,27 @@ export function buildAnhuiMapOption(
         })),
       },
       {
+        // 选中/悬停城市的描边：独立 lines 叠加层，而不是改 geo region 的 fill/border。
+        // region border 在相邻市界会画两遍、缩放时发虚，还会盖住区县界线；
+        // 单独一条矢量线可以压在区县线之上、地标之下，缩放后仍跟着 geo 投影。
+        id: 'city-highlight',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        zlevel: 0,
+        z: 2.7,
+        silent: true,
+        animation: false,
+        polyline: true,
+        lineStyle: {
+          color: '#9e2a22',
+          width: 2.6,
+          opacity: 1,
+          cap: 'round',
+          join: 'round',
+        },
+        data: [],
+      },
+      {
         id: 'sites',
         name: '文旅项目',
         type: 'scatter',

@@ -492,29 +492,41 @@ function syncLayerMode(): void {
   applyCityHighlight()
 }
 
+/** 从一个市的 GeoJSON feature 里取出多边形环（Polygon / MultiPolygon） */
+function cityRings(city: string): number[][][] {
+  const name = city.endsWith('市') ? city : `${city}市`
+  const collection = cachedCity as {
+    features?: {
+      properties?: { name?: string }
+      geometry?: { type?: string; coordinates?: unknown }
+    }[]
+  } | null
+  const feature = collection?.features?.find((item) => item.properties?.name === name)
+  if (feature?.geometry === undefined) return []
+
+  const rings: number[][][] = []
+  if (feature.geometry.type === 'Polygon') {
+    for (const ring of feature.geometry.coordinates as number[][][]) rings.push(ring)
+  } else if (feature.geometry.type === 'MultiPolygon') {
+    for (const polygon of feature.geometry.coordinates as number[][][][]) {
+      for (const ring of polygon) rings.push(ring)
+    }
+  }
+  return rings
+}
+
 /**
- * 城市索引 hover：把对应市域压深一档 + 描边加粗。
- * 只在市级图层生效（高倍下区县名不是市名），其它情况按 null 处理。
+ * 城市索引 hover / 选中项目：用一条独立的朱砂线条描出市界。
+ * - 不改 geo region 的 fill/border，区县界线不会被盖住；
+ * - 线条跟着 geo 投影走，放大到区县图层也不会消失；
+ * - 只画外环，不参与 hover 命中（silent）。
  */
 function applyCityHighlight(): void {
   const instance = chart.value
   if (instance === null || status.value !== 'ready') return
   const city = props.highlightCity ?? pulseCity.value ?? null
-  const name = city === null ? null : city.endsWith('市') ? city : `${city}市`
-  const regions = layerRegions.map((region) => {
-    if (name === null || region.name !== name || layerMode !== 'city') return region
-    return {
-      ...region,
-      itemStyle: {
-        ...region.itemStyle,
-        // 纸底上用「暖金底 + 朱砂描边」才看得出来；只压深一档在米色地图上几乎不可见
-        areaColor: '#ecd4a4',
-        borderColor: '#9e2a22',
-        borderWidth: 2.6,
-      },
-    }
-  })
-  instance.setOption({ geo: { regions } })
+  const data = city === null ? [] : cityRings(city).map((coords) => ({ coords }))
+  instance.setOption({ series: [{ id: 'city-highlight', data }] })
 }
 
 watch(
@@ -1611,6 +1623,7 @@ async function render(): Promise<void> {
     )
     lastClusterSignature = ''
     refreshMarkers()
+    applyCityHighlight()
 
     // 区县界已在开头并行预取，这里直接合并进底图（重注册地图并保留当前视野）
     if (props.showDistricts === true) void applyDistrictLayer(true)

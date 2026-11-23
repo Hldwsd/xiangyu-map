@@ -45,11 +45,6 @@ watch(showDistricts, (value) => localStorage.setItem('xy-show-districts', value 
 watch(mergeMarkers, (value) => localStorage.setItem('xy-merge-markers', value ? '1' : '0'))
 
 /** 桌面首屏给一个「已经选中」的样子；窄屏不自动弹卡，避免挡地图 */
-onMounted(() => {
-  if (window.matchMedia('(min-width: 1200px)').matches && store.selectedId === null) {
-    store.selectSite('huizhou-ancient-city')
-  }
-})
 
 /** 切换城市筛选时地图淡入一下，提示「内容换了」 */
 function animateMapSwap(): void {
