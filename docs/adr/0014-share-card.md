@@ -57,4 +57,4 @@
   徽菜博物馆回退 `/og-cover.jpg`；
 - `pnpm test:e2e`：10 passed, 2 skipped；覆盖分享弹层、专属图与默认图；
 - `og:image:alt` / `twitter:image:alt` 在预渲染 HTML 中可见；
-- 入口 JS 256.14 KB / 300 KB（85%）。
+- 入口 JS 256.18 KB / 300 KB（85%）。

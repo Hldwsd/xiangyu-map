@@ -2,6 +2,12 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式，版本号用 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 修复
+
+- 分享弹层打开时锁定页面滚动，Esc / 遮罩关闭或组件卸载时恢复，避免背景跟着滚。
+
 ## [v0.1.0] - 2026-11-23
 
 第一个可对外展示的网页版：安徽省地图 + 70 条文旅项目 + 详情页 + 分享卡片。

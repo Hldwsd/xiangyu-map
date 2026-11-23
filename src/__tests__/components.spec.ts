@@ -286,6 +286,7 @@ describe('SiteDetailView', () => {
     if (dialog === null) throw new Error('分享弹层没有挂载')
     const closeButton = dialog.querySelector<HTMLButtonElement>('[aria-label="关闭分享"]')
     expect(document.activeElement).toBe(closeButton)
+    expect(document.body.style.overflow).toBe('hidden')
 
     const focusables = [...dialog.querySelectorAll<HTMLElement>('button, a')]
     const first = focusables[0]
@@ -306,6 +307,7 @@ describe('SiteDetailView', () => {
     await nextTick()
     expect(document.querySelector('[role="dialog"]')).toBeNull()
     expect(document.activeElement).toBe(trigger.element)
+    expect(document.body.style.overflow).toBe('')
 
     wrapper.unmount()
   })
