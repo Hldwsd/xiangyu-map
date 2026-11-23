@@ -43,12 +43,12 @@
 
   /* ---- 地图 ---- */
   --map-glow: rgb(244 238 226 / 70%);
-  --map-area: #fcf8ee;
+  --map-area: #fdfbf5;
   /* 按市收录项目数分档的纸色加深（choropleth）：0–1 个用 --map-area 原色 */
-  --map-tier-1: #f5eddb;
-  --map-tier-2: #ecdfc4;
-  --map-border: #6f6759;
-  --map-label: #5e564b;
+  --map-tier-1: #f8f1e1;
+  --map-tier-2: #efe3c8;
+  --map-border: #574a3b;
+  --map-label: #574c3e;
   --map-area-hover: #f7f1e5;
   --cluster: #1c1a17;
   --water-fill: #dce4e1;

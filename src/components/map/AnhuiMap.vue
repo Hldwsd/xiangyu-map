@@ -530,8 +530,8 @@ function applyCityHighlight(): void {
   const selected = props.highlightCity === null && pulseCity.value !== null
   instance.setOption({
     series: [
-      { id: 'city-highlight-halo', data, lineStyle: { width: selected ? 9 : 7 } },
-      { id: 'city-highlight', data, lineStyle: { width: selected ? 2.8 : 2.4 } },
+      { id: 'city-highlight-halo', data, lineStyle: { width: selected ? 8 : 6 } },
+      { id: 'city-highlight', data, lineStyle: { width: selected ? 2.4 : 2 } },
     ],
   })
 }
@@ -1435,7 +1435,7 @@ function buildLayerRegions(
         itemStyle: {
           areaColor,
           borderColor: paletteNow.mapBorder,
-          borderWidth: 1.1,
+          borderWidth: 1.3,
         },
         // hover 只加深描边、保持档位底色：铺灰底会把压在上面的河道盖成一片灰，
         // 变回原色则会让深色市在悬停时「变浅」，两者都会破坏 choropleth 的读法
@@ -1445,7 +1445,7 @@ function buildLayerRegions(
           itemStyle: {
             areaColor,
             borderColor: paletteNow.mapLabel,
-            borderWidth: 1.4,
+            borderWidth: 1.6,
           },
         },
         silent: interactive !== 'city',
