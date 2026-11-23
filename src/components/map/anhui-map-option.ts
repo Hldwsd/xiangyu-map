@@ -514,7 +514,7 @@ export function buildAnhuiMapOption(
         animation: false,
         polyline: true,
         lineStyle: {
-          color: 'rgba(158, 42, 34, 0.2)',
+          color: 'rgba(140, 58, 50, 0.12)',
           width: 7,
           opacity: 1,
           cap: 'round',
@@ -535,8 +535,8 @@ export function buildAnhuiMapOption(
         animation: false,
         polyline: true,
         lineStyle: {
-          color: '#9e2a22',
-          width: 2.6,
+          color: '#8c3a32',
+          width: 2.2,
           opacity: 1,
           cap: 'round',
           join: 'round',

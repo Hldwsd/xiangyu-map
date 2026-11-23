@@ -83,10 +83,13 @@ body {
 @media (min-width: 1200px) {
   body {
     background:
+      linear-gradient(rgba(250, 245, 235, 0.34), rgba(250, 245, 235, 0.42)),
       url('/images/bg-calligraphy.webp') center / cover no-repeat fixed,
       radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
       radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
       var(--paper);
+    /* 墨是灰的、纸是暖的：multiply 让灰墨带上纸色，再压一层薄纱降低对比 */
+    background-blend-mode: normal, multiply, normal, normal, normal;
   }
 }
 
@@ -98,9 +101,10 @@ body {
 @media (max-width: 1199px) {
   body {
     background:
-      linear-gradient(rgba(247, 241, 226, 0.5), rgba(247, 241, 226, 0.62)),
+      linear-gradient(rgba(250, 245, 235, 0.62), rgba(250, 245, 235, 0.72)),
       url('/images/bg-calligraphy.webp') center top / 260% auto repeat-y,
       var(--paper);
+    background-blend-mode: normal, multiply, normal;
     background-attachment: scroll;
   }
 }
