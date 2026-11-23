@@ -1,4 +1,4 @@
-# 交接文档 · 乡遇安徽
+﻿# 交接文档 · 乡遇安徽
 
 > 更新时间：2026-11-23 07:55（Asia/Shanghai）
 > 当前 main：`47a100b test(e2e): 接 Playwright 冒烟，覆盖首页/筛选/搜索/详情深链 (#158)`
@@ -27,11 +27,11 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 - 新增“同城其他项目”（同城、同类优先、最多 3 条）；
 - 来源从原始 URL 改为站点名，完整 URL 保留在 title/aria-label。
 
-### 3. 预渲染、每页 OG/JSON-LD、12 张分享图（#131 → #133）
+### 3. 预渲染、每页 OG/JSON-LD、分享图（#131 → #133）
 
 - `pnpm prerender` 生成 70 个 `dist/site/<id>/index.html`，注入 title、description、canonical、OG/Twitter、`TouristAttraction` JSON-LD；
 - 首页也注入站点级 meta；SPA 内跳转同步浏览器标题；
-- 12 个头部项目有独立 1200×630 分享图，其余回退 `public/og-cover.jpg`；
+- 69 个项目的 1200×630 分享图已接入（12 张人工精选 + 57 张模板生成），徽菜博物馆回退 `public/og-cover.jpg`；
 - CI / deploy / preview 都接入 prerender；ADR 0012 记录方案。
 
 > 合并历史提醒：#131 当时以 `feat/detail-decision` 为 base，只合进功能分支；#133 才把它带进 main。
@@ -65,7 +65,7 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 
 ### 7. 分享卡片接入（#159 / #160 / 滚动锁定）
 
-- `Site` 增加可选 `shareImage`，12 个头部项目显式指向 `/og/sites/<id>.jpg`；其余回退 `/og-cover.jpg`；
+- `Site` 增加可选 `shareImage`，69 个项目显式指向 `/og/sites/<id>.jpg`（12 人工 + 57 模板）；徽菜博物馆保留默认回退；
 - 预渲染改用 `site.shareImage`，并补 `og:image:type` / `og:image:alt` / `twitter:image:alt`；
 - 详情页新增“分享”按钮与弹层：展示当前 1200×630 卡片，支持复制链接、保存图片、系统分享（`navigator.share`）；
 - 弹层有 focus trap（Tab 循环、Esc 回焦）；打开时锁定 body 滚动，关闭/卸载恢复；
@@ -80,7 +80,7 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 | 封面      | 70/70 WebP，单张 ≤300KB                                        |
 | 高德短链  | 70/70，`src/data/amap-links.ts`                                |
 | 预渲染    | 70 个详情页 + 首页，`pnpm prerender`                           |
-| 分享图    | 12 个头部项目独立图 + 1 张默认图；其余 58 条用默认图           |
+| 分享图    | 69 个项目独立图 + 1 张默认图（徽菜博物馆）                     |
 | 画廊      | 12 个头部项目 ×2 张；其余 58 条仍为空                          |
 | practical | 20 条有 `duration` / `audience`；`hours` / `ticket` 未填       |
 | 单测      | **144 个用例 / 13 个文件**，全绿                               |
@@ -94,8 +94,8 @@ pnpm format:check      # 0
 pnpm type-check        # 0
 pnpm test:unit --run   # 144/144
 pnpm test:coverage     # 语句 91.84% / 分支 85.60%（核心逻辑阈值 70%）
-pnpm build             # 构建总量 264.98 KB gzip
-pnpm bundle:size       # 入口 JS 256.18 / 300 KB（85%），CSS 6.00 / 60 KB
+pnpm build             # 构建总量 265.34 KB gzip
+pnpm bundle:size       # 入口 JS 256.53 / 300 KB（85%），CSS 6.00 / 60 KB
 pnpm prerender         # 70 detail + home
 pnpm test:e2e          # 10 passed, 2 skipped
 ```
@@ -117,7 +117,7 @@ pnpm test:e2e          # 10 passed, 2 skipped
 ### 2. 内容深度
 
 - 20 条 practical 还缺 `hours`（开放时间）和 `ticket`（门票）；必须有可追溯来源；
-- 58 条没有画廊；58 条没有独立分享图；
+- 58 条没有画廊；1 条（徽菜博物馆）仍用默认分享图；
 - 演艺只有 1 条（再芬黄梅公馆），内容结构偏自然/乡村；
 - 详情页仍缺“看点”短列表、建议路线、周边联动。
 
@@ -154,7 +154,7 @@ pnpm test:e2e          # 10 passed, 2 skipped
 | 预渲染     | `scripts/prerender-sites.mjs`             |
 | 首屏预算   | `scripts/check-bundle-size.mjs`           |
 | E2E        | `playwright.config.ts`、`e2e/`            |
-| 分享图生成 | `scripts/make-og-images.py`               |
+| 分享图生成 | `scripts/make-og-images.py` / `-all.py`   |
 | 预渲染 ADR | `docs/adr/0012-prerender-detail-pages.md` |
 | 小球 ADR   | `docs/adr/0013-marker-physics.md`         |
 | 分享图 ADR | `docs/adr/0014-share-card.md`             |
@@ -166,7 +166,7 @@ pnpm test:e2e          # 10 passed, 2 skipped
 2. 按 #16 做最后一轮真机验收：拖动 p90、触摸命中、聚合/筛选组合；有问题先修；
 3. 跑 Lighthouse 桌面/移动基线，补长任务/首屏图问题；
 4. 打 `v0.1.0` tag / Release，写清能力与已知问题；
-5. 补 20 条 hours/ticket、58 条画廊、演艺内容与剩余分享图；
+5. 补 20 条 hours/ticket、58 条画廊、演艺内容；分享图已覆盖 69/70；
 6. 处理地图审图号与图片授权，再考虑公开推广；
 7. 最后再开 M4 多端预研。
 

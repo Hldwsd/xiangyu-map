@@ -1,4 +1,4 @@
-# 乡遇安徽 · Xiangyu Map
+﻿# 乡遇安徽 · Xiangyu Map
 
 一张安徽省地图，标记值得专程一去的文旅项目。点击地标，展开这个项目的来龙去脉。
 
@@ -98,7 +98,7 @@ pnpm dev          # http://localhost:5173
 - **地标数据**：`src/data/sites.ts`，字段契约在 `src/types/site.ts`（改字段需双方在 PR 确认）。新增一个项目 = 加一条数据 + 放图，不动组件代码；`province` 固定为安徽省，`city` 必须是 16 个地级市之一（联合类型，写错编译期就报错）。
 - **数据校验**：`src/utils/site-validation.ts` 在应用启动时校验全部数据（id 唯一与格式、分类枚举、城市属于 16 个地级市、坐标落在安徽省内、摘要字数、来源必填），不合格直接抛 `SiteDataError` 并列出问题条目，不静默降级。
 - **高德链接**：精确 POI 短链按 site id 维护在 `src/data/amap-links.ts`，当前 70/70 已置入；没有短链的项目回退到「名称 + 城市」搜索，不按经纬度拼 marker（坐标是千米级精度，容易落到隔壁点位）。
-- **分享图**：头部 12 个项目由 `scripts/make-og-images.py` 生成到 `public/og/sites/`，数据里用 `shareImage` 显式指向；其余项目回退 `public/og-cover.jpg`。预渲染写 `og:image` / `og:image:alt`，详情页“分享”弹层复用同一张图，可复制链接/保存图片/调用系统分享。
+- **分享图**：12 个头部项目用 `scripts/make-og-images.py` 的人工文案，其余 57 个用 `scripts/make-og-images-all.py` 从封面自动生成；69 个项目在数据里用 `shareImage` 显式指向，徽菜博物馆保留 `public/og-cover.jpg` 作为回退样本。预渲染写 `og:image` / `og:image:alt`，详情页“分享”弹层复用同一张图，可复制链接/保存图片/调用系统分享。
 - **画廊**：头部 12 个项目各补了 2 张 `gallery-*.webp`（来源为高德 POI 页的公开评论图片，授权口径同封面）；其余项目 `gallery` 仍为空。
 - **底图与专题图层**（都在 `public/maps/`，来源、字段与 sha256 见 [public/maps/README.md](public/maps/README.md)）：
 
