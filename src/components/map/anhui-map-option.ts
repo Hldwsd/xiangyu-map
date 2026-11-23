@@ -442,8 +442,9 @@ export function buildAnhuiMapOption(
       },
       itemStyle: {
         areaColor: palette.mapArea,
-        borderColor: palette.mapBorder,
-        borderWidth: 0.8,
+        // 描边只由下面 regions 的逐要素样式负责：geo 层再画一遍会形成「双线/空心线」
+        borderColor: 'transparent',
+        borderWidth: 0,
       },
       // 区县界与水域和市域合并成一张地图，用 regions 逐要素改样式
       regions,
