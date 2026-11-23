@@ -75,6 +75,39 @@ export function initSights(): void {
   const panels = featuredSites.map(createPanel)
   track.replaceChildren(...panels)
 
+  // 水圳：一条细水线从六张图背后穿过去，在每道缝里露出半圆月沼。
+  // 图本身把线挡住，只在图与图之间看得到，像是六张照片被同一道水串起来。
+  const thread = document.createElement('div')
+  thread.className = 'sights__thread'
+  thread.setAttribute('aria-hidden', 'true')
+  const line = document.createElement('span')
+  line.className = 'sights__thread-line'
+  thread.appendChild(line)
+  track.prepend(thread)
+
+  const layoutThread = (): void => {
+    if (window.innerWidth <= 900) return
+    const y = Math.round(track.clientHeight * 0.58)
+    line.style.top = `${y}px`
+    for (const old of qsa<HTMLElement>('.sights__thread-pond', thread)) old.remove()
+    for (let i = 0; i < panels.length - 1; i += 1) {
+      const current = panels[i]
+      const next = panels[i + 1]
+      if (current === undefined || next === undefined) continue
+      const right = current.offsetLeft + current.offsetWidth
+      const left = next.offsetLeft
+      const pond = document.createElement('span')
+      pond.className = 'sights__thread-pond'
+      pond.style.left = `${(right + left) / 2}px`
+      pond.style.top = `${y - 30}px`
+      thread.appendChild(pond)
+    }
+  }
+
+  requestAnimationFrame(layoutThread)
+  window.addEventListener('load', layoutThread)
+  window.addEventListener('resize', layoutThread)
+
   const bar = qs<HTMLElement>('[data-gallery-progress]')
   const indexLabel = qs<HTMLElement>('[data-gallery-index]')
   const total = featuredSites.length

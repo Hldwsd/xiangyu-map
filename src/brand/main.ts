@@ -27,6 +27,7 @@ import {
 } from './motion'
 import { initSights } from './sights'
 import { initSmoothScroll } from './smooth'
+import { initStamp } from './stamp'
 
 // 关键样式已经在 import 时注入：撤掉 HTML 里的首屏遮罩，
 // 让「纸 + 红印」直接换成有样式的 loader，不闪未渲染的界面
@@ -45,6 +46,7 @@ if (window.location.hash === '') window.scrollTo(0, 0)
 
 const lenis = initSmoothScroll()
 initChrome(lenis)
+initStamp()
 
 /** 开场播放时锁住滚动：纸还没拉开就滚，会把首屏位置和 pin 计算全带歪 */
 function setScrollLocked(locked: boolean): void {
