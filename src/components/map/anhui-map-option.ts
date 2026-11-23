@@ -504,6 +504,25 @@ export function buildAnhuiMapOption(
         })),
       },
       {
+        // 城市描边的柔光：宽、低透明度，只加在线的外层，不填市域，区县界线仍然透出来
+        id: 'city-highlight-halo',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        zlevel: 0,
+        z: 2.65,
+        silent: true,
+        animation: false,
+        polyline: true,
+        lineStyle: {
+          color: 'rgba(158, 42, 34, 0.2)',
+          width: 7,
+          opacity: 1,
+          cap: 'round',
+          join: 'round',
+        },
+        data: [],
+      },
+      {
         // 选中/悬停城市的描边：独立 lines 叠加层，而不是改 geo region 的 fill/border。
         // region border 在相邻市界会画两遍、缩放时发虚，还会盖住区县界线；
         // 单独一条矢量线可以压在区县线之上、地标之下，缩放后仍跟着 geo 投影。
