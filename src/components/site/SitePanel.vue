@@ -15,8 +15,8 @@ const panel = ref<HTMLElement | null>(null)
 let stopParallax: (() => void) | null = null
 
 /**
- * 整张卡片的鼠标视差：鼠标移动时卡片整体轻微位移 + 2° 以内倾斜（含封面、文字、按钮）。
- * 只给精确指针设备；减少动效、触屏、加载失败都不做。
+ * 整张卡片的全局鼠标视差：指针在页面任意位置移动，卡片都按「相对视口中心」偏移 + 2° 内倾斜
+ * （不要求鼠标移到卡片上）。只给精确指针设备；减少动效、触屏、加载失败都不做。
  */
 onMounted(() => {
   if (prefersReducedMotion()) return
@@ -33,10 +33,8 @@ onMounted(() => {
       const ryTo = gsap.quickTo(root, 'rotationY', { duration: 0.5, ease: 'power2.out' })
       const rxTo = gsap.quickTo(root, 'rotationX', { duration: 0.5, ease: 'power2.out' })
       const onMove = (event: PointerEvent): void => {
-        const rect = root.getBoundingClientRect()
-        if (rect.width === 0 || rect.height === 0) return
-        const nx = (event.clientX - rect.left) / rect.width - 0.5
-        const ny = (event.clientY - rect.top) / rect.height - 0.5
+        const nx = Math.max(-0.5, Math.min(0.5, event.clientX / window.innerWidth - 0.5))
+        const ny = Math.max(-0.5, Math.min(0.5, event.clientY / window.innerHeight - 0.5))
         xTo(nx * -8)
         yTo(ny * -6)
         ryTo(nx * 2)
@@ -48,11 +46,11 @@ onMounted(() => {
         ryTo(0)
         rxTo(0)
       }
-      root.addEventListener('pointermove', onMove)
-      root.addEventListener('pointerleave', onLeave)
+      window.addEventListener('pointermove', onMove, { passive: true })
+      document.addEventListener('pointerleave', onLeave)
       stopParallax = () => {
-        root.removeEventListener('pointermove', onMove)
-        root.removeEventListener('pointerleave', onLeave)
+        window.removeEventListener('pointermove', onMove)
+        document.removeEventListener('pointerleave', onLeave)
         gsap.killTweensOf(root)
       }
     })
