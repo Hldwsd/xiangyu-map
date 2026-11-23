@@ -1496,21 +1496,19 @@ function buildLayerRegions(
       continue
     }
 
-    // 区县界只在「区县图层」显示：市级视图里区县外环会和市界平行出现，
-    // 看起来像空心双线；所以市级时区县 border 直接透明归零。
-    const districtVisible = interactive === 'district'
     regions.push({
       name,
       itemStyle: {
         areaColor: 'transparent',
-        borderColor: districtVisible ? paletteNow.districtLine : 'transparent',
-        borderWidth: districtVisible ? 0.9 : 0,
+        // 区县界始终显示（市界由 city-borders 线条压在上面，不会被冲淡）
+        borderColor: paletteNow.districtLine,
+        borderWidth: 0.7,
       },
       emphasis: {
         itemStyle: {
           areaColor: 'transparent',
-          borderColor: districtVisible ? paletteNow.mapLabel : 'transparent',
-          borderWidth: districtVisible ? 1.2 : 0,
+          borderColor: paletteNow.mapLabel,
+          borderWidth: 1.2,
         },
       },
       silent: interactive !== 'district',

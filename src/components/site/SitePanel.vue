@@ -12,11 +12,10 @@ import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 defineProps<{ site: Site }>()
 
 const panel = ref<HTMLElement | null>(null)
-const cover = ref<HTMLImageElement | null>(null)
 let stopParallax: (() => void) | null = null
 
 /**
- * 封面视差：鼠标在卡片上移动时，封面反向位移 2–3px。
+ * 整张卡片的鼠标视差：鼠标移动时卡片整体轻微位移 + 2° 以内倾斜（含封面、文字、按钮）。
  * 只给精确指针设备；减少动效、触屏、加载失败都不做。
  */
 onMounted(() => {
@@ -24,31 +23,37 @@ onMounted(() => {
   if (typeof window.matchMedia !== 'function') return
   if (!window.matchMedia('(pointer: fine)').matches) return
   const root = panel.value
-  const img = cover.value
-  if (root === null || img === null) return
+  if (root === null) return
 
   void loadGsap()
     .then((gsap) => {
-      const xTo = gsap.quickTo(img, 'x', { duration: 0.45, ease: 'power2.out' })
-      const yTo = gsap.quickTo(img, 'y', { duration: 0.45, ease: 'power2.out' })
+      gsap.set(root, { transformPerspective: 900 })
+      const xTo = gsap.quickTo(root, 'x', { duration: 0.45, ease: 'power2.out' })
+      const yTo = gsap.quickTo(root, 'y', { duration: 0.45, ease: 'power2.out' })
+      const ryTo = gsap.quickTo(root, 'rotationY', { duration: 0.5, ease: 'power2.out' })
+      const rxTo = gsap.quickTo(root, 'rotationX', { duration: 0.5, ease: 'power2.out' })
       const onMove = (event: PointerEvent): void => {
         const rect = root.getBoundingClientRect()
         if (rect.width === 0 || rect.height === 0) return
         const nx = (event.clientX - rect.left) / rect.width - 0.5
         const ny = (event.clientY - rect.top) / rect.height - 0.5
-        xTo(nx * -12)
-        yTo(ny * -8)
+        xTo(nx * -8)
+        yTo(ny * -6)
+        ryTo(nx * 2)
+        rxTo(ny * -2)
       }
       const onLeave = (): void => {
         xTo(0)
         yTo(0)
+        ryTo(0)
+        rxTo(0)
       }
       root.addEventListener('pointermove', onMove)
       root.addEventListener('pointerleave', onLeave)
       stopParallax = () => {
         root.removeEventListener('pointermove', onMove)
         root.removeEventListener('pointerleave', onLeave)
-        gsap.killTweensOf(img)
+        gsap.killTweensOf(root)
       }
     })
     .catch(() => {})
@@ -65,7 +70,6 @@ const emit = defineEmits<{ close: [] }>()
     </button>
 
     <img
-      ref="cover"
       class="panel__cover"
       :src="assetUrl(site.cover)"
       :alt="`${site.name} 封面`"
