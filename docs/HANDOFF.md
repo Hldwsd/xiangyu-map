@@ -1,4 +1,4 @@
-﻿# 交接文档 · 乡遇安徽
+# 交接文档 · 乡遇安徽
 
 > 更新时间：2026-11-23 07:55（Asia/Shanghai）
 > 当前 main：`47a100b test(e2e): 接 Playwright 冒烟，覆盖首页/筛选/搜索/详情深链 (#158)`
@@ -63,12 +63,13 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 - #156/#157：手机书法背景继续放大到 260%、薄纱 50–62%；
 - 本 PR：Playwright E2E 冒烟，桌面 + Pixel 5，两档视口跑首页、筛选、搜索、详情深链与预渲染 meta。
 
-### 7. 分享卡片接入（本 PR）
+### 7. 分享卡片接入（#159 / #160 / 滚动锁定）
 
 - `Site` 增加可选 `shareImage`，12 个头部项目显式指向 `/og/sites/<id>.jpg`；其余回退 `/og-cover.jpg`；
 - 预渲染改用 `site.shareImage`，并补 `og:image:type` / `og:image:alt` / `twitter:image:alt`；
 - 详情页新增“分享”按钮与弹层：展示当前 1200×630 卡片，支持复制链接、保存图片、系统分享（`navigator.share`）；
-- E2E 增加分享弹层与专属/默认分享图断言。
+- 弹层有 focus trap（Tab 循环、Esc 回焦）；打开时锁定 body 滚动，关闭/卸载恢复；
+- E2E 增加分享弹层、专属/默认分享图与焦点/滚动断言。
 
 ## 二、当前数据与资产
 
@@ -93,8 +94,8 @@ pnpm format:check      # 0
 pnpm type-check        # 0
 pnpm test:unit --run   # 144/144
 pnpm test:coverage     # 语句 91.84% / 分支 85.60%（核心逻辑阈值 70%）
-pnpm build             # 构建总量 264.92 KB gzip
-pnpm bundle:size       # 入口 JS 256.14 / 300 KB（85%），CSS 6.00 / 60 KB
+pnpm build             # 构建总量 264.98 KB gzip
+pnpm bundle:size       # 入口 JS 256.18 / 300 KB（85%），CSS 6.00 / 60 KB
 pnpm prerender         # 70 detail + home
 pnpm test:e2e          # 10 passed, 2 skipped
 ```

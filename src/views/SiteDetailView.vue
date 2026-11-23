@@ -25,6 +25,17 @@ const canNativeShare = ref(false)
 const shareClose = ref<HTMLButtonElement | null>(null)
 const shareDialog = ref<HTMLElement | null>(null)
 const shareTrigger = ref<HTMLButtonElement | null>(null)
+let previousBodyOverflow = ''
+
+function lockBodyScroll(): void {
+  previousBodyOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+}
+
+function unlockBodyScroll(): void {
+  document.body.style.overflow = previousBodyOverflow
+  previousBodyOverflow = ''
+}
 
 function openShare(): void {
   shareStatus.value = ''
@@ -74,14 +85,19 @@ function handleShareKeydown(event: KeyboardEvent): void {
 
 watch(shareOpen, (open) => {
   if (open) {
+    lockBodyScroll()
     window.addEventListener('keydown', handleShareKeydown)
     void nextTick(() => shareClose.value?.focus())
     return
   }
+  unlockBodyScroll()
   window.removeEventListener('keydown', handleShareKeydown)
 })
 
-onBeforeUnmount(() => window.removeEventListener('keydown', handleShareKeydown))
+onBeforeUnmount(() => {
+  unlockBodyScroll()
+  window.removeEventListener('keydown', handleShareKeydown)
+})
 
 function legacyCopy(text: string): boolean {
   try {
