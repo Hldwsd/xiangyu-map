@@ -99,11 +99,14 @@ const props = defineProps<{
   highlightCity?: string | null
 }>()
 
-const emit = defineEmits<{ select: [id: string] }>()
+const emit = defineEmits<{ select: [id: string]; 'marker-hover': [city: string | null] }>()
 
 const container = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<EChartsType | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
+/** 选中项目时对应市域的短暂高亮 */
+const pulseCity = ref<string | null>(null)
+let pulseTimer: number | null = null
 const errorMessage = ref('')
 /** 给缩放条用的当前倍数 */
 const zoomLevel = ref(1)
@@ -497,7 +500,7 @@ function syncLayerMode(): void {
 function applyCityHighlight(): void {
   const instance = chart.value
   if (instance === null || status.value !== 'ready') return
-  const city = props.highlightCity ?? null
+  const city = props.highlightCity ?? pulseCity.value ?? null
   const name = city === null ? null : city.endsWith('市') ? city : `${city}市`
   const palette = themePalette()
   const regions = layerRegions.map((region) => {
@@ -996,6 +999,7 @@ function refreshMarkers(): void {
     applyClusterOffsets()
     applySingleOffsets()
     applyMarkerOffsets()
+    applyCityHighlight()
     return
   }
 
@@ -1020,6 +1024,7 @@ function refreshMarkers(): void {
   syncBalls(instance)
   // 数据重建后必须把球的当前位置重新写回：否则选中/刷新会让所有球叠回原点（看起来「碰撞消失」）
   applyBalls()
+  applyCityHighlight()
 }
 
 /**
@@ -1249,6 +1254,66 @@ function handleMarkerHover(params: unknown): void {
   if (props.cluster) kickSingle()
   else kickBalls()
 }
+
+/** 鼠标划过地标/簇时，把对应城市告诉外面（城市索引反向高亮） */
+let lastMarkerCity: string | null = null
+function emitMarkerCity(city: string | null): void {
+  if (city === lastMarkerCity) return
+  lastMarkerCity = city
+  emit('marker-hover', city)
+}
+
+function cityForIds(ids: readonly string[]): string | null {
+  const cities = new Set<string>()
+  for (const id of ids) {
+    const site = props.sites.find((item) => item.id === id)
+    if (site !== undefined) cities.add(site.city)
+  }
+  return cities.size === 1 ? ([...cities][0] ?? null) : null
+}
+
+function handleMarkerCityHover(params: unknown): void {
+  const payload = params as {
+    seriesId?: string
+    data?: { siteId?: string; clusterIds?: string[] }
+  }
+  if (payload.seriesId !== 'sites') return
+  const clusterIds = payload.data?.clusterIds
+  if (Array.isArray(clusterIds) && clusterIds.length > 1) {
+    emitMarkerCity(cityForIds(clusterIds))
+    return
+  }
+  const siteId = payload.data?.siteId
+  if (typeof siteId !== 'string') return
+  const site = props.sites.find((item) => item.id === siteId)
+  emitMarkerCity(site?.city ?? null)
+}
+
+function handleMarkerCityOut(params: unknown): void {
+  const payload = params as { seriesId?: string }
+  if (payload.seriesId !== undefined && payload.seriesId !== 'sites') return
+  emitMarkerCity(null)
+}
+
+/** 选中项目 → 对应市域高亮 1.1s，之后回到 hover 状态 */
+watch(
+  () => props.selectedId,
+  (id) => {
+    if (pulseTimer !== null) window.clearTimeout(pulseTimer)
+    if (id === null) {
+      pulseCity.value = null
+    } else {
+      const site = props.sites.find((item) => item.id === id)
+      pulseCity.value = site?.city ?? null
+    }
+    if (status.value === 'ready') applyCityHighlight()
+    pulseTimer = window.setTimeout(() => {
+      pulseTimer = null
+      pulseCity.value = null
+      if (status.value === 'ready') applyCityHighlight()
+    }, 1100)
+  },
+)
 
 function scheduleRoamRefresh(): void {
   if (roamRefreshTimer !== null) window.clearTimeout(roamRefreshTimer)
@@ -1535,6 +1600,8 @@ async function render(): Promise<void> {
       })
       instance.on('click', handleChartClick)
       instance.on('mouseover', handleMarkerHover)
+      instance.on('mouseover', handleMarkerCityHover)
+      instance.on('globalout', handleMarkerCityOut)
       instance.on('mousemove', handlePointerMove)
       // 拖动平移由 ECharts 负责（roam: 'move'），这里只做范围夹取与聚合重算
       instance.on('georoam', handleGeoRoam)
@@ -1605,6 +1672,9 @@ onBeforeUnmount(() => {
     container.value.removeEventListener('touchcancel', handleTouchEnd, { capture: true })
   }
   chart.value?.off('mouseover', handleMarkerHover)
+  chart.value?.off('mouseover', handleMarkerCityHover)
+  chart.value?.off('globalout', handleMarkerCityOut)
+  if (pulseTimer !== null) window.clearTimeout(pulseTimer)
   chart.value?.off('mousemove', handlePointerMove)
   if (ballRAF !== null) {
     window.cancelAnimationFrame(ballRAF)

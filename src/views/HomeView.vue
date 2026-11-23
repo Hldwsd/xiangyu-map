@@ -28,6 +28,9 @@ const legendOpen = ref(false)
 const cityOpen = ref(false)
 /** 城市索引 hover 时高亮的地级市；离开/失焦清空 */
 const hoverCity = ref<AnhuiCity | null>(null)
+/** 鼠标划过地标时，反向高亮城市索引里的对应行 */
+const siteCity = ref<string | null>(null)
+const mapShell = ref<HTMLElement | null>(null)
 
 /*
  * 区县界默认开启：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界；
@@ -47,6 +50,24 @@ onMounted(() => {
     store.selectSite('huizhou-ancient-city')
   }
 })
+
+/** 切换城市筛选时地图淡入一下，提示「内容换了」 */
+function animateMapSwap(): void {
+  const map = mapShell.value
+  if (map === null || prefersReducedMotion()) return
+  void loadGsap()
+    .then((gsap) => {
+      gsap.fromTo(map, { opacity: 0.55 }, { opacity: 1, duration: 0.26, ease: 'power2.out' })
+    })
+    .catch(() => {})
+}
+
+watch(
+  () => store.city,
+  () => {
+    animateMapSwap()
+  },
+)
 
 function closeOverlays(): void {
   menuOpen.value = false
@@ -211,13 +232,14 @@ function sheetLeave(el: Element, done: () => void): void {
       />
     </div>
 
-    <div class="map-shell__map">
+    <div ref="mapShell" class="map-shell__map">
       <AnhuiMap
         :sites="filteredSites"
         :selected-id="selectedId"
         :show-districts="showDistricts"
         :cluster="mergeMarkers"
         :highlight-city="hoverCity"
+        @marker-hover="siteCity = $event"
         @select="store.selectSite"
       />
     </div>
@@ -242,7 +264,7 @@ function sheetLeave(el: Element, done: () => void): void {
       <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
         <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
       </Transition>
-      <CityIndex @hover="hoverCity = $event" />
+      <CityIndex :active-city="siteCity" @hover="hoverCity = $event" />
     </div>
 
     <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->
