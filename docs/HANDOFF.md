@@ -1,4 +1,4 @@
-# 交接文档 · 乡遇安徽
+﻿# 交接文档 · 乡遇安徽
 
 > 更新时间：2026-11-23 11:35（Asia/Shanghai）
 > 当前 main：`fa90e14 feat(content): 查济换新封面并重生成分享图，人工精选降为 11 张 (#166)`
@@ -83,7 +83,7 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 | 分享图    | 70/70 独立图（11 人工 + 59 模板）                              |
 | 画廊      | 12 个头部项目 ×2 张；其余 58 条仍为空                          |
 | practical | 20 条有 `duration` / `audience`；`hours` / `ticket` 未填       |
-| 单测      | **144 个用例 / 13 个文件**，全绿                               |
+| 单测      | **148 个用例 / 14 个文件**，全绿                               |
 | E2E       | 6 个场景（桌面 + 移动端；移动端 2 个筛选场景跳过）             |
 
 ## 三、验证结果（2026-11-23 11:31 实跑）
@@ -94,8 +94,8 @@ pnpm format:check      # 0
 pnpm type-check        # 0
 pnpm test:unit --run   # 144/144
 pnpm test:coverage     # 语句 91.84% / 分支 85.60%（核心逻辑阈值 70%）
-pnpm build             # 构建总量 265.34 KB gzip
-pnpm bundle:size       # 入口 JS 256.53 / 300 KB（85%），CSS 6.00 / 60 KB
+pnpm build             # 构建总量 265.41 KB gzip
+pnpm bundle:size       # 入口 JS 256.59 / 300 KB（85%），CSS 6.00 / 60 KB
 pnpm prerender         # 70 detail + home
 pnpm test:e2e          # 10 passed, 2 skipped
 ```
@@ -123,7 +123,7 @@ pnpm test:e2e          # 10 passed, 2 skipped
 
 ### 3. v0.2 内容与窄屏
 
-- 窄屏（360dp）高密度地标仍会叠在一起，需要定「默认合并 / 缩小碰撞半径 / 扩大命中区」；
+- 窄屏（360dp）高密度地标已默认合并（PR #168）；
 - 20 条 practical 缺 hours/ticket；58 条缺画廊；演艺仍只有 1 条；
 - E2E 只有冒烟，地图手势/筛选边界可继续补；
 - 首屏入口 JS 已到 86%，再加大功能前要先看预算。
@@ -138,7 +138,7 @@ pnpm test:e2e          # 10 passed, 2 skipped
 
 - 未跟踪文件 `docs/research/2026-11-21-cover-sourcing.md` 是早期封面调研，内容已被 ADR 0011 取代；要么补状态说明后入库，要么删除，别直接 `git add .`；
 - 已合并/过期分支：`feat/detail-decision`、`feat/prerender-main`、`feat/prerender-seo`、`feat/detail-practical` 等，可按需清理；
-- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 144 用例 / 256.5 KB 入口 JS**。
+- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 144 用例 / 256.6 KB 入口 JS**。
 
 ## 五、关键文件
 
