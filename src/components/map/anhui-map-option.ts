@@ -386,6 +386,7 @@ export function buildAnhuiMapOption(
   regions: MapRegionStyle[] = [],
   rivers: RiverLine[] = [],
   mapName: string = ANHUI_MAP_NAME,
+  outlineRings: OutlineRing[] = [],
   featuredIds: ReadonlySet<string> = new Set<string>(),
   animateIn = false,
 ): EChartsOption {
@@ -457,6 +458,30 @@ export function buildAnhuiMapOption(
       emphasis: { disabled: true },
     },
     series: [
+      {
+        id: 'province-outline',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        // 压在 geo 之下：描边沿路径居中，向内的那一半会被市域白底盖掉，只剩向外的光晕
+        zlevel: 0,
+        z: 1,
+        silent: true,
+        // 必须和 geo 一样关掉补间：geo 的 zoom 是每帧瞬时的，lines 若还按 420ms 补间，
+        // 点簇放大时省界光晕就会比地图慢半拍（阴影拖在外面）
+        animation: false,
+        polyline: true,
+        // 圆角拐点：省界不再按多边形的直线交点切出尖角
+        lineStyle: { color: '#1c1a17', opacity: 1, cap: 'round' as const, join: 'round' as const },
+        data: outlineRings.map((ring) => ({
+          coords: ring.coords,
+          lineStyle: {
+            width: ring.width,
+            color: ring.alpha,
+            cap: 'round' as const,
+            join: 'round' as const,
+          },
+        })),
+      },
       {
         id: 'rivers',
         type: 'lines',
