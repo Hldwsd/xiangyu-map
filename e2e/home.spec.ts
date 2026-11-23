@@ -13,6 +13,17 @@ test('首页：地图、搜索入口与 70 条计数', async ({ page }) => {
   }
 })
 
+test('合并模式：数字簇正常渲染，没有运行时错误', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.addInitScript(() => localStorage.setItem('xy-merge-markers', '1'))
+  await page.goto('/')
+
+  await expect(page.getByRole('button', { name: /^项目列表/ })).toContainText('70')
+  await expect(page.getByRole('img', { name: /安徽省地图/ })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('城市筛选：黄山 13 条，可回到全部 70 条', async ({ page }) => {
   test.skip(test.info().project.name === 'mobile', '移动端筛选在左右抽屉里，另测')
 

@@ -8,6 +8,7 @@
 
 - 分享图覆盖扩到 **70/70**：11 张人工精选 + 59 张由 `scripts/make-og-images-all.py` 从封面自动生成；中国徽菜博物馆、查济换新封面后改为模板生成卡片。
 - 窄屏（<520px）默认合并重叠地标，聚合半径 36→48px；用户手动关闭后仍尊重选择（[ADR 0015](docs/adr/0015-narrow-marker-merge.md)）。
+- 合并标签也走软碰撞与 hover 拨动；缩放导致簇合并/拆分时从旧位置吸附到新锚点（[ADR 0016](docs/adr/0016-cluster-physics.md)）。
 
 ### 修复
 
