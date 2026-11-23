@@ -77,6 +77,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* 界面上的字只读不选：拖选会带出浏览器的高亮块，破坏纸面 */
+body,
+body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+img,
+a {
+  -webkit-user-drag: none;
+}
+
 h1,
 h2,
 h3,
@@ -162,6 +175,18 @@ html.scroll-locked body {
   overscroll-behavior: none;
 }
 
+/* 点击落印：朱砂 logo 从上方压下来，再淡出 */
+.stamp {
+  position: fixed;
+  z-index: 96;
+  width: 2.4rem;
+  height: auto;
+  margin: -1.35rem 0 0 -1.2rem;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 22%));
+  will-change: transform, opacity;
+}
+
 /* ---- 自绘滚动条：细金线 + 可拖拽的墨点 ---- */
 .scrollbar {
   position: fixed;
@@ -200,7 +225,7 @@ html.scroll-locked body {
   height: 3rem;
   margin-left: -1.5px;
   background: var(--gold);
-  border-radius: 2px;
+  border-radius: 0;
   cursor: grab;
   pointer-events: auto;
   transition:
@@ -257,7 +282,7 @@ html.scroll-locked body {
   width: 2rem;
   height: 2rem;
   border: 1px solid rgb(164 123 60 / 70%);
-  border-radius: 50%;
+  border-radius: 0;
   transform: translate(-50%, -50%) scale(0.6);
   transform-origin: center;
   transition:
@@ -368,6 +393,15 @@ html.scroll-locked body {
   backdrop-filter: blur(12px) saturate(1.05);
 }
 
+/* 最上沿的一条「瓦」：深色只出现在这里 */
+.topbar::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  content: '';
+  background: var(--ink);
+}
+
 .brand {
   display: flex;
   gap: 0.7rem;
@@ -433,7 +467,7 @@ html.scroll-locked body {
   font-size: 0.73rem;
   letter-spacing: 0.14em;
   border: 1px solid rgb(23 20 15 / 55%);
-  border-radius: 999px;
+  border-radius: 0;
   transition:
     color 0.3s var(--ease-out),
     background-color 0.3s var(--ease-out);
@@ -493,6 +527,7 @@ html.scroll-locked body {
 }
 
 .section-head {
+  position: relative;
   display: grid;
   grid-template-columns: auto auto 1fr;
   gap: clamp(1rem, 2vw, 2rem);
@@ -500,6 +535,33 @@ html.scroll-locked body {
   padding-top: 0.85rem;
   margin-bottom: clamp(1.8rem, 3.8vw, 3rem);
   border-top: 1px solid var(--line);
+}
+
+/* 马头墙：一段带瓦檐、墙缝的阶梯墙，压在分节线上，不画整座房子 */
+.section-head::before {
+  position: absolute;
+  top: -39px;
+  left: 0;
+  width: 200px;
+  height: 40px;
+  content: '';
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='40' viewBox='0 0 200 40'%3E%3Cpath d='M0 39V28h48V19h48V10h48V1h56v38Z' fill='%23f6efe2' stroke='%23d8cdb9' stroke-width='1'/%3E%3Cpath d='M0 28h48V19h48V10h48V1h56' fill='none' stroke='%2317140f' stroke-width='4'/%3E%3Cpath d='M-3 28h54M45 19h54M93 10h54M141 1h62' stroke='%2317140f' stroke-width='2.5'/%3E%3Cpath d='M12 39V30M24 39V30M36 39V30M60 39V21M72 39V21M84 39V21M108 39V12M120 39V12M132 39V12M156 39V3M168 39V3M180 39V3' stroke='%23cbbda7' stroke-width='.7'/%3E%3Cpath d='M0 38.5h200' stroke='%23b8a990' stroke-width='1'/%3E%3C/svg%3E")
+    no-repeat left bottom;
+  background-size: 200px 40px;
+}
+
+.section-head--invert::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='40' viewBox='0 0 200 40'%3E%3Cpath d='M0 39V28h48V19h48V10h48V1h56v38Z' fill='%23231f19' stroke='%23534b3e' stroke-width='1'/%3E%3Cpath d='M0 28h48V19h48V10h48V1h56' fill='none' stroke='%23f2ebde' stroke-width='4'/%3E%3Cpath d='M-3 28h54M45 19h54M93 10h54M141 1h62' stroke='%23f2ebde' stroke-width='2.5'/%3E%3Cpath d='M12 39V30M24 39V30M36 39V30M60 39V21M72 39V21M84 39V21M108 39V12M120 39V12M132 39V12M156 39V3M168 39V3M180 39V3' stroke='%234a4337' stroke-width='.7'/%3E%3Cpath d='M0 38.5h200' stroke='%235d5445' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 900px) {
+  .section-head::before {
+    top: -27px;
+    width: 140px;
+    height: 28px;
+    background-size: 140px 28px;
+  }
 }
 
 .section-head__index {

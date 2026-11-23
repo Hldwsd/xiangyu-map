@@ -48,7 +48,11 @@ export function initCrafts(): void {
       duration: 0.85,
       stagger: 0.06,
       ease: 'power3.out',
-      scrollTrigger: { trigger: list, start: 'top 85%', once: true },
+      scrollTrigger: {
+        trigger: list,
+        start: 'top 85%',
+        toggleActions: 'play none none reset',
+      },
     })
   }
 

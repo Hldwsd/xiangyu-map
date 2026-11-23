@@ -24,7 +24,11 @@ export function initBand(): void {
         duration: 1.15,
         delay: (index % 3) * 0.08,
         ease: 'power3.inOut',
-        scrollTrigger: { trigger: item, start: 'top 94%', once: true },
+        scrollTrigger: {
+          trigger: item,
+          start: 'top 94%',
+          toggleActions: 'play none none reset',
+        },
       },
     )
 

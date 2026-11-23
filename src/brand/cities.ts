@@ -48,7 +48,11 @@ export function initCities(): void {
       duration: 0.9,
       stagger: 0.035,
       ease: 'power3.out',
-      scrollTrigger: { trigger: grid, start: 'top 85%', once: true },
+      scrollTrigger: {
+        trigger: grid,
+        start: 'top 85%',
+        toggleActions: 'play none none reset',
+      },
     })
   }
 

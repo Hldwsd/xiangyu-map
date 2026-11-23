@@ -104,24 +104,29 @@ export function revealOnScroll(
       duration: 1,
       ease: 'power3.out',
       stagger: options.stagger ?? 0.08,
-      scrollTrigger: { trigger: group[0] ?? group, start: 'top 88%', once: true },
+      // 滚上去离开视口时复位；下次往下滚会像第一次打开一样再播一遍
+      scrollTrigger: {
+        trigger: group[0] ?? group,
+        start: 'top 88%',
+        toggleActions: 'play none none reset',
+      },
     })
   }
 }
 
-/** 数字从 0 数到 data-count */
+/** 数字从 0 数到 data-count；返回补间，便于复位时 kill */
 export function countUp(
   element: Element,
   options: { duration?: number; delay?: number } = {},
-): void {
+): gsap.core.Tween | null {
   const target = Number((element as HTMLElement).dataset.count ?? '0')
-  if (!Number.isFinite(target)) return
+  if (!Number.isFinite(target)) return null
   if (prefersReducedMotion) {
     element.textContent = String(target)
-    return
+    return null
   }
   const state = { value: 0 }
-  gsap.to(state, {
+  return gsap.to(state, {
     value: target,
     duration: options.duration ?? 1.4,
     delay: options.delay ?? 0,
@@ -132,7 +137,7 @@ export function countUp(
   })
 }
 
-/** 进入视口时数一次；首屏那几个由 hero 的入场时间线自己接管 */
+/** 进入视口时数；滚上去离开视口后归零，下次往下滚再数一遍 */
 export function countUpOnScroll(elements: Element[]): void {
   for (const element of elements) {
     const target = Number((element as HTMLElement).dataset.count ?? '0')
@@ -141,11 +146,22 @@ export function countUpOnScroll(elements: Element[]): void {
       element.textContent = String(target)
       continue
     }
+
+    let tween: gsap.core.Tween | null = null
+    const reset = (): void => {
+      tween?.kill()
+      tween = null
+      element.textContent = '0'
+    }
+
     ScrollTrigger.create({
       trigger: element,
       start: 'top 92%',
-      once: true,
-      onEnter: () => countUp(element),
+      onEnter: () => {
+        reset()
+        tween = countUp(element)
+      },
+      onLeaveBack: reset,
     })
   }
 }

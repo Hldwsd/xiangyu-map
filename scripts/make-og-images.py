@@ -134,20 +134,12 @@ def make_one(site_id: str, name: str, cfg: dict[str, str]) -> Path:
     font_title = ImageFont.truetype(str(SERIF), 96, index=0)
     font_line = ImageFont.truetype(str(SANS), 30, index=0)
     font_sub = ImageFont.truetype(str(SANS), 22, index=0)
-    font_tag = ImageFont.truetype(str(SANS), 22, index=0)
     font_small = ImageFont.truetype(str(SANS), 20, index=0)
 
     logo = Image.open(LOGO_PATH).convert('RGBA')
     logo = logo.resize((round(LOGO_H * logo.width / logo.height), LOGO_H), Image.LANCZOS)
     img.paste(logo, (52, 36), logo)
     shadow_text(draw, 52 + logo.width + 14, 48, '乡遇安徽', font_brand, WHITE, 1)
-
-    tag = cfg['tag']
-    tb = draw.textbbox((0, 0), tag, font=font_tag)
-    tw, th = tb[2] - tb[0], tb[3] - tb[1]
-    x = W - tw - 66
-    draw.rounded_rectangle([x - 18, 50, x + tw + 18, 50 + th + 18], radius=20, fill=(12, 10, 8, 120))
-    draw.text((x, 56), tag, font=font_tag, fill=WHITE)
 
     x0, title_y = 64, 352
     draw.line([(x0, title_y - 26), (x0 + 430, title_y - 26)], fill=GOLD, width=3)

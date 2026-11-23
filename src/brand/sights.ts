@@ -75,6 +75,81 @@ export function initSights(): void {
   const panels = featuredSites.map(createPanel)
   track.replaceChildren(...panels)
 
+  // 一道马头墙的檐线从六张图顶上走过去：每经过一张图是一段平檐，
+  // 图与图高低不同，檐线就在缝里落一级。图本身不进这条线，只借它串起来。
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+  const roof = document.createElement('div')
+  roof.className = 'sights__roof'
+  roof.setAttribute('aria-hidden', 'true')
+  const roofSvg = document.createElementNS(SVG_NS, 'svg')
+  roofSvg.setAttribute('class', 'sights__roof-svg')
+  roof.appendChild(roofSvg)
+  track.prepend(roof)
+
+  const layoutRoof = (): void => {
+    if (window.innerWidth <= 900) return
+    const width = Math.max(1, Math.round(track.scrollWidth))
+    const height = Math.max(1, Math.round(track.clientHeight))
+    roofSvg.setAttribute('width', String(width))
+    roofSvg.setAttribute('height', String(height))
+    roofSvg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+    roofSvg.replaceChildren()
+
+    const bounds = panels.map((panel, index) => {
+      const prev = panels[index - 1]
+      const next = panels[index + 1]
+      const left =
+        prev === undefined
+          ? panel.offsetLeft
+          : (prev.offsetLeft + prev.offsetWidth + panel.offsetLeft) / 2
+      const right =
+        next === undefined
+          ? panel.offsetLeft + panel.offsetWidth
+          : (panel.offsetLeft + panel.offsetWidth + next.offsetLeft) / 2
+      return { left, right }
+    })
+    if (bounds.length === 0) return
+
+    // 檐线整体抬到图片上方，留出空隙，不压住画面
+    const eaveY = -46
+    const first = bounds[0]
+    const last = bounds[bounds.length - 1]
+    if (first === undefined || last === undefined) return
+    const pathFor = (offset: number): string => `M${first.left} ${eaveY + offset} H${last.right}`
+
+    const band = document.createElementNS(SVG_NS, 'path')
+    band.setAttribute('class', 'sights__roof-band')
+    band.setAttribute('d', pathFor(0))
+    const ghost = document.createElementNS(SVG_NS, 'path')
+    ghost.setAttribute('class', 'sights__roof-line sights__roof-line--ghost')
+    ghost.setAttribute('d', pathFor(-3))
+    const line = document.createElementNS(SVG_NS, 'path')
+    line.setAttribute('class', 'sights__roof-line')
+    line.setAttribute('d', pathFor(0))
+    roofSvg.append(band, ghost, line)
+
+    // 每道缝里立一小段马头墙：阶梯轮廓压在檐线上，六张图靠它串成一条街
+    bounds.forEach((bound, index) => {
+      const next = bounds[index + 1]
+      if (next === undefined) return
+      const x = bound.right
+      const y = eaveY
+      const shape = (offset: number): string =>
+        `M${x - 30} ${y + offset} H${x - 20} V${y - 8 + offset} H${x - 10} V${y - 16 + offset} H${x + 10} V${y - 8 + offset} H${x + 20} V${y + offset} H${x + 30}`
+      const gable = document.createElementNS(SVG_NS, 'path')
+      gable.setAttribute('class', 'sights__roof-gable')
+      gable.setAttribute('d', shape(0))
+      const cap = document.createElementNS(SVG_NS, 'path')
+      cap.setAttribute('class', 'sights__roof-gable sights__roof-gable--cap')
+      cap.setAttribute('d', shape(2))
+      roofSvg.append(gable, cap)
+    })
+  }
+
+  requestAnimationFrame(layoutRoof)
+  window.addEventListener('load', layoutRoof)
+  window.addEventListener('resize', layoutRoof)
+
   const bar = qs<HTMLElement>('[data-gallery-progress]')
   const indexLabel = qs<HTMLElement>('[data-gallery-index]')
   const total = featuredSites.length
@@ -139,9 +214,9 @@ export function initSights(): void {
       const inner = qs<HTMLElement>('.panel__media', figure)
       gsap.fromTo(
         inner,
-        { xPercent: -4 },
+        { xPercent: -18 },
         {
-          xPercent: 4,
+          xPercent: 18,
           ease: 'none',
           scrollTrigger: {
             trigger: figure,

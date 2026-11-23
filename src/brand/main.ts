@@ -27,6 +27,7 @@ import {
 } from './motion'
 import { initSights } from './sights'
 import { initSmoothScroll } from './smooth'
+import { initStamp } from './stamp'
 
 // 关键样式已经在 import 时注入：撤掉 HTML 里的首屏遮罩，
 // 让「纸 + 红印」直接换成有样式的 loader，不闪未渲染的界面
@@ -45,6 +46,7 @@ if (window.location.hash === '') window.scrollTo(0, 0)
 
 const lenis = initSmoothScroll()
 initChrome(lenis)
+initStamp()
 
 /** 开场播放时锁住滚动：纸还没拉开就滚，会把首屏位置和 pin 计算全带歪 */
 function setScrollLocked(locked: boolean): void {
@@ -78,31 +80,10 @@ if (import.meta.env.DEV) {
 // 先上锁，等纸完全拉开再解锁；之后的首屏动画继续播，但页面已经可以滚
 setScrollLocked(true)
 
-let heroIntro: ReturnType<typeof playHeroIntro> | null = null
-let heroArmed = false
-
-/**
- * 首屏入场播完之后，往下读过再滚回顶端，就再放一遍。
- * 只重播首屏的时间线，不重放遮罩/开场纸幕。
- */
-function replayHeroOnReturn(): void {
-  if (heroIntro === null) return
-  const y = window.scrollY
-  if (y > window.innerHeight * 0.65) heroArmed = true
-  if (!heroArmed || y > 80) return
-  if (heroIntro.isActive()) return
-  heroArmed = false
-  heroIntro.restart()
-}
-
 runLoader(
   () => {
     const timeline = playHeroIntro(hero)
-    heroIntro = timeline
     debugRef.intro = timeline
-    if (!prefersReducedMotion) {
-      window.addEventListener('scroll', replayHeroOnReturn, { passive: true })
-    }
 
     if (prefersReducedMotion) return
     timeline.add(() => {
