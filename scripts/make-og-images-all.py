@@ -130,7 +130,6 @@ def make_one(site: dict[str, str]) -> Path:
     draw = ImageDraw.Draw(img)
 
     font_brand = ImageFont.truetype(str(SERIF), 34, index=0)
-    font_tag = ImageFont.truetype(str(SANS), 22, index=0)
     font_summary = ImageFont.truetype(str(SANS), 27, index=0)
     font_sub = ImageFont.truetype(str(SANS), 22, index=0)
     font_small = ImageFont.truetype(str(SANS), 20, index=0)
@@ -139,13 +138,6 @@ def make_one(site: dict[str, str]) -> Path:
     logo = logo.resize((round(LOGO_H * logo.width / logo.height), LOGO_H), Image.LANCZOS)
     img.paste(logo, (52, 36), logo)
     shadow_text(draw, 52 + logo.width + 14, 48, '乡遇安徽', font_brand, WHITE, 1)
-
-    tag = site['category']
-    tb = draw.textbbox((0, 0), tag, font=font_tag)
-    tw, th = tb[2] - tb[0], tb[3] - tb[1]
-    x = W - tw - 66
-    draw.rounded_rectangle([x - 18, 50, x + tw + 18, 50 + th + 18], radius=20, fill=(12, 10, 8, 140))
-    draw.text((x, 56), tag, font=font_tag, fill=WHITE)
 
     max_text_width = 1040
     title_font, title_lines = fit_title(draw, site['name'], max_text_width)
