@@ -121,6 +121,8 @@ let clusterRAF: number | null = null
 /** 每个项目上一次被画在屏幕上的位置，用来给拆分/合并找起点 */
 let clusterMemberPositions = new Map<string, Point>()
 let clusterStillFrames = 0
+/** 合并/拆分过渡：从旧位置缓动到新 home，期间不做弹簧碰撞 */
+let clusterTween: { from: Point[]; to: Point[]; started: number; duration: number } | null = null
 /** 拖动/缩放时不要每个 georoam 都重建数据：防抖到停下后再刷新 */
 let roamRefreshTimer: number | null = null
 /** 漫游结束后的时间点：这段时间内物理循环让路，避免和地图重绘抢帧 */
@@ -543,7 +545,8 @@ function syncClusters(instance: EChartsType, groups: MarkerGroup[]): void {
     applyClusterOffsets()
     return
   }
-  kickClusters()
+  // 合并/拆分：从旧位置缓动到新位置，并让「一簇拆成几簇」先呈扇形散开
+  startClusterTween()
 }
 
 function settleClustersSilently(): void {
@@ -598,7 +601,70 @@ function applyClusterOffsets(): void {
   }
 }
 
+/**
+ * 合并/拆分过渡：从旧位置缓动到新 home。
+ *
+ * 拆分时多个新簇的起点会重合在旧簇中心，如果直接落到各自 home，看起来像「凭空出现」；
+ * 这里先给每颗一个扇形起点（半径 9px），再一起缓动出去。
+ */
+function startClusterTween(duration = 280): void {
+  if (reduceMotion.value) {
+    settleClustersSilently()
+    return
+  }
+  const from = clusterNodes.map((node) => [node.x, node.y] as Point)
+  const to = clusterNodes.map((node) => clusterHomes.get(node.id) ?? ([node.x, node.y] as Point))
+
+  // 同一个起点的多颗（拆分）→ 沿圆周错开一点，形成「炸开」的起点
+  for (let i = 0; i < clusterNodes.length; i += 1) {
+    const sameStart = clusterNodes.filter(
+      (node) => Math.hypot(node.x - from[i]![0], node.y - from[i]![1]) < 0.5,
+    )
+    if (sameStart.length < 2) continue
+    const index = sameStart.indexOf(clusterNodes[i]!)
+    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / sameStart.length
+    from[i] = [from[i]![0] + Math.cos(angle) * 9, from[i]![1] + Math.sin(angle) * 9]
+  }
+
+  clusterNodes.forEach((node, i) => {
+    node.x = from[i]![0]
+    node.y = from[i]![1]
+    node.vx = 0
+    node.vy = 0
+  })
+  clusterTween = { from, to, started: performance.now(), duration }
+  applyClusterOffsets()
+
+  if (clusterRAF !== null) window.cancelAnimationFrame(clusterRAF)
+  clusterRAF = window.requestAnimationFrame(tickClusterTween)
+}
+
+function tickClusterTween(): void {
+  clusterRAF = null
+  if (!props.cluster || disposed || clusterTween === null) return
+  const progress = Math.min(1, (performance.now() - clusterTween.started) / clusterTween.duration)
+  const eased = 1 - (1 - progress) ** 3
+  clusterNodes.forEach((node, i) => {
+    const start = clusterTween!.from[i]!
+    const target = clusterTween!.to[i]!
+    node.x = start[0] + (target[0] - start[0]) * eased
+    node.y = start[1] + (target[1] - start[1]) * eased
+  })
+  applyClusterOffsets()
+
+  if (progress < 1) {
+    clusterRAF = window.requestAnimationFrame(tickClusterTween)
+    return
+  }
+  clusterTween = null
+  for (const node of clusterNodes) {
+    node.vx = 0
+    node.vy = 0
+  }
+}
+
 function kickClusters(): void {
+  clusterTween = null
   if (clusterRAF !== null || reduceMotion.value) return
   clusterStillFrames = 0
   clusterRAF = window.requestAnimationFrame(tickClusters)
