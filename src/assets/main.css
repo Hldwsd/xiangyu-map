@@ -65,30 +65,49 @@ body {
   line-height: 1.6;
   color: var(--ink);
   /*
-   * 背景：宣纸底 + 两团纸光。书法墨迹只在 ≥1200px 的宽屏铺（见下），
-   * 窄屏回到纯纸：横披在竖屏上物理放不下。
+   * 背景：纸纹 + 两团纸光 + 纸色。
+   *
+   * 纸纹是内联 SVG 噪声（0 请求、可平铺、不随视口拉伸）：空纸不再是一块纯色，
+   * 但看不出「纹理」。两团纸光保留原来的暖白，负责让纸有受光方向。
+   * 水墨远山不在这里，见 body::before —— 它要单独控制透明度与混合模式。
    */
   background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.07' intercept='0.93'/%3E%3CfeFuncG type='linear' slope='0.07' intercept='0.93'/%3E%3CfeFuncB type='linear' slope='0.07' intercept='0.93'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")
+      0 0 / 180px 180px repeat,
     radial-gradient(circle at 12% 8%, var(--paper-glow-a) 0%, transparent 45%),
-    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%), var(--paper);
+    radial-gradient(circle at 88% 0%, var(--paper-glow-b) 0%, transparent 40%),
+    var(--paper);
+  /* 纸纹用 multiply 压进纸里，不是盖一层灰 */
+  background-blend-mode: multiply, normal, normal, normal;
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }
 
 /*
- * 书法背景（邓石如《少学琴书册》，清代，公有领域）只给宽屏：
- * cover 在 390px 竖屏上会把横披放大到只剩中部几个大字——字比地图还大，
- * 喧宾夺主；contain 又缩成一条细带。1200px 分界与首页宽窄屏布局一致。
- * 附带收益：窄屏首屏少下载 280KB 的背景图。
+ * 水墨远山（src/assets/bg-ink.svg，程序化生成：山脊 + 皴笔 + 松 + 雾 + 淡日）。
+ *
+ * 为什么单独一层、而不是 body 背景：远山要用 multiply 与 0.62 的强度压进纸里，
+ * 强度是最容易调的旋钮（0.35 像水印、0.85 开始抢地图）。图本身只画在画面下半部与右侧，
+ * 中间留给地图 —— 地图全屏铺满时，背景真正露出来的只有四周与面板后。
+ *
+ * 素材路径用 CSS 相对路径，Vite 会按部署基地址改写成 /<repo>/assets/bg-ink-<hash>.svg。
  */
-
-/*
- * 窄屏也要书法：横卷在竖屏上 cover 会把字放大到只剩几个大字，
- * 所以按 100% 宽铺成竖排条带、重复向下，再压一层纸色薄纱保证地图可读。
- * 用 scroll 而不是 fixed：iOS 对 fixed 背景的裁剪会闪。
- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url('./bg-ink.svg') center bottom / cover no-repeat;
+  opacity: 0.62;
+  mix-blend-mode: multiply;
+}
 
 #app {
   min-height: 100vh;
+  /* 远山是 body::before（z 0）；内容抬到 1，才不会被 fixed 层压住 */
+  position: relative;
+  z-index: 1;
 }
 
 img {
