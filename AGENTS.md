@@ -33,16 +33,17 @@ pnpm data:anhui-map          # 重新抓取 public/maps/anhui.json
 
 ## 改动落点
 
-| 想改什么                | 改这里                                                       | 别动                                                |
-| ----------------------- | ------------------------------------------------------------ | --------------------------------------------------- |
-| 新增/修改一个文旅项目   | `src/data/sites.ts`（加一条数据 + 放图）                     | 组件里不写死项目内容                                |
-| 地标样式、配色、tooltip | `src/components/map/anhui-map-option.ts`                     | 不要在组件外 new ECharts                            |
-| 地图实例生命周期        | `src/components/map/AnhuiMap.vue`                            | 别处不碰 ECharts 实例                               |
-| 筛选、搜索、选中态      | `src/stores/sites.ts`                                        | 组件内不各自过滤                                    |
-| 数据结构与校验          | `src/types/site.ts`、`src/utils/site-validation.ts`          | 校验失败不要静默降级                                |
-| 底图                    | `public/maps/anhui.json`（用 `pnpm data:anhui-map` 生成）    | 不要手改 JSON                                       |
-| 构建、CI、依赖          | `vite.config.ts`、`.github/workflows/ci.yml`、`package.json` | 不在 PR 里偷偷放宽闸门                              |
-| 部署、PR 预览           | `.github/workflows/deploy.yml`、`preview.yml`                | 不硬编码域名，资源路径走 `import.meta.env.BASE_URL` |
+| 想改什么                | 改这里                                                          | 别动                                                                 |
+| ----------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 新增/修改一个文旅项目   | `src/data/sites.ts`（加一条数据 + 放图）                        | 组件里不写死项目内容                                                 |
+| 地标样式、配色、tooltip | `src/components/map/anhui-map-option.ts`                        | 不要在组件外 new ECharts                                             |
+| 地图实例生命周期        | `src/components/map/AnhuiMap.vue`                               | 别处不碰 ECharts 实例                                                |
+| 筛选、搜索、选中态      | `src/stores/sites.ts`                                           | 组件内不各自过滤                                                     |
+| 数据结构与校验          | `src/types/site.ts`、`src/utils/site-validation.ts`             | 校验失败不要静默降级                                                 |
+| 底图                    | `public/maps/anhui.json`（用 `pnpm data:anhui-map` 生成）       | 不要手改 JSON                                                        |
+| 品牌页（`/brand/`）     | `brand/index.html`、`src/brand/`、`scripts/build-brand-geo.mjs` | 不要动 app 首屏预算与地图组件；品牌页数据从 `src/data/sites.ts` 派生 |
+| 构建、CI、依赖          | `vite.config.ts`、`.github/workflows/ci.yml`、`package.json`    | 不在 PR 里偷偷放宽闸门                                               |
+| 部署、PR 预览           | `.github/workflows/deploy.yml`、`preview.yml`                   | 不硬编码域名，资源路径走 `import.meta.env.BASE_URL`                  |
 
 ## 数据规则
 
