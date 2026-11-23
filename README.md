@@ -152,3 +152,7 @@ pnpm dev          # http://localhost:5173
 ## 许可
 
 MIT License，见 [LICENSE](LICENSE)。
+
+## 版本记录
+
+- [CHANGELOG](CHANGELOG.md)
