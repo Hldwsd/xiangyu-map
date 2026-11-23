@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useSitesStore } from '@/stores/sites'
@@ -23,6 +23,7 @@ const shareOpen = ref(false)
 const shareStatus = ref('')
 const canNativeShare = ref(false)
 const shareClose = ref<HTMLButtonElement | null>(null)
+const shareTrigger = ref<HTMLButtonElement | null>(null)
 
 function openShare(): void {
   shareStatus.value = ''
@@ -32,19 +33,60 @@ function openShare(): void {
 function closeShare(): void {
   shareOpen.value = false
   shareStatus.value = ''
+  void nextTick(() => shareTrigger.value?.focus())
+}
+
+function handleShareKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeShare()
 }
 
 watch(shareOpen, (open) => {
-  if (open) void nextTick(() => shareClose.value?.focus())
+  if (open) {
+    window.addEventListener('keydown', handleShareKeydown)
+    void nextTick(() => shareClose.value?.focus())
+    return
+  }
+  window.removeEventListener('keydown', handleShareKeydown)
 })
 
-async function copyShareLink(): Promise<void> {
+onBeforeUnmount(() => window.removeEventListener('keydown', handleShareKeydown))
+
+function legacyCopy(text: string): boolean {
   try {
-    await navigator.clipboard.writeText(window.location.href)
-    shareStatus.value = '链接已复制'
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.position = 'fixed'
+    area.style.opacity = '0'
+    document.body.appendChild(area)
+    area.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(area)
+    return ok
   } catch {
-    shareStatus.value = '复制失败，请手动复制地址栏'
+    return false
   }
+}
+
+async function copyShareLink(): Promise<void> {
+  const text = window.location.href
+  const clipboard = navigator.clipboard
+  if (typeof clipboard?.writeText === 'function') {
+    try {
+      // 某些浏览器里 clipboard 权限弹窗不出现、Promise 一直挂起，加个超时免得按钮像没反应
+      await Promise.race([
+        clipboard.writeText(text),
+        new Promise((_resolve, reject) => {
+          window.setTimeout(() => reject(new Error('clipboard-timeout')), 1200)
+        }),
+      ])
+      shareStatus.value = '链接已复制'
+      return
+    } catch {
+      // 落到 execCommand 兜底
+    }
+  }
+  shareStatus.value = legacyCopy(text) ? '链接已复制' : '复制失败，请手动复制地址栏'
 }
 
 async function nativeShare(): Promise<void> {
@@ -152,7 +194,13 @@ function markBroken(url: string): void {
       <h1 ref="heading" class="detail__title" tabindex="-1">{{ site.name }}</h1>
       <p class="detail__summary">{{ site.summary }}</p>
       <div class="detail__actions">
-        <button type="button" class="detail__share" aria-haspopup="dialog" @click="openShare">
+        <button
+          ref="shareTrigger"
+          type="button"
+          class="detail__share"
+          aria-haspopup="dialog"
+          @click="openShare"
+        >
           <AppIcon name="share" :size="14" />分享
         </button>
       </div>
