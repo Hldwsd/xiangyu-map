@@ -121,6 +121,10 @@ let clusterRAF: number | null = null
 /** 每个项目上一次被画在屏幕上的位置，用来给拆分/合并找起点 */
 let clusterMemberPositions = new Map<string, Point>()
 let clusterStillFrames = 0
+/** 缩放进行中：簇要实时重算，期间不做过渡动画 */
+let liveZoom = false
+let liveZoomRefresh: number | null = null
+let lastLiveZoom = 0
 /** 合并/拆分过渡：从旧位置缓动到新 home，期间不做弹簧碰撞 */
 let clusterTween: { from: Point[]; to: Point[]; started: number; duration: number } | null = null
 /** 拖动/缩放时不要每个 georoam 都重建数据：防抖到停下后再刷新 */
@@ -317,10 +321,43 @@ function handleTouchEnd(event: TouchEvent): void {
   scheduleRoamRefresh()
 }
 
+/** 读取当前 geo zoom；走模型而不是 getOption（后者会克隆整份 option，逐帧调用太贵） */
+function geoZoomFast(): number | null {
+  const instance = chart.value
+  if (instance === null) return null
+  try {
+    const model = (
+      instance as unknown as {
+        getModel: () => {
+          getComponent: (type: string) => { option?: { zoom?: number } } | undefined
+        }
+      }
+    ).getModel()
+    const zoom = model.getComponent('geo')?.option?.zoom
+    return typeof zoom === 'number' ? zoom : null
+  } catch {
+    return null
+  }
+}
+
 function handleGeoRoam(): void {
   const instance = chart.value
   if (instance === null || tweening || clampingCenter) return
   roamActiveUntil = performance.now() + 180
+
+  // 滚轮/双指缩放：zoom 一变就实时重新分组，不等松手
+  const zoom = geoZoomFast()
+  if (zoom !== null && Math.abs(zoom - lastLiveZoom) > 0.02) {
+    lastLiveZoom = zoom
+    liveZoom = true
+    if (liveZoomRefresh === null) {
+      liveZoomRefresh = window.requestAnimationFrame(() => {
+        liveZoomRefresh = null
+        refreshMarkers()
+      })
+    }
+  }
+
   scheduleRoamRefresh()
 }
 
@@ -529,6 +566,20 @@ function syncClusters(instance: EChartsType, groups: MarkerGroup[]): void {
   clusterNodes = next
   clusterHomes = homes
   clusterStillFrames = 0
+
+  // 缩放进行中：实时分组，簇直接落到新锚点，不播过渡（边缩放边动画会互相打架）
+  if (liveZoom) {
+    for (const node of clusterNodes) {
+      const home = clusterHomes.get(node.id)
+      if (home === undefined) continue
+      node.x = home[0]
+      node.y = home[1]
+      node.vx = 0
+      node.vy = 0
+    }
+    applyClusterOffsets()
+    return
+  }
 
   // 首屏/减少动效时静默结算；视野变化但簇组成没变时也不放动画——
   // 否则每次拖动/缩放停下，地标都会从旧位置「吸」过去，看起来像卡顿。
@@ -983,6 +1034,7 @@ function scheduleRoamRefresh(): void {
   // ECharts 的 georoam 会按指针频率触发，逐帧 getOption + setOption 是手机上掉帧的主因
   roamRefreshTimer = window.setTimeout(() => {
     roamRefreshTimer = null
+    liveZoom = false
     const instance = chart.value
     if (instance === null || disposed) return
 
