@@ -19,8 +19,10 @@ import {
 } from '@/components/map/anhui-map-option'
 import {
   clusterGapForWidth,
+  clusterStartPosition,
   DEFAULT_CLUSTER_GAP,
   groupOverlappingMarkers,
+  markerClusterKey,
   type MarkerGroup,
 } from '@/components/map/cluster-sites'
 import { nudgeBall, stepBalls, type BallState, type Point } from '@/components/map/marker-physics'
@@ -62,6 +64,8 @@ if (reduceMotionQuery !== null) {
 
 /** 软碰撞半径：比针径小，球会推开一点但仍重叠 */
 const BALL_COLLIDE = 18
+/** 合并标签比单个球大，碰撞半径也大一点；仍保持轻压，不排成整齐圆环 */
+const CLUSTER_COLLIDE = 30
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
@@ -110,6 +114,13 @@ let currentData: MapScatterDatum[] = []
 let balls: BallState[] = []
 let ballHomes = new Map<string, Point>()
 let ballRAF: number | null = null
+/** 合并模式的簇也有小球物理：碰撞半径按数字标签大小取，合并/拆分时从旧位置吸附过去 */
+let clusterNodes: BallState[] = []
+let clusterHomes = new Map<string, Point>()
+let clusterRAF: number | null = null
+/** 每个项目上一次被画在屏幕上的位置，用来给拆分/合并找起点 */
+let clusterMemberPositions = new Map<string, Point>()
+let clusterStillFrames = 0
 /** 拖动/缩放时不要每个 georoam 都重建数据：防抖到停下后再刷新 */
 let roamRefreshTimer: number | null = null
 /** 漫游结束后的时间点：这段时间内物理循环让路，避免和地图重绘抢帧 */
@@ -465,6 +476,175 @@ function computeGroups(instance: EChartsType, minGap = DEFAULT_CLUSTER_GAP): Mar
 }
 
 /**
+ * 合并模式的簇也走同一套软碰撞物理：
+ * - 同一簇/新簇从旧位置出发，再被弹簧吸到新锚点；
+ * - 合并时取旧位置平均，拆分时所有新簇从旧簇位置出发；
+ * - 初次出现静默结算，避免首屏逐帧 setOption（TBT）。
+ */
+function syncClusters(instance: EChartsType, groups: MarkerGroup[]): void {
+  const previousNodes = new Map(clusterNodes.map((node) => [node.id, node]))
+  const previousHomes = clusterHomes
+  const next: BallState[] = []
+  const homes = new Map<string, Point>()
+
+  for (const group of groups) {
+    const point = instance.convertToPixel({ geoIndex: 0 }, [group.lng, group.lat])
+    if (!Array.isArray(point)) continue
+    const [x, y] = point as [number, number]
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+
+    // 与 toScatterData 保持一致：选中项会从簇里被单独拎出来，
+    // 所以簇的 key / 起始位置必须用「去掉选中项之后的成员」，
+    // 否则数据里的 clusterKey 和这里的 node.id 对不上，偏移永远应用不上。
+    const members = group.ids.filter((id) => id !== props.selectedId)
+    if (members.length < 2) continue
+    const key = markerClusterKey(members)
+    const home: Point = [x, y]
+    homes.set(key, home)
+    const old = previousNodes.get(key)
+    const oldHome = previousHomes.get(key)
+    const start: Point =
+      old === undefined
+        ? clusterStartPosition(members, clusterMemberPositions, home)
+        : oldHome === undefined
+          ? [old.x, old.y]
+          : // 同一簇、只是视野变了：跟着 home 平移，保留当前偏移
+            [old.x + (home[0] - oldHome[0]), old.y + (home[1] - oldHome[1])]
+    next.push({
+      id: key,
+      x: start[0],
+      y: start[1],
+      vx: 0,
+      vy: 0,
+    })
+  }
+
+  const initial = clusterNodes.length === 0
+  const sameSet =
+    previousNodes.size > 0 &&
+    next.length === previousNodes.size &&
+    next.every((node) => previousNodes.has(node.id))
+  clusterNodes = next
+  clusterHomes = homes
+  clusterStillFrames = 0
+
+  // 首屏/减少动效时静默结算；视野变化但簇组成没变时也不放动画——
+  // 否则每次拖动/缩放停下，地标都会从旧位置「吸」过去，看起来像卡顿。
+  if (initial || reduceMotion.value) {
+    settleClustersSilently()
+    return
+  }
+  // 视野变化但簇组成没变：直接按 home 平移，不放弹簧动画
+  if (sameSet) {
+    for (const node of clusterNodes) {
+      node.vx = 0
+      node.vy = 0
+    }
+    applyClusterOffsets()
+    return
+  }
+  kickClusters()
+}
+
+function settleClustersSilently(): void {
+  for (let i = 0; i < 240; i += 1) {
+    const speed = stepBalls(clusterNodes, clusterHomes, {
+      spring: 0.06,
+      damping: 0.72,
+      collide: CLUSTER_COLLIDE,
+      contact: 0.12,
+    })
+    if (speed < 0.02) break
+  }
+  for (const node of clusterNodes) {
+    node.vx = 0
+    node.vy = 0
+  }
+  applyClusterOffsets()
+}
+
+function applyClusterOffsets(): void {
+  const instance = chart.value
+  if (instance === null) return
+
+  const offsets = new Map<string, Point>()
+  const byKey = new Map<string, BallState>()
+  for (const node of clusterNodes) {
+    const home = clusterHomes.get(node.id)
+    if (home === undefined) continue
+    byKey.set(node.id, node)
+    const dx = node.x - home[0]
+    const dy = node.y - home[1]
+    if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) offsets.set(node.id, [dx, dy])
+  }
+
+  const data = currentData.map((datum) => {
+    const cluster = datum as Partial<ClusterScatterDatum>
+    if (cluster.clusterKey === undefined) return datum
+    const offset = offsets.get(cluster.clusterKey)
+    return offset === undefined ? datum : { ...datum, symbolOffset: offset }
+  })
+  instance.setOption({ series: [{ id: 'sites', data }] })
+
+  // 记下每个项目当前实际屏幕位置，下一次拆分/合并从这里出发
+  for (const datum of data) {
+    const cluster = datum as Partial<ClusterScatterDatum>
+    if (cluster.clusterKey === undefined || cluster.clusterIds === undefined) continue
+    const node = byKey.get(cluster.clusterKey)
+    if (node === undefined) continue
+    for (const id of cluster.clusterIds) {
+      clusterMemberPositions.set(id, [node.x, node.y])
+    }
+  }
+}
+
+function kickClusters(): void {
+  if (clusterRAF !== null || reduceMotion.value) return
+  clusterStillFrames = 0
+  clusterRAF = window.requestAnimationFrame(tickClusters)
+}
+
+function tickClusters(): void {
+  clusterRAF = null
+  if (!props.cluster || disposed) return
+  if (performance.now() < roamActiveUntil) {
+    clusterRAF = window.requestAnimationFrame(tickClusters)
+    return
+  }
+
+  const speed = stepBalls(clusterNodes, clusterHomes, {
+    spring: 0.06,
+    damping: 0.72,
+    collide: CLUSTER_COLLIDE,
+    contact: 0.12,
+  })
+  applyClusterOffsets()
+
+  if (speed < 0.02) clusterStillFrames += 1
+  else clusterStillFrames = 0
+
+  if (clusterStillFrames < 12) {
+    clusterRAF = window.requestAnimationFrame(tickClusters)
+    return
+  }
+
+  for (const node of clusterNodes) {
+    node.vx = 0
+    node.vy = 0
+  }
+  clusterStillFrames = 0
+  clusterRAF = null
+}
+
+function stopClusterAnimation(): void {
+  if (clusterRAF !== null) {
+    window.cancelAnimationFrame(clusterRAF)
+    clusterRAF = null
+  }
+  clusterStillFrames = 0
+}
+
+/**
  * 重画地标层。只替换 `series.data`（按 id 合并），不动 geo：
  * 用 notMerge 重建会把用户的缩放和拖拽状态一起清掉。
  */
@@ -481,9 +661,15 @@ function refreshMarkers(): void {
       themePalette(),
       FEATURED_ID_SET,
     )
-    instance.setOption({ series: [{ id: 'sites', data: currentData }] })
+    syncClusters(instance, groups)
+    applyClusterOffsets()
     return
   }
+
+  stopClusterAnimation()
+  clusterNodes = []
+  clusterHomes = new Map()
+  clusterMemberPositions = new Map()
 
   // 不合并：每个项目单独画，重叠的交给「软碰撞小球的物理模拟」互相挤开一点
   currentData = toScatterData(
@@ -690,28 +876,38 @@ function handlePointerMove(params: unknown): void {
 function handleMarkerHover(params: unknown): void {
   const payload = params as {
     seriesId?: string
-    data?: { siteId?: string }
+    data?: { siteId?: string; clusterIds?: string[] }
     event?: { offsetX?: number; offsetY?: number }
   }
   if (payload.seriesId !== 'sites') return
-  const id = payload.data?.siteId
-  if (typeof id !== 'string') return
   if (reduceMotion.value) return
-  const ball = balls.find((item) => item.id === id)
-  if (ball === undefined) return
 
   const now = performance.now()
-  if (now - (ballNudgeAt.get(id) ?? 0) < 260) return
-  ballNudgeAt.set(id, now)
-
-  // 用最近一次移动的速度；指针停住超过 150ms（或速度太小）就不碰球，
-  // 否则球被推走后会在静止的鼠标下来回触发 mouseover，看起来像永远在动。
+  const pointer: Point = [payload.event?.offsetX ?? 0, payload.event?.offsetY ?? 0]
   if (pointerLast === null || now - pointerLast.t > 150) return
   if (pointerSpeed < 0.15) return
 
-  const pointer: Point = [payload.event?.offsetX ?? ball.x, payload.event?.offsetY ?? ball.y]
+  const clusterIds = payload.data?.clusterIds
+  if (Array.isArray(clusterIds) && clusterIds.length > 1) {
+    const key = markerClusterKey(clusterIds)
+    const node = clusterNodes.find((item) => item.id === key)
+    if (node === undefined) return
+    if (now - (ballNudgeAt.get(key) ?? 0) < 260) return
+    ballNudgeAt.set(key, now)
+    const strength = Math.min(6, pointerSpeed * 2.2)
+    nudgeBall(node, [pointer[0] || node.x, pointer[1] || node.y], strength)
+    kickClusters()
+    return
+  }
+
+  const id = payload.data?.siteId
+  if (typeof id !== 'string') return
+  const ball = balls.find((item) => item.id === id)
+  if (ball === undefined) return
+  if (now - (ballNudgeAt.get(id) ?? 0) < 260) return
+  ballNudgeAt.set(id, now)
   const strength = Math.min(6, pointerSpeed * 2.2)
-  nudgeBall(ball, pointer, strength)
+  nudgeBall(ball, [pointer[0] || ball.x, pointer[1] || ball.y], strength)
   kickBalls()
 }
 
@@ -1072,6 +1268,7 @@ onBeforeUnmount(() => {
     window.cancelAnimationFrame(ballRAF)
     ballRAF = null
   }
+  stopClusterAnimation()
   chart.value?.dispose()
   chart.value = null
 })

@@ -23,6 +23,36 @@ export function clusterGapForWidth(width: number): number {
   return width > 0 && width < NARROW_MAP_WIDTH ? NARROW_CLUSTER_GAP : DEFAULT_CLUSTER_GAP
 }
 
+/** 地标簇的稳定 key：成员 id 排序后拼接，用来在合并/拆分前后认出「同一簇」 */
+export function markerClusterKey(ids: readonly string[]): string {
+  return [...ids].sort().join('|')
+}
+
+/**
+ * 合并/拆分的起点计算。
+ *
+ * - 拆分：新簇成员都来自同一个旧簇，从旧位置出发；
+ * - 合并：旧簇的成员并进一个新簇，从旧位置的平均值出发；
+ * - 首次出现（没有旧位置）直接落到 home。
+ */
+export function clusterStartPosition(
+  ids: readonly string[],
+  previous: ReadonlyMap<string, PixelPoint>,
+  fallback: PixelPoint,
+): PixelPoint {
+  let sumX = 0
+  let sumY = 0
+  let count = 0
+  for (const id of ids) {
+    const point = previous.get(id)
+    if (point === undefined) continue
+    sumX += point[0]
+    sumY += point[1]
+    count += 1
+  }
+  return count === 0 ? fallback : [sumX / count, sumY / count]
+}
+
 /**
  * 按**屏幕像素**距离把地标合并成簇。
  *

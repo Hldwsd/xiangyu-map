@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   clusterGapForWidth,
+  clusterStartPosition,
   DEFAULT_CLUSTER_GAP,
   groupOverlappingMarkers,
+  markerClusterKey,
   NARROW_CLUSTER_GAP,
   type PixelPoint,
 } from '@/components/map/cluster-sites'
@@ -16,6 +18,31 @@ function rowProjection(gap: number) {
     return [index * gap, 0]
   }
 }
+
+describe('合并/拆分动画的起点', () => {
+  it('簇键与成员顺序无关，用于稳定找回上一帧', () => {
+    expect(markerClusterKey(['b', 'a'])).toBe(markerClusterKey(['a', 'b']))
+    expect(markerClusterKey(['b', 'a'])).toBe('a|b')
+  })
+
+  it('同一旧簇拆分时，新簇从旧位置出发', () => {
+    const old = new Map<string, PixelPoint>([
+      ['a', [100, 100]],
+      ['b', [100, 100]],
+    ])
+    expect(clusterStartPosition(['a'], old, [0, 0])).toEqual([100, 100])
+    expect(clusterStartPosition(['b'], old, [0, 0])).toEqual([100, 100])
+  })
+
+  it('多个旧簇合并时，从旧位置平均值出发；没有旧位置时回退 home', () => {
+    const old = new Map<string, PixelPoint>([
+      ['a', [100, 100]],
+      ['b', [200, 200]],
+    ])
+    expect(clusterStartPosition(['a', 'b'], old, [0, 0])).toEqual([150, 150])
+    expect(clusterStartPosition(['a', 'b'], new Map(), [320, 180])).toEqual([320, 180])
+  })
+})
 
 describe('groupOverlappingMarkers', () => {
   it('像素距离大于阈值时不合并', () => {

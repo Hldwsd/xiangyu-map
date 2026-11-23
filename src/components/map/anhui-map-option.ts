@@ -2,6 +2,7 @@ import type { EChartsOption } from 'echarts'
 
 import { categoryMarkerSymbol } from '@/components/icons/category-paths'
 import type { MarkerGroup } from '@/components/map/cluster-sites'
+import { markerClusterKey } from '@/components/map/cluster-sites'
 import { ANHUI_MAP_NAME } from '@/services/anhui-map-loader'
 import { DEFAULT_PALETTE, type ThemePalette } from '@/theme/theme'
 import type { Site, SiteCategory } from '@/types/site'
@@ -75,6 +76,10 @@ export interface ClusterScatterDatum {
   value: [number, number]
   clusterIds: string[]
   clusterNames: string[]
+  /** 成员排序后的稳定键，供合并/拆分动画找回上一帧 */
+  clusterKey?: string
+  /** 物理偏移（像素）；合并/拆分/悬停时临时写入 */
+  symbolOffset?: [number, number]
   /** 簇里是否含「本期精选」：含则描金环，避免折叠后推荐位完全看不出来 */
   featured: boolean
   count: number
@@ -243,6 +248,7 @@ export function toScatterData(
       value: [group.lng, group.lat],
       clusterIds: remainingIds,
       clusterNames: members.map((site) => site.name),
+      clusterKey: markerClusterKey(remainingIds),
       featured: hasFeatured,
       count,
       symbol: 'circle',
