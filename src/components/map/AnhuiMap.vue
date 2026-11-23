@@ -17,7 +17,12 @@ import {
   type OutlineRing,
   type RiverLine,
 } from '@/components/map/anhui-map-option'
-import { groupOverlappingMarkers, type MarkerGroup } from '@/components/map/cluster-sites'
+import {
+  clusterGapForWidth,
+  DEFAULT_CLUSTER_GAP,
+  groupOverlappingMarkers,
+  type MarkerGroup,
+} from '@/components/map/cluster-sites'
 import { nudgeBall, stepBalls, type BallState, type Point } from '@/components/map/marker-physics'
 import { clampViewCenter } from '@/components/map/view-clamp'
 import { pinchZoom } from '@/components/map/pinch-zoom'
@@ -42,7 +47,6 @@ echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRen
  * 两颗地标在屏幕上靠得比这个距离更近，就并成一颗带数字的点。
  * 略小于圆钉直径（36）：允许轻微重叠不合并，否则聚合会太激进。
  */
-const CLUSTER_MIN_GAP = 36
 /** 不合并时，屏幕距离小于它的地标才散开：只在「真的叠住」时动手，避免满屏引线 */
 const reduceMotionQuery =
   typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
@@ -442,7 +446,7 @@ function onZoomInput(event: Event): void {
 }
 
 /** 当前视野下的像素坐标 → 分组。拿不到投影时返回 undefined，退回「每个项目一颗」 */
-function computeGroups(instance: EChartsType, minGap = CLUSTER_MIN_GAP): MarkerGroup[] {
+function computeGroups(instance: EChartsType, minGap = DEFAULT_CLUSTER_GAP): MarkerGroup[] {
   const pixels = new Map<string, readonly [number, number] | null>()
 
   for (const site of props.sites) {
@@ -469,7 +473,7 @@ function refreshMarkers(): void {
   if (instance === null || status.value !== 'ready') return
 
   if (props.cluster) {
-    const groups = computeGroups(instance, CLUSTER_MIN_GAP)
+    const groups = computeGroups(instance, clusterGapForWidth(container.value?.clientWidth ?? 0))
     currentData = toScatterData(
       props.sites,
       props.selectedId,

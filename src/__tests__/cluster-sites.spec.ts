@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { groupOverlappingMarkers, type PixelPoint } from '@/components/map/cluster-sites'
+import {
+  clusterGapForWidth,
+  DEFAULT_CLUSTER_GAP,
+  groupOverlappingMarkers,
+  NARROW_CLUSTER_GAP,
+  type PixelPoint,
+} from '@/components/map/cluster-sites'
 import { sites } from '@/data/sites'
 
 /** 每个项目按数据顺序排成一行，间距可调 */
@@ -64,5 +70,14 @@ describe('groupOverlappingMarkers', () => {
 
   it('空输入返回空数组', () => {
     expect(groupOverlappingMarkers([], () => [0, 0], 15)).toEqual([])
+  })
+})
+
+describe('窄屏聚合半径', () => {
+  it('窄屏用更大的聚合半径，桌面保持 36px', () => {
+    expect(clusterGapForWidth(360)).toBe(NARROW_CLUSTER_GAP)
+    expect(clusterGapForWidth(430)).toBe(NARROW_CLUSTER_GAP)
+    expect(clusterGapForWidth(1024)).toBe(DEFAULT_CLUSTER_GAP)
+    expect(clusterGapForWidth(0)).toBe(DEFAULT_CLUSTER_GAP)
   })
 })
