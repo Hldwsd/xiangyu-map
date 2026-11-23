@@ -235,16 +235,21 @@ export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
 
   const titleChars = qsa<HTMLElement>('.hero__title .char')
   const introItems = qsa<HTMLElement>('[data-intro]')
-  gsap.set(titleChars, { yPercent: 115, rotate: 5 })
-  gsap.set(introItems, { y: 20, opacity: 0 })
-  gsap.set('.hero__frame-line', { scaleX: 0, scaleY: 0 })
-  gsap.set('.hero__scroll', { opacity: 0 })
-  gsap.set('.hero__seal', { opacity: 0, scale: 1.45, rotate: -16 })
-
   const length = map.outline.getTotalLength()
-  gsap.set(map.outline, { strokeDasharray: length, strokeDashoffset: length })
 
+  // 初始态写进时间线（而不是单独的 gsap.set）：
+  // 这样 restart() 会把首屏完整地重播一遍，回到顶端时不会先闪一下最终状态。
   timeline
+    .set(titleChars, { yPercent: 115, rotate: 5 })
+    .set(introItems, { y: 20, opacity: 0 })
+    .set('.hero__frame-line', { scaleX: 0, scaleY: 0 })
+    .set('.hero__scroll', { opacity: 0 })
+    .set('.hero__seal', { opacity: 0, scale: 1.45, rotate: -16 })
+    .set(map.outline, { strokeDasharray: length, strokeDashoffset: length })
+    .set(map.cityPaths, { opacity: 0 })
+    .set('.map__water, .map__river', { opacity: 0 })
+    .set([...map.siteDots, ...map.cityDots], { opacity: 0, scale: 0.2 })
+    .set(map.labels, { opacity: 0 })
     .to('.hero__frame-line--top, .hero__frame-line--bottom', {
       scaleX: 1,
       duration: 1.4,
