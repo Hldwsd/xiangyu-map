@@ -12,6 +12,17 @@ export interface MarkerGroup {
 /** 像素坐标，[x, y] */
 export type PixelPoint = readonly [number, number]
 
+/** 默认聚合半径（桌面） */
+export const DEFAULT_CLUSTER_GAP = 36
+/** 窄屏聚合半径：屏幕小，36px 仍会留下挤在一起的小球 */
+export const NARROW_CLUSTER_GAP = 48
+const NARROW_MAP_WIDTH = 520
+
+/** 按容器宽度选聚合半径；0 表示还没量到尺寸，按桌面处理 */
+export function clusterGapForWidth(width: number): number {
+  return width > 0 && width < NARROW_MAP_WIDTH ? NARROW_CLUSTER_GAP : DEFAULT_CLUSTER_GAP
+}
+
 /**
  * 按**屏幕像素**距离把地标合并成簇。
  *

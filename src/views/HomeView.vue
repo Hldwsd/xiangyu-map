@@ -13,6 +13,7 @@ import TopBar from '@/components/layout/TopBar.vue'
 import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { useSitesStore } from '@/stores/sites'
+import { shouldMergeMarkers } from '@/utils/map-defaults'
 
 const store = useSitesStore()
 const { filteredSites, selectedSite, selectedId } = storeToRefs(store)
@@ -29,8 +30,10 @@ const cityOpen = ref(false)
  * 区县层只作为找项目时的定位细节，菜单里可以关掉，选择记在本地。
  */
 const showDistricts = ref(localStorage.getItem('xy-show-districts') !== '0')
-/** 默认不合并：每个项目都点得中，不再有「数字标签挡住单个项目」 */
-const mergeMarkers = ref(localStorage.getItem('xy-merge-markers') === '1')
+/** 没有用户偏好时，窄屏默认合并重叠地标；桌面默认不合并 */
+const mergeMarkers = ref(
+  shouldMergeMarkers(localStorage.getItem('xy-merge-markers'), window.innerWidth),
+)
 watch(showDistricts, (value) => localStorage.setItem('xy-show-districts', value ? '1' : '0'))
 watch(mergeMarkers, (value) => localStorage.setItem('xy-merge-markers', value ? '1' : '0'))
 
