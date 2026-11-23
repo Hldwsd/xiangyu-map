@@ -2,6 +2,7 @@
 import { ALL_CITIES, useSitesStore } from '@/stores/sites'
 import { ANHUI_CITIES, type AnhuiCity } from '@/types/site'
 
+const props = defineProps<{ activeCity?: string | null }>()
 const store = useSitesStore()
 const emit = defineEmits<{ hover: [city: AnhuiCity | null] }>()
 
@@ -22,7 +23,7 @@ function toggle(city: AnhuiCity): void {
         :key="city"
         type="button"
         class="city"
-        :class="{ 'city--on': store.city === city }"
+        :class="{ 'city--on': store.city === city, 'city--hover': props.activeCity === city }"
         :aria-pressed="store.city === city"
         :disabled="store.cityCounts[city] === 0"
         @click="toggle(city)"
@@ -94,6 +95,12 @@ function toggle(city: AnhuiCity): void {
 .city--on {
   color: var(--ink);
   box-shadow: inset 0 -1px 0 var(--ink);
+}
+
+/* 地图上 hover 地标时的反向联动：只做轻微描边，不与选中态抢 */
+.city--hover:not(.city--on) {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
 .city:disabled {
