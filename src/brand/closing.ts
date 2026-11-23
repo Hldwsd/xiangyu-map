@@ -15,7 +15,11 @@ export function initClosing(): void {
     duration: 1.3,
     stagger: 0.12,
     ease: 'expo.out',
-    scrollTrigger: { trigger: '.closing__title', start: 'top 86%', once: true },
+    scrollTrigger: {
+      trigger: '.closing__title',
+      start: 'top 86%',
+      toggleActions: 'play none none reset',
+    },
   })
 
   gsap.from('.closing__seal', {
@@ -24,7 +28,11 @@ export function initClosing(): void {
     rotate: -16,
     duration: 0.9,
     ease: 'power4.out',
-    scrollTrigger: { trigger: '.closing', start: 'top 55%', once: true },
+    scrollTrigger: {
+      trigger: '.closing',
+      start: 'top 55%',
+      toggleActions: 'play none none reset',
+    },
   })
 
   const cta = qs<HTMLElement>('[data-magnetic]')

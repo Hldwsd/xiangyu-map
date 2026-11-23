@@ -335,7 +335,7 @@
 .map__dot:hover circle.map__dot-core,
 .map__dot:focus-visible circle.map__dot-core {
   fill: var(--ink);
-  r: 3.4;
+  r: 6.4;
 }
 
 .map__dot-ring {

@@ -91,13 +91,13 @@ function buildSiteDots(group: SVGGElement): SVGAElement[] {
     ring.setAttribute('class', 'map__dot-ring')
     ring.setAttribute('cx', String(x))
     ring.setAttribute('cy', String(y))
-    ring.setAttribute('r', isFeatured ? '6' : '4.4')
+    ring.setAttribute('r', isFeatured ? '9.5' : '7.2')
 
     const core = document.createElementNS(SVG_NS, 'circle')
     core.setAttribute('class', 'map__dot-core')
     core.setAttribute('cx', String(x))
     core.setAttribute('cy', String(y))
-    core.setAttribute('r', isFeatured ? '2.9' : '2.2')
+    core.setAttribute('r', isFeatured ? '5.2' : '4.4')
 
     anchor.append(ring, core)
     group.appendChild(anchor)
@@ -124,11 +124,11 @@ function buildCityDots(group: SVGGElement, cityPaths: Map<string, SVGPathElement
 
     const halo = document.createElementNS(SVG_NS, 'circle')
     halo.setAttribute('class', 'map__city-halo')
-    halo.setAttribute('r', '4.4')
+    halo.setAttribute('r', '7.2')
 
     const core = document.createElementNS(SVG_NS, 'circle')
     core.setAttribute('class', 'map__city-core')
-    core.setAttribute('r', '1.35')
+    core.setAttribute('r', '2.4')
 
     dot.append(halo, core)
     pin.appendChild(dot)
@@ -323,10 +323,10 @@ export function playHeroIntro(map: HeroMap): gsap.core.Timeline {
       // 之前 6 个精选环就是因此「飞」到了地图左上角
       gsap.fromTo(
         ring,
-        { opacity: 0.5, attr: { r: 4 } },
+        { opacity: 0.5, attr: { r: 7.2 } },
         {
           opacity: 0,
-          attr: { r: 14 },
+          attr: { r: 21 },
           duration: 2.8,
           repeat: -1,
           delay: 2.4,
