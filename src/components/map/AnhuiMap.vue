@@ -526,7 +526,14 @@ function applyCityHighlight(): void {
   if (instance === null || status.value !== 'ready') return
   const city = props.highlightCity ?? pulseCity.value ?? null
   const data = city === null ? [] : cityRings(city).map((coords) => ({ coords }))
-  instance.setOption({ series: [{ id: 'city-highlight', data }] })
+  // 选中态（没有 hover 其它城市）比 hover 再重一点：柔光更宽，卡片关掉才消失
+  const selected = props.highlightCity === null && pulseCity.value !== null
+  instance.setOption({
+    series: [
+      { id: 'city-highlight-halo', data, lineStyle: { width: selected ? 9 : 7 } },
+      { id: 'city-highlight', data, lineStyle: { width: selected ? 2.8 : 2.4 } },
+    ],
+  })
 }
 
 watch(
