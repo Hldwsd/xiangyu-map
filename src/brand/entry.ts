@@ -35,6 +35,7 @@ function createOverlay(): HTMLElement {
 }
 
 function runEntry(link: HTMLAnchorElement, event: MouseEvent): void {
+  sessionStorage.setItem('xy-from-brand', '1')
   const overlay = createOverlay()
   const x = ((event.clientX || window.innerWidth / 2) / window.innerWidth) * 100
   const y = ((event.clientY || window.innerHeight / 2) / window.innerHeight) * 100
