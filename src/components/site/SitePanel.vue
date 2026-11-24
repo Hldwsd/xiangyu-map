@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import { prefersReducedMotion } from '@/utils/motion'
 
@@ -81,14 +81,10 @@ function openDetail(event: MouseEvent): void {
         </template>
       </dl>
 
-      <RouterLink
-        class="panel__link"
-        :to="{ name: 'site-detail', params: { id: site.id } }"
-        @click="openDetail"
-      >
+      <button type="button" class="panel__link" @click="openDetail">
         查看详情
         <AppIcon name="next" :size="13" />
-      </RouterLink>
+      </button>
     </div>
   </article>
 </template>
@@ -230,6 +226,8 @@ function openDetail(event: MouseEvent): void {
 /* 主操作做成黑底按钮：面板里只有一个动作，让它明确是按钮而不是一行链接 */
 .panel__link {
   display: inline-flex;
+  font: inherit;
+  cursor: pointer;
   gap: 0.3rem;
   align-items: center;
   align-self: flex-start;

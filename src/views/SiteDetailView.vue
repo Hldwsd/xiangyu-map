@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
-import { loadGsap, prefersReducedMotion } from '@/utils/motion'
+import { prefersReducedMotion } from '@/utils/motion'
 
 import { useSitesStore } from '@/stores/sites'
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -227,74 +227,32 @@ function markBroken(url: string): void {
   brokenImages.value = new Set([...brokenImages.value, url])
 }
 
-/** 返回地图：把详情大图收成卡片大小飞回右侧，详情淡出，再回地图（卡片入场由预览卡自己完成） */
+/** 返回地图：记录大图当前矩形，回地图后由地图侧把它收进右侧卡片封面 */
 function backToMap(event: MouseEvent): void {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   event.preventDefault()
 
   store.selectSite(props.id)
 
-  if (prefersReducedMotion()) {
-    void router.push({ name: 'home' })
-    return
-  }
-
   const hero = document.querySelector<HTMLImageElement>('.detail__hero-img')
-  if (hero === null) {
+  if (prefersReducedMotion() || hero === null) {
     void router.push({ name: 'home' })
     return
   }
 
   const rect = hero.getBoundingClientRect()
-  const clone = hero.cloneNode(true) as HTMLImageElement
-  const desktop = window.innerWidth >= 900
-  const width = desktop
-    ? Math.min(320, window.innerWidth * 0.24)
-    : Math.min(240, window.innerWidth * 0.62)
-  const height = width * 0.56
-  clone.style.cssText = [
-    'position:fixed',
-    'left:' + rect.left + 'px',
-    'top:' + rect.top + 'px',
-    'width:' + rect.width + 'px',
-    'height:' + rect.height + 'px',
-    'object-fit:cover',
-    'border-radius:6px',
-    'z-index:80',
-    'pointer-events:none',
-    'box-shadow:0 18px 40px -24px rgb(28 26 23 / 45%)',
-  ].join(';')
-  document.body.append(clone)
-  hero.style.visibility = 'hidden'
-
-  void loadGsap()
-    .then((gsap) => {
-      gsap
-        .timeline({
-          onComplete: () => {
-            clone.remove()
-            void router.push({ name: 'home' })
-          },
-        })
-        .to(
-          clone,
-          {
-            left: desktop ? window.innerWidth - 64 - width : (window.innerWidth - width) / 2,
-            top: desktop ? 86 : window.innerHeight * 0.18,
-            width,
-            height,
-            opacity: 0.92,
-            duration: 0.45,
-            ease: 'power3.inOut',
-          },
-          0,
-        )
-        .to('.detail', { opacity: 0, y: 12, duration: 0.26, ease: 'power1.in' }, 0.16)
-    })
-    .catch(() => {
-      clone.remove()
-      void router.push({ name: 'home' })
-    })
+  sessionStorage.setItem(
+    'xy-return-flight',
+    JSON.stringify({
+      src: hero.src,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    }),
+  )
+  sessionStorage.setItem('xy-return-instant', '1')
+  void router.push({ name: 'home' })
 }
 </script>
 
