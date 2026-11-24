@@ -21,6 +21,8 @@ export interface GallerySite {
 export interface GalleryState {
   /** 螺旋旋转角，0–324° */
   spin: number
+  /** 0 = 只有 C 位平卡，1 = 全螺旋 + 凸面 */
+  intro: number
   /** 0 = 螺旋，1 = 地图 */
   map: number
 }
@@ -43,9 +45,11 @@ interface Card {
 const HELIX_COUNT = 10
 const CARD_ASPECT = 1200 / 630
 const HELIX_STEP = 36
-const HELIX_RADIUS = 1.45
-const HELIX_Y = 1.05
-const HELIX_W = 1.45
+const HELIX_RADIUS = 1.6
+const HELIX_Y = 1
+const HELIX_W = 1
+const HELIX_CURVE = 0.35
+const HELIX_STEP_RAD = (HELIX_STEP * Math.PI) / 180
 
 const COLS = 5
 const ROWS = 14
@@ -115,6 +119,23 @@ void main() {
 }
 `
 
+const LINE_VERTEX = `
+attribute vec3 aPos;
+uniform mat4 uProj;
+uniform mat4 uView;
+void main() {
+  gl_Position = uProj * uView * vec4(aPos, 1.0);
+}
+`
+
+const LINE_FRAGMENT = `
+precision mediump float;
+uniform vec4 uColor;
+void main() {
+  gl_FragColor = uColor;
+}
+`
+
 function compile(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type)
   if (shader === null) throw new Error('createShader failed')
@@ -142,6 +163,24 @@ function program(gl: WebGLRenderingContext): WebGLProgram {
     const log = gl.getProgramInfoLog(p)
     gl.deleteProgram(p)
     throw new Error(`program link failed: ${log ?? ''}`)
+  }
+  return p
+}
+
+function lineProgram(gl: WebGLRenderingContext): WebGLProgram {
+  const p = gl.createProgram()
+  if (p === null) throw new Error('createProgram failed')
+  const vs = compile(gl, gl.VERTEX_SHADER, LINE_VERTEX)
+  const fs = compile(gl, gl.FRAGMENT_SHADER, LINE_FRAGMENT)
+  gl.attachShader(p, vs)
+  gl.attachShader(p, fs)
+  gl.linkProgram(p)
+  gl.deleteShader(vs)
+  gl.deleteShader(fs)
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+    const log = gl.getProgramInfoLog(p)
+    gl.deleteProgram(p)
+    throw new Error(`line program link failed: ${log ?? ''}`)
   }
   return p
 }
@@ -370,13 +409,31 @@ export function createGalleryScene(
   }
 
   gl.useProgram(prog)
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-  gl.enableVertexAttribArray(aPos)
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
-  gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer)
-  gl.enableVertexAttribArray(aUv)
-  gl.vertexAttribPointer(aUv, 2, gl.FLOAT, false, 0, 0)
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  const bindCards = (): void => {
+    gl.useProgram(prog)
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+    gl.enableVertexAttribArray(aPos)
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer)
+    gl.enableVertexAttribArray(aUv)
+    gl.vertexAttribPointer(aUv, 2, gl.FLOAT, false, 0, 0)
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  }
+  bindCards()
+
+  let spiralLine: WebGLProgram | null = null
+  try {
+    spiralLine = lineProgram(gl)
+  } catch {
+    spiralLine = null
+  }
+  const linePos = spiralLine === null ? -1 : gl.getAttribLocation(spiralLine, 'aPos')
+  const lineProj = spiralLine === null ? null : gl.getUniformLocation(spiralLine, 'uProj')
+  const lineView = spiralLine === null ? null : gl.getUniformLocation(spiralLine, 'uView')
+  const lineColor = spiralLine === null ? null : gl.getUniformLocation(spiralLine, 'uColor')
+  const lineBuffer = gl.createBuffer()
+  const LINE_SEGMENTS = 180
+  const lineData = new Float32Array(LINE_SEGMENTS * 3)
 
   gl.enable(gl.BLEND)
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -440,7 +497,7 @@ export function createGalleryScene(
   let frame = 0
   let active = 0
   let lastActive = -1
-  let state: GalleryState = { spin: 0, map: 0 }
+  let state: GalleryState = { spin: 0, intro: 0, map: 0 }
   let mapActive = -1
   const canvasSize = { width: 0, height: 0, dpr: 1 }
 
@@ -465,7 +522,7 @@ export function createGalleryScene(
     gl.clear(gl.COLOR_BUFFER_BIT)
 
     const aspect = canvasSize.width / Math.max(1, canvasSize.height)
-    const cameraZ = 5.4 - 0.9 * smoothstep(0.2, 1, state.map)
+    const cameraZ = 6.8 - 2.3 * smoothstep(0.2, 1, state.map)
     const proj = perspective(45, aspect, 0.1, 50)
     const view = viewMatrix(cameraZ)
     gl.uniformMatrix4fv(uniforms.proj, false, proj)
@@ -499,6 +556,9 @@ export function createGalleryScene(
     const spin = (state.spin * Math.PI) / 180
     const front = state.spin / HELIX_STEP
     const offsetY = -(front - (HELIX_COUNT - 1) / 2) * HELIX_Y
+    const intro = state.intro
+    const othersReveal = smoothstep(0.02, 0.5, intro)
+    const curveIntro = smoothstep(0, 0.75, intro)
 
     const draws: {
       card: Card
@@ -520,29 +580,29 @@ export function createGalleryScene(
 
       if (state.map <= 0.0001) {
         if (!isHelix) continue
-        const angle = -(index * Math.PI * 2) / HELIX_COUNT + spin
+        const angle = -index * HELIX_STEP_RAD + spin
         const cos = Math.cos(angle)
-        if (cos < -0.02) continue
         const x = Math.sin(angle) * HELIX_RADIUS
         const z = Math.cos(angle) * HELIX_RADIUS
         const y = (index - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY
         const isActive = index === activeNow
         const width = HELIX_W * (isActive ? 1.07 : 1)
         const height = width / CARD_ASPECT
+        const baseOpacity = isActive ? 1 : cos >= 0 ? 0.4 + 0.45 * cos : 0.26
         draws.push({
           card,
           z,
           model: modelMatrix(x, y, z, angle, width, height),
-          opacity: isActive ? 1 : 0.42 + 0.45 * clamp01(cos),
+          opacity: isActive ? 1 : baseOpacity * othersReveal,
           active: isActive ? 1 : 0,
-          curve: 1.05,
+          curve: HELIX_CURVE * curveIntro,
           mask: 0,
         })
         continue
       }
 
       if (isHelix) {
-        const angle = -(index * Math.PI * 2) / HELIX_COUNT + spin
+        const angle = -index * HELIX_STEP_RAD + spin
         const fromX = Math.sin(angle) * HELIX_RADIUS
         const fromZ = Math.cos(angle) * HELIX_RADIUS
         const fromY = (index - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY
@@ -560,7 +620,7 @@ export function createGalleryScene(
           model: modelMatrix(x, y, z, rotation, width, height),
           opacity: lerp(1, 1, t),
           active: isActive && state.map < 0.95 ? 1 : 0,
-          curve: lerp(1.05, 0.08, t),
+          curve: lerp(HELIX_CURVE, 0.08, t),
           mask: mapProgress * t,
         })
       } else {
@@ -596,6 +656,32 @@ export function createGalleryScene(
       gl.drawElements(gl.TRIANGLES, geometry.indices.length, gl.UNSIGNED_SHORT, 0)
     }
 
+    // 一条很淡的金线沿着螺旋路径，直接把「这是螺旋」写出来。
+    if (spiralLine !== null && lineBuffer !== null && linePos >= 0) {
+      const lineAlpha = 0.5 * othersReveal * (1 - smoothstep(0.45, 0.65, state.map))
+      if (lineAlpha > 0.01) {
+        const maxAngle = (HELIX_COUNT - 1) * HELIX_STEP_RAD
+        const lineRadius = HELIX_RADIUS + 0.3
+        for (let j = 0; j < LINE_SEGMENTS; j += 1) {
+          const t = (j / (LINE_SEGMENTS - 1)) * maxAngle
+          const angle = -t + spin
+          lineData[j * 3] = Math.sin(angle) * lineRadius
+          lineData[j * 3 + 1] = (t / HELIX_STEP_RAD - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY
+          lineData[j * 3 + 2] = Math.cos(angle) * lineRadius
+        }
+        gl.useProgram(spiralLine)
+        gl.uniformMatrix4fv(lineProj, false, proj)
+        gl.uniformMatrix4fv(lineView, false, view)
+        gl.uniform4f(lineColor, 0.79, 0.63, 0.36, lineAlpha)
+        gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer)
+        gl.bufferData(gl.ARRAY_BUFFER, lineData, gl.DYNAMIC_DRAW)
+        gl.enableVertexAttribArray(linePos)
+        gl.vertexAttribPointer(linePos, 3, gl.FLOAT, false, 0, 0)
+        gl.drawArrays(gl.LINE_STRIP, 0, LINE_SEGMENTS)
+        bindCards()
+      }
+    }
+
     frame = requestAnimationFrame(draw)
   }
 
@@ -625,12 +711,14 @@ export function createGalleryScene(
       gl.deleteBuffer(positionBuffer)
       gl.deleteBuffer(uvBuffer)
       gl.deleteBuffer(indexBuffer)
+      if (lineBuffer !== null) gl.deleteBuffer(lineBuffer)
       for (const card of cards) {
         if (card.texture !== null) gl.deleteTexture(card.texture)
       }
       gl.deleteTexture(placeholder)
       if (mask !== null) gl.deleteTexture(mask.texture)
       gl.deleteProgram(prog)
+      if (spiralLine !== null) gl.deleteProgram(spiralLine)
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     },
   }

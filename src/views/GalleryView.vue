@@ -82,7 +82,7 @@ onMounted(async () => {
   const { ScrollTrigger } = await import('gsap/ScrollTrigger')
   gsap.registerPlugin(ScrollTrigger)
 
-  const state = { spin: 0, map: 0 }
+  const state = { spin: 0, intro: 0, map: 0 }
   const context = gsap.context(() => {
     const timeline = gsap.timeline({
       scrollTrigger: {
@@ -99,7 +99,8 @@ onMounted(async () => {
       },
     })
     timeline
-      .to(state, { spin: 324, duration: 0.5, ease: 'none' }, 0)
+      .to(state, { intro: 1, duration: 0.12, ease: 'power2.out' }, 0)
+      .to(state, { spin: 324, duration: 0.4, ease: 'none' }, 0.14)
       .to(state, { map: 1, duration: 0.35, ease: 'power2.inOut' }, 0.55)
     created.setState(state)
   }, root.value ?? undefined)
