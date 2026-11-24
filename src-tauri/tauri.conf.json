@@ -34,6 +34,12 @@
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "template": "nsis/installer.nsi",
+        "startMenuFolder": "乡遇安徽"
       }
     }
   }

@@ -14,6 +14,7 @@
 - 应用启动页是**品牌页**（`brand/index.html`），地图是品牌页的入口，不做独立启动器；
 - 前端以 `base=/` 构建后嵌入 `src-tauri`，通过 Tauri 自定义协议加载；
 - 打包目标先只做 **NSIS** 安装包，够比赛演示与拷贝安装；
+- 安装包图标用朱砂 logo；默认安装目录通过自定义 NSIS 模板固定为 `%LOCALAPPDATA%\xiangyu_map`，显示名仍是「乡遇安徽」；
 - 移动端（Tauri mobile / Capacitor）本轮不做，保留为 v0.2 候选，不在比赛版里塞 Capacitor。
 
 ## 代价与已知问题
