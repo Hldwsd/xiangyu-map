@@ -39,6 +39,7 @@ import {
 } from '@/services/anhui-map-loader'
 import { readThemePalette, type ThemePalette } from '@/theme/theme'
 import type { Site } from '@/types/site'
+import { ANHUI_BBOX } from '@/utils/region'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
 echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRenderer])
@@ -81,9 +82,10 @@ const FALLBACK_CENTER: [number, number] = [117.3, 31.8]
  * 放到 8 倍时视野只有零点几度，却只能停在固定框内，省域最西 / 最北的角永远看不到。
  */
 let provinceBBox: [[number, number], [number, number]] | null = null
+/** 夹取外框：取自 `region.ANHUI_BBOX`（与 site 数据校验同源，见 region.ts 注释） */
 const FALLBACK_BBOX: [[number, number], [number, number]] = [
-  [114.88, 29.39],
-  [119.65, 34.65],
+  [ANHUI_BBOX.minLng, ANHUI_BBOX.minLat],
+  [ANHUI_BBOX.maxLng, ANHUI_BBOX.maxLat],
 ]
 
 const props = defineProps<{
