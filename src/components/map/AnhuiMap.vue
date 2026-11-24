@@ -90,6 +90,10 @@ const FALLBACK_BBOX: [[number, number], [number, number]] = [
   [ANHUI_BBOX.maxLng, ANHUI_BBOX.maxLat],
 ]
 
+function colorSites(): Site[] {
+  return props.sites.length > 0 ? props.sites : (props.allSites ?? props.sites)
+}
+
 const props = defineProps<{
   sites: Site[]
   selectedId: string | null
@@ -103,6 +107,8 @@ const props = defineProps<{
   targetSiteId?: string | null
   /** 地图上划过的地标（如列表行鼠标划过）：非 null 时地图定位到该站点 */
   hoveredSiteId?: string | null
+  /** 全量站点：筛选结果为空时兜底算市域底色 */
+  allSites?: Site[]
 }>()
 
 const emit = defineEmits<{
@@ -387,6 +393,9 @@ function handleGeoRoam(): void {
 
   // 滚轮/双指缩放：zoom 一变就实时重新分组，不等松手
   const zoom = geoZoomFast()
+  if (zoom !== null && Number(zoom.toFixed(2)) !== zoomLevel.value) {
+    zoomLevel.value = Number(zoom.toFixed(2))
+  }
   if (zoom !== null && Math.abs(zoom - lastLiveZoom) > 0.05) {
     lastLiveZoom = zoom
     markLiveZoom()
@@ -496,7 +505,7 @@ function syncLayerMode(): void {
   const next: 'city' | 'district' = zoomLevel.value >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
   if (next === layerMode) return
   layerMode = next
-  layerRegions = buildLayerRegions(mapFeatures, layerMode)
+  layerRegions = buildLayerRegions(mapFeatures, layerMode, colorSites())
   chart.value?.setOption({ geo: { regions: layerRegions } })
   applyCityHighlight()
 }
@@ -1459,10 +1468,11 @@ function buildRiverLines(collection: { features: unknown[] } | null): RiverLine[
 function buildLayerRegions(
   features: TaggedFeature[],
   interactive: 'city' | 'district',
+  colorSites: Site[] = props.sites,
 ): MapRegionStyle[] {
   const paletteNow = themePalette()
   // choropleth：按市收录项目数上墨（0–1 个保持原色，2–3 / ≥4 各深一档）
-  const cityColors = buildCityAreaColors(props.sites, paletteNow)
+  const cityColors = buildCityAreaColors(colorSites, paletteNow)
   const regions: MapRegionStyle[] = []
 
   for (const feature of features) {
@@ -1559,7 +1569,7 @@ async function applyDistrictLayer(include: boolean): Promise<void> {
   const merged = mergeMapLayers(cachedCity, districts, cachedWater)
   mapFeatures = merged.features
   layerMode = zoom >= LAYER_SWITCH_ZOOM ? 'district' : 'city'
-  layerRegions = buildLayerRegions(mapFeatures, layerMode)
+  layerRegions = buildLayerRegions(mapFeatures, layerMode, colorSites())
   activeMapName = districts === null ? ANHUI_MAP_NAME : ANHUI_FULL_MAP_NAME
 
   echarts.registerMap(activeMapName, merged as Parameters<typeof echarts.registerMap>[1])
@@ -1595,7 +1605,7 @@ async function render(): Promise<void> {
     provinceBBox = bboxOfFeatures(merged.features)
     riverLines = buildRiverLines(rivers)
     layerMode = 'city'
-    layerRegions = buildLayerRegions(mapFeatures, layerMode)
+    layerRegions = buildLayerRegions(mapFeatures, layerMode, colorSites())
     echarts.registerMap(ANHUI_MAP_NAME, merged as Parameters<typeof echarts.registerMap>[1])
 
     if (chart.value === null) {

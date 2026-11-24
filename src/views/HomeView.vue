@@ -430,6 +430,7 @@ watch(listOpen, async (open) => {
     <div ref="mapShell" class="map-shell__map">
       <AnhuiMap
         :sites="filteredSites"
+        :all-sites="store.sites"
         :selected-id="selectedId"
         :show-districts="showDistricts"
         :cluster="mergeMarkers"
