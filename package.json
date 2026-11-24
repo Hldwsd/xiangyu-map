@@ -31,7 +31,10 @@
     "data:anhui-outline": "node scripts/fetch-anhui-outline.mjs",
     "data:bg-ink": "node scripts/make-bg-ink.mjs",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "android:prepare": "node scripts/prepare-android.mjs",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build --apk --target aarch64 --split-per-abi"
   },
   "dependencies": {
     "echarts": "^6.1.0",

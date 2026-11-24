@@ -28,7 +28,7 @@
   /* ---- 版式 ---- */
   --pad: clamp(1.25rem, 4.2vw, 4.75rem);
   --maxw: 1480px;
-  --topbar-h: 4.15rem;
+  --topbar-h: calc(4.15rem + env(safe-area-inset-top, 0px));
 
   --font-serif:
     'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif SC', 'Noto Serif CJK SC', 'SimSun',
@@ -387,7 +387,7 @@ html.scroll-locked body {
   align-items: center;
   gap: clamp(1.5rem, 4vw, 4rem);
   height: var(--topbar-h);
-  padding: 0 var(--pad);
+  padding: env(safe-area-inset-top, 0px) var(--pad) 0;
   background: rgb(242 235 222 / 84%);
   border-bottom: 1px solid rgb(23 20 15 / 8%);
   backdrop-filter: blur(12px) saturate(1.05);
@@ -396,7 +396,7 @@ html.scroll-locked body {
 /* 最上沿的一条「瓦」：深色只出现在这里 */
 .topbar::before {
   position: absolute;
-  inset: 0 0 auto;
+  inset: env(safe-area-inset-top, 0px) 0 auto;
   height: 4px;
   content: '';
   background: var(--ink);
