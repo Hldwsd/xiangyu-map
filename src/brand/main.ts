@@ -14,6 +14,7 @@ import { initChrome } from './chrome'
 import { initCities } from './cities'
 import { initClosing } from './closing'
 import { initCrafts } from './crafts'
+import { initMapEntry } from './entry'
 import { initHeroScroll, playHeroIntro, prepareHero } from './hero'
 import { runLoader } from './loader'
 import { initManifesto } from './manifesto'
@@ -47,6 +48,7 @@ if (window.location.hash === '') window.scrollTo(0, 0)
 const lenis = initSmoothScroll()
 initChrome(lenis)
 initStamp()
+initMapEntry()
 
 /** 开场播放时锁住滚动：纸还没拉开就滚，会把首屏位置和 pin 计算全带歪 */
 function setScrollLocked(locked: boolean): void {

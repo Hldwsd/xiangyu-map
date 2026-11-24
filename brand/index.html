@@ -116,7 +116,7 @@
         <a href="#cities"><i>03</i>十六城</a>
         <a href="#categories"><i>04</i>风物</a>
       </nav>
-      <a class="topbar__enter" href="../">
+      <a class="topbar__enter" href="../" data-map-entry>
         <span>进入地图</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 18 18 6M9 6h9v9" fill="none" stroke="currentColor" stroke-width="1.4" />
@@ -178,6 +178,19 @@
                 <dd><span data-count="7">7</span></dd>
               </div>
             </dl>
+
+            <a class="hero__enter" href="../" data-map-entry data-intro>
+              <span class="hero__enter-label">进入地图</span>
+              <span class="hero__enter-sub">16 座城 · 70 个项目</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h14M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.4"
+                />
+              </svg>
+            </a>
           </div>
 
           <figure class="hero__map-wrap">
@@ -481,7 +494,7 @@
       </dl>
       <div class="colophon__bottom">
         <span>MIT License · xiangyu-map</span>
-        <a href="../">返回地图 ↗</a>
+        <a href="../" data-map-entry>返回地图 ↗</a>
       </div>
     </footer>
 
