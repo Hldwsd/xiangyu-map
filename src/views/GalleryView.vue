@@ -17,19 +17,19 @@ const shareSites = sites.filter((site): site is ShareSite => Boolean(site.shareI
  * 十张精选不再固定挑头部项目，而是沿 70 张的顺序等距取：
  * 螺旋里看到的图，在图廊矩阵里也分落在上、中、下各部分。
  */
-const helixSites: ShareSite[] = []
+const stripSites: ShareSite[] = []
 const stride = (shareSites.length - 1) / (FEATURED_COUNT - 1)
 for (let i = 0; i < FEATURED_COUNT; i += 1) {
   const site = shareSites[Math.round(i * stride)]
-  if (site !== undefined && !helixSites.some((item) => item.id === site.id)) helixSites.push(site)
+  if (site !== undefined && !stripSites.some((item) => item.id === site.id)) stripSites.push(site)
 }
 for (const site of shareSites) {
-  if (helixSites.length >= FEATURED_COUNT) break
-  if (!helixSites.some((item) => item.id === site.id)) helixSites.push(site)
+  if (stripSites.length >= FEATURED_COUNT) break
+  if (!stripSites.some((item) => item.id === site.id)) stripSites.push(site)
 }
 const orderedSites: ShareSite[] = [
-  ...helixSites,
-  ...shareSites.filter((site) => !helixSites.some((item) => item.id === site.id)),
+  ...stripSites,
+  ...shareSites.filter((site) => !stripSites.some((item) => item.id === site.id)),
 ]
 
 const staticMode = ref(
@@ -40,9 +40,9 @@ const activeIndex = ref(0)
 const hudHidden = ref(false)
 const mapShown = ref(false)
 const current = computed<ShareSite | undefined>(
-  () => helixSites[activeIndex.value] ?? helixSites[0],
+  () => stripSites[activeIndex.value] ?? stripSites[0],
 )
-const staticFeaturedId = computed(() => helixSites[0]?.id ?? null)
+const staticFeaturedId = computed(() => stripSites[0]?.id ?? null)
 
 const root = ref<HTMLElement | null>(null)
 const stage = ref<HTMLElement | null>(null)
@@ -82,7 +82,7 @@ onMounted(async () => {
   const { ScrollTrigger } = await import('gsap/ScrollTrigger')
   gsap.registerPlugin(ScrollTrigger)
 
-  const state = { spin: 0, intro: 0, map: 0 }
+  const state = { slide: 0, intro: 0, map: 0 }
   const context = gsap.context(() => {
     const timeline = gsap.timeline({
       scrollTrigger: {
@@ -100,7 +100,7 @@ onMounted(async () => {
     })
     timeline
       .to(state, { intro: 1, duration: 0.12, ease: 'power2.out' }, 0)
-      .to(state, { spin: 324, duration: 0.4, ease: 'none' }, 0.14)
+      .to(state, { slide: 9, duration: 0.4, ease: 'none' }, 0.14)
       .to(state, { map: 1, duration: 0.35, ease: 'power2.inOut' }, 0.55)
     created.setState(state)
   }, root.value ?? undefined)
@@ -125,7 +125,7 @@ onBeforeUnmount(() => cleanup?.())
       <p class="gallery__eyebrow">分享图集 · {{ shareSites.length }} 张</p>
       <h1 class="gallery__title">把安徽，<br />收进七十张卡片。</h1>
       <p v-if="!staticMode" class="gallery__lede">
-        十张精选沿着一道竖螺旋往上转；再往下，{{ shareSites.length }} 张照片拼成安徽。
+        十张精选沿一条横向卡带滑过；再往下，{{ shareSites.length }} 张照片拼成安徽。
       </p>
       <p v-else class="gallery__lede">
         全部 {{ shareSites.length }} 张分享图排成一面墙；点开任意一张，回到它的项目页。
@@ -144,10 +144,14 @@ onBeforeUnmount(() => cleanup?.())
     >
       <canvas v-if="!staticMode" ref="canvas" class="stage__canvas" aria-hidden="true"></canvas>
 
+      <p v-if="!staticMode" class="stage__eyebrow" :class="{ 'is-hidden': hudHidden }">
+        精选 · 十处
+      </p>
+
       <div v-if="!staticMode" class="stage__hud" :class="{ 'is-hidden': hudHidden }">
         <span class="stage__count">
           {{ String(activeIndex + 1).padStart(2, '0') }} /
-          {{ String(helixSites.length).padStart(2, '0') }}
+          {{ String(stripSites.length).padStart(2, '0') }}
         </span>
         <h2 v-if="current" class="stage__name">{{ current.name }}</h2>
         <p v-if="current" class="stage__meta">{{ current.city }} · {{ current.category }}</p>
@@ -316,6 +320,26 @@ onBeforeUnmount(() => cleanup?.())
 
 .stage__hud.is-hidden {
   opacity: 0;
+}
+
+.stage__eyebrow {
+  position: absolute;
+  top: clamp(2rem, 5vh, 3.4rem);
+  left: clamp(1.4rem, 4vw, 3.5rem);
+  z-index: 3;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  color: var(--stage-gold);
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease;
+}
+
+.stage__eyebrow.is-hidden {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 .stage__count {
@@ -569,6 +593,7 @@ onBeforeUnmount(() => cleanup?.())
 
 @media (prefers-reduced-motion: reduce) {
   .stage__hud,
+  .stage__eyebrow,
   .stage__map-caption {
     transition: none;
   }

@@ -1,9 +1,9 @@
 /**
  * 分享图集 WebGL 场景。
  *
- * 所有照片都是带曲面弯曲的纹理平面：顶点着色器把平面沿 x 轴弯成弧，
- * 矩阵阶段再压平。上半段是竖螺旋，滚动时旋转并把当前卡送到画面中心；
- * 下半段 70 张照片飞进一个 5×14 的网格，再用安徽省轮廓纹理裁成地图。
+ * 上半段是横向的 3D 卡带：十张精选在一条浅浅的弧线上，C 位最大、两侧卡向中间转，
+ * 滚动时卡带向左滑，下一张从右侧进入中心；照片带轻微凸面。
+ * 下半段 70 张照片飞进 5×14 网格，再用安徽省轮廓纹理裁成地图。
  *
  * 不用 Three.js：只有一种平面、一个着色器、70 次 draw call，
  * 自己写投影矩阵就够，省一个 150 KB+ 的引擎。
@@ -19,11 +19,11 @@ export interface GallerySite {
 }
 
 export interface GalleryState {
-  /** 螺旋旋转角，0–324° */
-  spin: number
-  /** 0 = 只有 C 位平卡，1 = 全螺旋 + 凸面 */
+  /** 卡带滑到第几张（0–9，可带小数） */
+  slide: number
+  /** 0 = 只有 C 位平卡，1 = 整条卡带 + 凸面 */
   intro: number
-  /** 0 = 螺旋，1 = 地图 */
+  /** 0 = 卡带，1 = 地图 */
   map: number
 }
 
@@ -42,14 +42,14 @@ interface Card {
   target: { x: number; y: number; w: number; h: number; row: number; col: number }
 }
 
-const HELIX_COUNT = 10
+const STRIP_COUNT = 10
 const CARD_ASPECT = 1200 / 630
-const HELIX_STEP = 36
-const HELIX_RADIUS = 1.6
-const HELIX_Y = 1
-const HELIX_W = 1
-const HELIX_CURVE = 0.35
-const HELIX_STEP_RAD = (HELIX_STEP * Math.PI) / 180
+const STRIP_STEP = 1.34
+const STRIP_DEPTH = 0.55
+const STRIP_ROT = 0.24
+const STRIP_W = 1.42
+const STRIP_ACTIVE_W = 1.56
+const STRIP_CURVE = 0.22
 
 const COLS = 5
 const ROWS = 14
@@ -119,23 +119,6 @@ void main() {
 }
 `
 
-const LINE_VERTEX = `
-attribute vec3 aPos;
-uniform mat4 uProj;
-uniform mat4 uView;
-void main() {
-  gl_Position = uProj * uView * vec4(aPos, 1.0);
-}
-`
-
-const LINE_FRAGMENT = `
-precision mediump float;
-uniform vec4 uColor;
-void main() {
-  gl_FragColor = uColor;
-}
-`
-
 function compile(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type)
   if (shader === null) throw new Error('createShader failed')
@@ -163,24 +146,6 @@ function program(gl: WebGLRenderingContext): WebGLProgram {
     const log = gl.getProgramInfoLog(p)
     gl.deleteProgram(p)
     throw new Error(`program link failed: ${log ?? ''}`)
-  }
-  return p
-}
-
-function lineProgram(gl: WebGLRenderingContext): WebGLProgram {
-  const p = gl.createProgram()
-  if (p === null) throw new Error('createProgram failed')
-  const vs = compile(gl, gl.VERTEX_SHADER, LINE_VERTEX)
-  const fs = compile(gl, gl.FRAGMENT_SHADER, LINE_FRAGMENT)
-  gl.attachShader(p, vs)
-  gl.attachShader(p, fs)
-  gl.linkProgram(p)
-  gl.deleteShader(vs)
-  gl.deleteShader(fs)
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-    const log = gl.getProgramInfoLog(p)
-    gl.deleteProgram(p)
-    throw new Error(`line program link failed: ${log ?? ''}`)
   }
   return p
 }
@@ -236,6 +201,10 @@ function easeInOutCubic(t: number): number {
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
 }
 
 function lerp(a: number, b: number, t: number): number {
@@ -421,20 +390,6 @@ export function createGalleryScene(
   }
   bindCards()
 
-  let spiralLine: WebGLProgram | null = null
-  try {
-    spiralLine = lineProgram(gl)
-  } catch {
-    spiralLine = null
-  }
-  const linePos = spiralLine === null ? -1 : gl.getAttribLocation(spiralLine, 'aPos')
-  const lineProj = spiralLine === null ? null : gl.getUniformLocation(spiralLine, 'uProj')
-  const lineView = spiralLine === null ? null : gl.getUniformLocation(spiralLine, 'uView')
-  const lineColor = spiralLine === null ? null : gl.getUniformLocation(spiralLine, 'uColor')
-  const lineBuffer = gl.createBuffer()
-  const LINE_SEGMENTS = 180
-  const lineData = new Float32Array(LINE_SEGMENTS * 3)
-
   gl.enable(gl.BLEND)
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
   gl.disable(gl.DEPTH_TEST)
@@ -470,17 +425,17 @@ export function createGalleryScene(
     }
   })
 
-  // 十张螺旋图在矩阵里等距落位，不要把示例全挤在左上角；其余图补空位。
+  // 十张卡带图在矩阵里等距落位，不要把示例全挤在左上角；其余图补空位。
   const assignment: number[] = []
   const used = new Set<number>()
-  const spread = (targets.length - 1) / (HELIX_COUNT - 1)
-  for (let i = 0; i < HELIX_COUNT; i += 1) {
+  const spread = (targets.length - 1) / (STRIP_COUNT - 1)
+  for (let i = 0; i < STRIP_COUNT; i += 1) {
     const targetIndex = Math.round(i * spread)
     used.add(targetIndex)
     assignment.push(targetIndex)
   }
   let freeCell = 0
-  for (let i = HELIX_COUNT; i < targets.length; i += 1) {
+  for (let i = STRIP_COUNT; i < targets.length; i += 1) {
     while (used.has(freeCell)) freeCell += 1
     used.add(freeCell)
     assignment.push(freeCell)
@@ -497,7 +452,7 @@ export function createGalleryScene(
   let frame = 0
   let active = 0
   let lastActive = -1
-  let state: GalleryState = { spin: 0, intro: 0, map: 0 }
+  let state: GalleryState = { slide: 0, intro: 0, map: 0 }
   let mapActive = -1
   const canvasSize = { width: 0, height: 0, dpr: 1 }
 
@@ -522,16 +477,17 @@ export function createGalleryScene(
     gl.clear(gl.COLOR_BUFFER_BIT)
 
     const aspect = canvasSize.width / Math.max(1, canvasSize.height)
-    const cameraZ = 6.8 - 2.3 * smoothstep(0.2, 1, state.map)
+    const cameraZ = 5.4 - 0.9 * smoothstep(0.2, 1, state.map)
     const proj = perspective(45, aspect, 0.1, 50)
     const view = viewMatrix(cameraZ)
     gl.uniformMatrix4fv(uniforms.proj, false, proj)
     gl.uniformMatrix4fv(uniforms.view, false, view)
 
     const mapProgress = smoothstep(0.15, 0.9, state.map)
+    const stripActive = clamp(Math.round(state.slide), 0, STRIP_COUNT - 1)
 
     if (state.map > 0.001 && mapActive < 0) {
-      mapActive = Math.round(state.spin / HELIX_STEP) % HELIX_COUNT
+      mapActive = stripActive
       const centerIndex = Math.floor(ROWS / 2) * COLS + Math.floor(COLS / 2)
       const activeCard = cards[mapActive]
       const centerCard = cards.find(
@@ -544,8 +500,7 @@ export function createGalleryScene(
       }
     }
 
-    const activeNow =
-      state.map > 0.001 ? mapActive : Math.round(state.spin / HELIX_STEP) % HELIX_COUNT
+    const activeNow = state.map > 0.001 && mapActive >= 0 ? mapActive : stripActive
     active = activeNow
 
     if (state.map < 0.5 && active !== lastActive) {
@@ -553,12 +508,9 @@ export function createGalleryScene(
       options.onActive?.(active)
     }
 
-    const spin = (state.spin * Math.PI) / 180
-    const front = state.spin / HELIX_STEP
-    const offsetY = -(front - (HELIX_COUNT - 1) / 2) * HELIX_Y
     const intro = state.intro
-    const othersReveal = smoothstep(0.02, 0.5, intro)
-    const curveIntro = smoothstep(0, 0.75, intro)
+    const othersReveal = smoothstep(0.12, 0.55, intro)
+    const curveIntro = smoothstep(0, 0.7, intro)
 
     const draws: {
       card: Card
@@ -573,71 +525,77 @@ export function createGalleryScene(
     for (let index = 0; index < cards.length; index += 1) {
       const card = cards[index]
       if (card === undefined) continue
-      const isHelix = index < HELIX_COUNT
+      const isStrip = index < STRIP_COUNT
       const target = card.target
-      const delay = isHelix ? 0 : 0.02 + 0.12 * (((target.row + target.col) % 6) / 6)
+      const delay = isStrip ? 0 : 0.02 + 0.12 * (((target.row + target.col) % 6) / 6)
       const t = easeInOutCubic(clamp01((state.map - delay) / Math.max(0.001, 1 - delay)))
+      const d = index - state.slide
+      const absD = Math.abs(d)
 
       if (state.map <= 0.0001) {
-        if (!isHelix) continue
-        const angle = -index * HELIX_STEP_RAD + spin
-        const cos = Math.cos(angle)
-        const x = Math.sin(angle) * HELIX_RADIUS
-        const z = Math.cos(angle) * HELIX_RADIUS
-        const y = (index - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY
+        if (!isStrip) continue
         const isActive = index === activeNow
-        const width = HELIX_W * (isActive ? 1.07 : 1)
+        const width = isActive ? STRIP_ACTIVE_W : STRIP_W
         const height = width / CARD_ASPECT
-        const baseOpacity = isActive ? 1 : cos >= 0 ? 0.4 + 0.45 * cos : 0.26
+        const z = -Math.min(absD, 3) * STRIP_DEPTH
+        const rotation = -Math.max(-2, Math.min(2, d)) * STRIP_ROT
+        const opacity = isActive ? 1 : Math.max(0.18, 0.82 - absD * 0.24) * othersReveal
         draws.push({
           card,
           z,
-          model: modelMatrix(x, y, z, angle, width, height),
-          opacity: isActive ? 1 : baseOpacity * othersReveal,
+          model: modelMatrix(d * STRIP_STEP, 0, z, rotation, width, height),
+          opacity,
           active: isActive ? 1 : 0,
-          curve: HELIX_CURVE * curveIntro,
+          curve: STRIP_CURVE * curveIntro,
           mask: 0,
         })
+        if (othersReveal > 0.02) {
+          draws.push({
+            card,
+            z,
+            model: modelMatrix(d * STRIP_STEP, -height - 0.1, z, rotation, width, -height),
+            opacity: (isActive ? 0.16 : 0.08) * othersReveal,
+            active: 0,
+            curve: STRIP_CURVE * curveIntro,
+            mask: 0,
+          })
+        }
         continue
       }
 
-      if (isHelix) {
-        const angle = -index * HELIX_STEP_RAD + spin
-        const fromX = Math.sin(angle) * HELIX_RADIUS
-        const fromZ = Math.cos(angle) * HELIX_RADIUS
-        const fromY = (index - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY
-        const isActive = index === activeNow
-        const fromW = HELIX_W * (isActive ? 1.07 : 1)
+      if (isStrip) {
+        const fromW = index === activeNow ? STRIP_ACTIVE_W : STRIP_W
+        const fromX = d * STRIP_STEP
+        const fromZ = -Math.min(absD, 3) * STRIP_DEPTH
+        const fromRot = -Math.max(-2, Math.min(2, d)) * STRIP_ROT
         const x = lerp(fromX, target.x, t)
-        const y = lerp(fromY, target.y, t)
+        const y = lerp(0, target.y, t)
         const z = lerp(fromZ, 0, t)
-        const rotation = lerp(angle % (Math.PI * 2), 0, t)
+        const rotation = lerp(fromRot, 0, t)
         const width = lerp(fromW, target.w, t)
         const height = width / CARD_ASPECT
         draws.push({
           card,
           z,
           model: modelMatrix(x, y, z, rotation, width, height),
-          opacity: lerp(1, 1, t),
-          active: isActive && state.map < 0.95 ? 1 : 0,
-          curve: lerp(HELIX_CURVE, 0.08, t),
+          opacity: 1,
+          active: index === activeNow && state.map < 0.95 ? 1 : 0,
+          curve: lerp(STRIP_CURVE, 0.08, t),
           mask: mapProgress * t,
         })
       } else {
         const fromZ = -0.5
         const fromW = target.w * 0.9
-        const x = target.x
-        const y = target.y
-        const z = lerp(fromZ, 0, t)
         const width = lerp(fromW, target.w, t)
         const height = width / CARD_ASPECT
+        const z = lerp(fromZ, 0, t)
         draws.push({
           card,
           z,
-          model: modelMatrix(x, y, z, 0, width, height),
+          model: modelMatrix(target.x, target.y, z, 0, width, height),
           opacity: Math.min(1, state.map * 8),
           active: index === activeNow && state.map < 0.95 ? 1 : 0,
-          curve: lerp(0.35, 0.08, t),
+          curve: lerp(0.2, 0.08, t),
           mask: 1,
         })
       }
@@ -654,32 +612,6 @@ export function createGalleryScene(
       gl.uniform1f(uniforms.opacity, item.opacity)
       gl.uniform1f(uniforms.mapProgress, item.mask)
       gl.drawElements(gl.TRIANGLES, geometry.indices.length, gl.UNSIGNED_SHORT, 0)
-    }
-
-    // 一条很淡的金线沿着螺旋路径，直接把「这是螺旋」写出来。
-    if (spiralLine !== null && lineBuffer !== null && linePos >= 0) {
-      const lineAlpha = 0.5 * othersReveal * (1 - smoothstep(0.45, 0.65, state.map))
-      if (lineAlpha > 0.01) {
-        const maxAngle = (HELIX_COUNT - 1) * HELIX_STEP_RAD
-        const lineRadius = HELIX_RADIUS + 0.3
-        for (let j = 0; j < LINE_SEGMENTS; j += 1) {
-          const t = (j / (LINE_SEGMENTS - 1)) * maxAngle
-          const angle = -t + spin
-          lineData[j * 3] = Math.sin(angle) * lineRadius
-          lineData[j * 3 + 1] = (t / HELIX_STEP_RAD - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY
-          lineData[j * 3 + 2] = Math.cos(angle) * lineRadius
-        }
-        gl.useProgram(spiralLine)
-        gl.uniformMatrix4fv(lineProj, false, proj)
-        gl.uniformMatrix4fv(lineView, false, view)
-        gl.uniform4f(lineColor, 0.79, 0.63, 0.36, lineAlpha)
-        gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer)
-        gl.bufferData(gl.ARRAY_BUFFER, lineData, gl.DYNAMIC_DRAW)
-        gl.enableVertexAttribArray(linePos)
-        gl.vertexAttribPointer(linePos, 3, gl.FLOAT, false, 0, 0)
-        gl.drawArrays(gl.LINE_STRIP, 0, LINE_SEGMENTS)
-        bindCards()
-      }
     }
 
     frame = requestAnimationFrame(draw)
@@ -711,14 +643,12 @@ export function createGalleryScene(
       gl.deleteBuffer(positionBuffer)
       gl.deleteBuffer(uvBuffer)
       gl.deleteBuffer(indexBuffer)
-      if (lineBuffer !== null) gl.deleteBuffer(lineBuffer)
       for (const card of cards) {
         if (card.texture !== null) gl.deleteTexture(card.texture)
       }
       gl.deleteTexture(placeholder)
       if (mask !== null) gl.deleteTexture(mask.texture)
       gl.deleteProgram(prog)
-      if (spiralLine !== null) gl.deleteProgram(spiralLine)
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     },
   }
