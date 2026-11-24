@@ -10,9 +10,9 @@
   color-scheme: only light;
 
   /* ---- 纸与墨 ---- */
-  --paper: #f2ebde;
-  --paper-deep: #e8dcc7;
-  --paper-light: #faf5ea;
+  --paper: #f4eee2;
+  --paper-deep: #ede4d4;
+  --paper-light: #fbf6ea;
   --night: #14120f;
   --night-soft: #1d1a16;
   --ink: #17140f;
