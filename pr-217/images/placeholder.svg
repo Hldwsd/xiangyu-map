@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="封面占位图：纸本墨线山形，图片待替换">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5eb" />
+      <stop offset="100%" stop-color="#efe6d5" />
+    </linearGradient>
+    <pattern id="laid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0.5" x2="12" y2="0.5" stroke="#1c1a17" stroke-opacity="0.035" stroke-width="0.6" />
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#paper)" />
+  <rect width="1200" height="675" fill="url(#laid)" />
+
+  <g fill="none" stroke="#1c1a17" stroke-opacity="0.16" stroke-width="1.4">
+    <path d="M-20 520 C 140 440, 260 470, 390 430 S 640 380, 760 430 S 1040 500, 1220 440" />
+    <path d="M-20 560 C 160 500, 300 520, 430 490 S 660 450, 800 490 S 1060 540, 1220 500" />
+    <path d="M-20 600 C 180 550, 330 570, 470 545 S 700 510, 840 545 S 1080 580, 1220 550" />
+  </g>
+
+  <path
+    d="M110 470 C 210 380, 280 330, 350 350 C 400 365, 430 410, 470 450 C 520 400, 570 350, 640 330 C 720 305, 780 380, 840 440"
+    fill="none"
+    stroke="#1c1a17"
+    stroke-opacity="0.28"
+    stroke-width="2"
+  />
+  <path
+    d="M170 520 C 290 470, 420 500, 520 470 S 700 430, 820 470 S 1040 520, 1120 490"
+    fill="none"
+    stroke="#7e8c8a"
+    stroke-opacity="0.45"
+    stroke-width="3"
+  />
+  <path
+    d="M300 540 C 420 500, 500 520, 610 490 S 780 460, 900 500"
+    fill="none"
+    stroke="#b08a4a"
+    stroke-opacity="0.7"
+    stroke-width="1.6"
+  />
+  <circle cx="610" cy="490" r="3.2" fill="#b08a4a" />
+
+  <g font-family="'Songti SC','STSong','SimSun',serif" fill="#5a544b">
+    <text x="60" y="86" font-size="26" letter-spacing="6" fill-opacity="0.72">徽 州</text>
+    <text x="60" y="128" font-size="13" letter-spacing="3" fill-opacity="0.5">HUIZHOU · 16:9</text>
+    <text x="60" y="618" font-size="12" letter-spacing="2.4" fill-opacity="0.55">封面图待替换 · 示例数据</text>
+  </g>
+
+  <g transform="translate(1080 54)">
+    <rect width="46" height="46" fill="#1c1a17" />
+    <text
+      x="23"
+      y="31"
+      text-anchor="middle"
+      font-family="'Kaiti SC','STKaiti','KaiTi',serif"
+      font-size="22"
+      fill="#fbf6ea"
+    >
+      徽
+    </text>
+  </g>
+</svg>
