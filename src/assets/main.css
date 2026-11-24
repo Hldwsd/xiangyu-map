@@ -185,3 +185,8 @@ a {
 .panel::-webkit-scrollbar-thumb:hover {
   background: rgb(28 26 23 / 40%);
 }
+
+/* 视差目标提前提升为合成层：左侧版头卡片带背景/圆角/阴影，不提升时逐帧重绘会卡 */
+[data-parallax] {
+  will-change: transform;
+}
