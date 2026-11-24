@@ -51,6 +51,9 @@ const picks = computed(() =>
     <div class="rail__meta">
       <b>安徽省 · 16 个地级市</b>
       <span>底图：DataV.GeoAtlas · 封面来自公开资料</span>
+      <span class="rail__meta-warn">
+        公开登载需审图号（待办，见菜单 About）；底图需核验商用授权
+      </span>
       <span class="rail__credit">
         水系与河道 ©
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
@@ -293,6 +296,13 @@ const picks = computed(() =>
   font-weight: 500;
   color: var(--ink);
   letter-spacing: 0.16em;
+}
+
+/* 合规提示：审图号 / 授权两件事都是「上线前待办」，藏在菜单 About 里
+   会被推迟处理，这里放回版头可见处（要求非常见的外部合规闸门） */
+.rail__meta-warn {
+  font-size: 0.58rem;
+  color: var(--ink);
 }
 
 .rail__menu {

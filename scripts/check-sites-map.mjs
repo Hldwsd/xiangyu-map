@@ -36,7 +36,7 @@ function pointInRing(point, ring) {
     const [xi, yi] = ring[i]
     const [xj, yj] = ring[j]
     const [x, y] = point
-    const intersect = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+    const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
     if (intersect) inside = !inside
   }
   return inside
@@ -55,7 +55,8 @@ function buildCityPolygons(features) {
     if (typeof name !== 'string') continue
     const geometry = feature.geometry
     if (geometry?.type !== 'Polygon' && geometry?.type !== 'MultiPolygon') continue
-    const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : (geometry.coordinates ?? [])
+    const polys =
+      geometry.type === 'Polygon' ? [geometry.coordinates] : (geometry.coordinates ?? [])
     map.set(name, [...(map.get(name) ?? []), ...polys])
   }
   return map
@@ -93,11 +94,14 @@ for (const site of sites) {
 }
 
 const outsideOnly = insideOthers.filter((entry) => entry.others.length === 0)
-console.log(`地标位置与底图一致性检查：${sites.length} 条地标，底图 ${parsed.features?.length ?? 0} 要素\n`)
+console.log(
+  `地标位置与底图一致性检查：${sites.length} 条地标，底图 ${parsed.features?.length ?? 0} 要素\n`,
+)
 
 if (missingCity.length > 0) {
   console.log('✗ 底图缺少对应城市要素：')
-  for (const site of missingCity) console.log(`  - ${site.id}（${site.city}，${site.location.lng}, ${site.location.lat}）`)
+  for (const site of missingCity)
+    console.log(`  - ${site.id}（${site.city}，${site.location.lng}, ${site.location.lat}）`)
 }
 if (outsideOnly.length > 0) {
   console.log('✗ 坐标落在声称城市的轮廓之外：')
@@ -108,12 +112,17 @@ if (outsideOnly.length > 0) {
 if (insideOthers.length > 0) {
   console.log('⚠ 坐标落在其它城市轮廓内（市名或坐标可能写偏）：')
   for (const { site, point, others } of insideOthers) {
-    console.log(`  - ${site.id}（声称 ${site.city}，${point[0].toFixed(3)}, ${point[1].toFixed(3)}）-> 实测在 ${others.join('、')}`)
+    console.log(
+      `  - ${site.id}（声称 ${site.city}，${point[0].toFixed(3)}, ${point[1].toFixed(3)}）-> 实测在 ${others.join('、')}`,
+    )
   }
 }
 
 if (missingCity.length === 0 && outsideOnly.length === 0 && insideOthers.length === 0) {
   console.log(`✓ 全部 ${checked} 个点在声称的城市轮廓内`)
 } else {
+  console.log(
+    `✗ 共 ${missingCity.length + outside + insideOthers.length} 条地标有问题（缺城市要素 ${missingCity.length}，落在自身轮廓外 ${outside}，落在其它城市轮廓内 ${insideOthers.length}）`,
+  )
   process.exitCode = 1
 }
