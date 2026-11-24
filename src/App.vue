@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useSitesStore } from '@/stores/sites'
+import { startPeripheralParallax } from '@/utils/parallax'
 
 const route = useRoute()
 /** 首页是全屏地图，导航与页脚都收进菜单；其余页面保留常规头部与页脚 */
@@ -14,10 +15,17 @@ const chromeHidden = computed(() => route.name === 'home')
  * 之前页脚写死「64 条」，数据一删就与现状对不上，从此不再硬编码。
  */
 const siteCount = computed(() => useSitesStore().sites.length)
+
+let stopParallax: (() => void) | null = null
+onMounted(() => {
+  stopParallax = startPeripheralParallax()
+})
+onBeforeUnmount(() => stopParallax?.())
 </script>
 
 <template>
   <div class="app">
+    <div class="bg-ink" aria-hidden="true"></div>
     <header v-if="!chromeHidden" class="app__header">
       <RouterLink class="app__brand" :to="{ name: 'home' }">
         <span class="app__brand-name">乡遇安徽</span>

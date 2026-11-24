@@ -259,7 +259,7 @@ function sheetLeave(el: Element, done: () => void): void {
     <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
 
     <!-- 桌面右侧：选中卡片 + 城市索引（两张独立的卡） -->
-    <div class="home-side">
+    <div class="home-side" data-parallax>
       <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
         <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
       </Transition>
@@ -270,6 +270,7 @@ function sheetLeave(el: Element, done: () => void): void {
     <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
       <SitePanel
         v-if="selectedSite"
+        data-parallax
         class="map-shell__panel"
         :site="selectedSite"
         @close="store.selectSite(null)"
@@ -296,6 +297,7 @@ function sheetLeave(el: Element, done: () => void): void {
 
     <Transition :css="false" @enter="sheetEnter" @leave="sheetLeave">
       <SiteListSheet
+        data-parallax
         v-if="listOpen"
         class="map-shell__sheet"
         :sites="filteredSites"

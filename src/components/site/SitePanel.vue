@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -7,62 +6,14 @@ import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 
 import type { Site } from '@/types/site'
 import { assetUrl } from '@/utils/asset-url'
-import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
 defineProps<{ site: Site }>()
 
-const panel = ref<HTMLElement | null>(null)
-let stopParallax: (() => void) | null = null
-
-/**
- * 整张卡片的全局鼠标视差：指针在页面任意位置移动，卡片都按「相对视口中心」偏移 + 2° 内倾斜
- * （不要求鼠标移到卡片上）。只给精确指针设备；减少动效、触屏、加载失败都不做。
- */
-onMounted(() => {
-  if (prefersReducedMotion()) return
-  if (typeof window.matchMedia !== 'function') return
-  if (!window.matchMedia('(pointer: fine)').matches) return
-  const root = panel.value
-  if (root === null) return
-
-  void loadGsap()
-    .then((gsap) => {
-      gsap.set(root, { transformPerspective: 900 })
-      const xTo = gsap.quickTo(root, 'x', { duration: 0.45, ease: 'power2.out' })
-      const yTo = gsap.quickTo(root, 'y', { duration: 0.45, ease: 'power2.out' })
-      const ryTo = gsap.quickTo(root, 'rotationY', { duration: 0.5, ease: 'power2.out' })
-      const rxTo = gsap.quickTo(root, 'rotationX', { duration: 0.5, ease: 'power2.out' })
-      const onMove = (event: PointerEvent): void => {
-        const nx = Math.max(-0.5, Math.min(0.5, event.clientX / window.innerWidth - 0.5))
-        const ny = Math.max(-0.5, Math.min(0.5, event.clientY / window.innerHeight - 0.5))
-        xTo(nx * -8)
-        yTo(ny * -6)
-        ryTo(nx * 2)
-        rxTo(ny * -2)
-      }
-      const onLeave = (): void => {
-        xTo(0)
-        yTo(0)
-        ryTo(0)
-        rxTo(0)
-      }
-      window.addEventListener('pointermove', onMove, { passive: true })
-      document.addEventListener('pointerleave', onLeave)
-      stopParallax = () => {
-        window.removeEventListener('pointermove', onMove)
-        document.removeEventListener('pointerleave', onLeave)
-        gsap.killTweensOf(root)
-      }
-    })
-    .catch(() => {})
-})
-
-onBeforeUnmount(() => stopParallax?.())
 const emit = defineEmits<{ close: [] }>()
 </script>
 
 <template>
-  <article ref="panel" class="panel">
+  <article class="panel">
     <button type="button" class="panel__close" aria-label="关闭" @click="emit('close')">
       <AppIcon name="close" :size="15" />
     </button>

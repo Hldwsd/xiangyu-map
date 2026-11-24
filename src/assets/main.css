@@ -92,14 +92,15 @@ body {
  *
  * 素材路径用 CSS 相对路径，Vite 会按部署基地址改写成 /<repo>/assets/bg-ink-<hash>.svg。
  */
-body::before {
-  content: '';
+.bg-ink {
   position: fixed;
-  inset: 0;
+  inset: -28px;
   z-index: 0;
   pointer-events: none;
   background: url('./bg-ink.svg') center bottom / cover no-repeat;
   opacity: 0.62;
+  pointer-events: none;
+  will-change: transform;
   mix-blend-mode: multiply;
 }
 

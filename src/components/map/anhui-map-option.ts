@@ -511,7 +511,7 @@ export function buildAnhuiMapOption(
         polyline: true,
         lineStyle: {
           color: palette.mapBorder,
-          width: 1,
+          width: 1.4,
           opacity: 1,
           cap: 'round',
           join: 'round',
