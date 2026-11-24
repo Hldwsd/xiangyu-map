@@ -14,13 +14,62 @@ import AnhuiMap from '@/components/map/AnhuiMap.vue'
 import SitePanel from '@/components/site/SitePanel.vue'
 import { useSitesStore } from '@/stores/sites'
 import type { AnhuiCity } from '@/types/site'
+import { assetUrl } from '@/utils/asset-url'
 import { shouldMergeMarkers } from '@/utils/map-defaults'
 import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
 const store = useSitesStore()
 const { filteredSites, selectedSite, selectedId } = storeToRefs(store)
 
+const brandSeal = assetUrl('/brand/logo-red.webp')
 const total = computed(() => store.sites.length)
+
+function playBrandArrival(): void {
+  const shell = mapShell.value
+  if (shell === null) {
+    arrivingFromBrand.value = false
+    return
+  }
+  if (prefersReducedMotion()) {
+    arrivingFromBrand.value = false
+    return
+  }
+
+  void loadGsap()
+    .then((gsap) => {
+      const overlay = document.querySelector<HTMLElement>('.map-arrive')
+      if (overlay === null) return
+
+      gsap.set(shell, { transformOrigin: '50% 42%', opacity: 0.35, scale: 0.985 })
+      gsap.set(overlay, { clipPath: 'circle(150% at 50% 42%)' })
+
+      gsap
+        .timeline({
+          onComplete: () => {
+            arrivingFromBrand.value = false
+          },
+        })
+        .to('.map-arrive__inner', { opacity: 0, y: -10, duration: 0.35, ease: 'power1.in' }, 0)
+        .to(shell, { opacity: 1, scale: 1, duration: 0.85, ease: 'power2.out' }, 0.05)
+        .to(
+          overlay,
+          { clipPath: 'circle(0% at 50% 42%)', duration: 0.8, ease: 'power3.inOut' },
+          0.15,
+        )
+        .to(overlay, { opacity: 0, duration: 0.15 }, 0.85)
+    })
+    .catch(() => {
+      arrivingFromBrand.value = false
+    })
+}
+
+onMounted(() => {
+  if (sessionStorage.getItem('xy-from-brand') !== '1') return
+  sessionStorage.removeItem('xy-from-brand')
+  if (prefersReducedMotion()) return
+  arrivingFromBrand.value = true
+  void nextTick(() => playBrandArrival())
+})
 const menuOpen = ref(false)
 const listOpen = ref(false)
 /** 窄屏侧边抽屉：左「分类」、右「城市索引」 */
@@ -33,6 +82,8 @@ const siteCity = ref<string | null>(null)
 /** 鼠标划过列表行 / 地图地标（site-hover）：地图把它靠向，列表把它高亮 */
 const hoveredSiteId = ref<string | null>(null)
 const mapShell = ref<HTMLElement | null>(null)
+/** 从品牌页进入地图时，先盖一层墨色再「开卷」露出地图 */
+const arrivingFromBrand = ref(false)
 /** 搜索命中的第一条结果：非 null 时地图把它定位到（见 AnhuiMap 的 targetSiteId） */
 const targetSiteId = ref<string | null>(null)
 
@@ -269,6 +320,13 @@ watch(listOpen, async (open) => {
 
 <template>
   <div class="map-shell">
+    <div v-if="arrivingFromBrand" class="map-arrive" aria-hidden="true">
+      <div class="map-arrive__inner">
+        <img class="map-arrive__seal" :src="brandSeal" alt="" />
+        <p class="map-arrive__title">乡遇安徽</p>
+        <span class="map-arrive__meta">地图 · 一纸山河</span>
+      </div>
+    </div>
     <!--
       顶栏放在 DOM 最前：视觉上仍是浮在地图顶部，但 Tab 的第一站是菜单/搜索/列表，
       而不是地图的缩放条和分类图例。绝对定位不受文档顺序影响。
@@ -408,6 +466,42 @@ watch(listOpen, async (open) => {
 </template>
 
 <style scoped>
+.map-arrive {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.map-arrive__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  align-items: center;
+  color: var(--paper);
+}
+
+.map-arrive__seal {
+  width: 3.4rem;
+  height: auto;
+}
+
+.map-arrive__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: 0.22em;
+}
+
+.map-arrive__meta {
+  font-size: 0.64rem;
+  letter-spacing: 0.24em;
+  color: rgb(251 246 234 / 58%);
+}
+
 .map-shell {
   position: fixed;
   inset: 0;
