@@ -100,6 +100,27 @@ pnpm desktop:build   # 构建 NSIS 安装包
 
 产物：`src-tauri/target/release/bundle/nsis/` 下的 `*-setup.exe`，默认安装到 `%LOCALAPPDATA%\xiangyu_map`（文件夹用 ASCII，界面与窗口仍显示「乡遇安徽」）。安装包未签名，Windows 会提示“未知发布者”，比赛演示可接受。实现取舍见 [ADR 0005](docs/adr/0005-desktop-windows-tauri.md)。
 
+### Android（比赛演示）
+
+Tauri 2 的 Android 壳复用同一份 dist/，启动仍是品牌页，地图从品牌页进入。
+
+环境：Android SDK（platform 36 / build-tools 36）、NDK 27.0.12077973、JDK 21、Rust Android targets。
+
+`ash
+pnpm exec tauri android init --ci   # 生成 src-tauri/gen/android（已 gitignore）
+pnpm android:prepare                # 修正 Gradle Rust 任务工作目录 + 复制图标
+pnpm android:build                  # 产出 arm64 release APK（unsigned）
+pnpm android:dev                    # 连手机热更新调试
+`
+
+release APK 在 src-tauri/gen/android/app/build/outputs/apk/arm64/release/，比赛演示可用 Android debug keystore 签名：
+
+`ash
+"/build-tools/36.0.0/apksigner.bat" sign \
+  --ks "/.android/debug.keystore" --ks-pass pass:android --key-pass pass:android \
+  --out app-arm64-release-signed.apk app-arm64-release-unsigned.apk
+`
+
 ## 部署
 
 | 环境    | 地址                                         | 触发                                                                  |
