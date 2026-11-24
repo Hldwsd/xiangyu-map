@@ -100,12 +100,12 @@ function panelEnter(el: Element, done: () => void): void {
     .then((gsap) => {
       gsap.fromTo(
         el,
-        { opacity: 0, y: 18, scale: 0.985 },
+        { opacity: 0, y: 26, scale: 0.96 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.34,
+          duration: 0.38,
           ease: 'power3.out',
           clearProps: 'transform',
           onComplete: done,
@@ -132,9 +132,9 @@ function panelLeave(el: Element, done: () => void): void {
     .then((gsap) => {
       gsap.to(el, {
         opacity: 0,
-        y: 10,
-        scale: 0.99,
-        duration: 0.2,
+        y: 18,
+        scale: 0.985,
+        duration: 0.22,
         ease: 'power2.in',
         onComplete: done,
       })
@@ -260,16 +260,22 @@ function sheetLeave(el: Element, done: () => void): void {
 
     <!-- 桌面右侧：选中卡片 + 城市索引（两张独立的卡） -->
     <div class="home-side" data-parallax>
-      <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
-        <SitePanel v-if="selectedSite" :site="selectedSite" @close="store.selectSite(null)" />
+      <Transition :css="false" mode="out-in" @enter="panelEnter" @leave="panelLeave">
+        <SitePanel
+          v-if="selectedSite"
+          :key="selectedSite.id"
+          :site="selectedSite"
+          @close="store.selectSite(null)"
+        />
       </Transition>
       <CityIndex :active-city="siteCity" @hover="hoverCity = $event" />
     </div>
 
     <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->
-    <Transition :css="false" @enter="panelEnter" @leave="panelLeave">
+    <Transition :css="false" mode="out-in" @enter="panelEnter" @leave="panelLeave">
       <SitePanel
         v-if="selectedSite"
+        :key="selectedSite.id"
         data-parallax
         class="map-shell__panel"
         :site="selectedSite"
