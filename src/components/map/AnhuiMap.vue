@@ -66,6 +66,10 @@ const BALL_COLLIDE = 18
 /** 合并标签比单个球大，碰撞半径也大一点；仍保持轻压，不排成整齐圆环 */
 const CLUSTER_COLLIDE = 30
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
+const HANDHELD =
+  typeof window !== 'undefined' &&
+  (window.matchMedia?.('(pointer: coarse)').matches === true ||
+    /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent))
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
 const CLUSTER_TWEEN_MS = 320
@@ -919,7 +923,7 @@ function tickSingle(): void {
 }
 
 function startClusterTween(duration = 280): void {
-  if (reduceMotion.value) {
+  if (reduceMotion.value || HANDHELD) {
     settleClustersSilently()
     return
   }
@@ -977,7 +981,10 @@ function tickClusterTween(): void {
 }
 
 function kickClusters(): void {
-  if (reduceMotion.value) return
+  if (reduceMotion.value || HANDHELD) {
+    settleClustersSilently()
+    return
+  }
   // hover 要立刻接管：正在播的合并/拆分缓动先取消，
   // 否则它在下一帧发现 tween 为 null 就直接退出，hover 的力被吞掉。
   if (clusterRAF !== null) {
@@ -1614,7 +1621,8 @@ async function render(): Promise<void> {
         renderer: 'canvas',
         // 手机上 DPR 常 3+：整块 canvas 每帧按物理像素重绘，拖图会明显掉帧；
         // 封顶 2 倍，肉眼几乎无差，填充率直接降到 1/2～1/3
-        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, HANDHELD ? 1.5 : 2),
+        useDirtyRect: HANDHELD,
       })
       instance.on('click', handleChartClick)
       instance.on('mouseover', handleMarkerHover)
