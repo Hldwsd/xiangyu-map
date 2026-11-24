@@ -153,13 +153,17 @@ onBeforeUnmount(() => cleanup?.())
     <header class="gallery__intro">
       <p class="gallery__eyebrow">分享图集 · {{ shareSites.length }} 张</p>
       <h1 class="gallery__title">把安徽，<br />收进七十张卡片。</h1>
-      <p class="gallery__lede">
+      <p v-if="!staticMode" class="gallery__lede">
         十张精选沿着一道竖螺旋往上转；再往下，它们落回全部 {{ shareSites.length }}
         张分享图排成的墙里。
       </p>
+      <p v-else class="gallery__lede">
+        全部 {{ shareSites.length }} 张分享图排成一面墙；点开任意一张，回到它的项目页。
+      </p>
       <div class="gallery__meta">
         <span>向下滚动</span>
-        <span>10 张精选 / {{ shareSites.length }} 张全图</span>
+        <span v-if="!staticMode">10 张精选 / {{ shareSites.length }} 张全图</span>
+        <span v-else>{{ shareSites.length }} 张全图</span>
       </div>
     </header>
 
