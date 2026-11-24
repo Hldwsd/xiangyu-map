@@ -366,7 +366,7 @@ export const sites: Site[] = [
     category: '自然',
     province: '安徽省',
     city: '宿州市',
-    location: { lng: 116.95, lat: 34.02 },
+    location: { lng: 117.07, lat: 34.02 },
     summary: '萧县境内的山谷次生林，树龄老、夏季阴凉，山道不长但台阶密。',
     description:
       '皇藏峪在萧县东南，是皖北少见的成片次生林山谷，林下阴凉，夏天比平原舒服得多。\n\n山道以石阶为主，落差集中，走完约两三小时；谷内有几处与汉高祖传说相关的旧迹。',
@@ -570,7 +570,7 @@ export const sites: Site[] = [
     category: '乡村',
     province: '安徽省',
     city: '宣城市',
-    location: { lng: 118.16, lat: 30.42 },
+    location: { lng: 118.15, lat: 30.48 },
     summary: '泾县青弋江上的深潭，两岸村落与古渡相对，春天桃花开时最像诗里写的。',
     description:
       '桃花潭在泾县西南，青弋江在此转出一个深潭，两岸是村落、古渡与踏歌岸阁。\n\n它因李白《赠汪伦》而知名；清晨江面起雾时最好看，夏季可以坐竹筏，水浅处还能下水。',
@@ -640,7 +640,7 @@ export const sites: Site[] = [
     category: '红色',
     province: '安徽省',
     city: '宣城市',
-    location: { lng: 118.25, lat: 30.36 },
+    location: { lng: 118.25, lat: 30.51 },
     summary: '皖南事变的主要激战地，山坳里的旧址与纪念碑，适合安静走一趟。',
     description:
       '1941 年皖南事变中，新四军在茂林一带被围，山坳与溪谷间留下了多处战场遗址。\n\n镇上有纪念碑与旧址群；配合周边地形看，会更容易理解当年为什么在这里被围住。',
@@ -1316,7 +1316,10 @@ export const sites: Site[] = [
       duration: '2–3 小时',
       audience: '非遗体验、亲子、研学',
     },
-    sources: ['https://baike.baidu.com/item/中国宣纸文化园', 'https://www.ahjx.gov.cn/'],
+    sources: [
+      'https://www.ahjx.gov.cn/Content/show/1561353.html',
+      'https://www.ahjx.gov.cn/Content/show/1689940.html',
+    ],
     updatedAt: '2026-11-22',
   },
   {
