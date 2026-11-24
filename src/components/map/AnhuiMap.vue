@@ -73,6 +73,8 @@ const ZOOM_MIN = 0.9
 const ZOOM_MAX = 8
 /** 越过这个倍数后，可交互的从「市域」切成「区县」，避免两层同时高亮 */
 const LAYER_SWITCH_ZOOM = 1.9
+/** 搜索/筛选定位时的目标缩放：低于区县图层切换阈值，避免定位时重建图层闪白 */
+const FOCUS_ZOOM = 1.75
 /** 没有拖拽、没有漫游时的兜底中心（安徽省几何中心附近） */
 const FALLBACK_CENTER: [number, number] = [117.3, 31.8]
 /**
@@ -1721,7 +1723,10 @@ function locateSite(id: string | null | undefined): void {
   if (id === null || id === undefined || status.value !== 'ready') return
   const site = props.sites.find((item) => item.id === id)
   if (site === undefined) return
-  animateGeoTo([site.location.lng, site.location.lat], clampZoom(geoState().zoom + 0.7))
+  // 重复搜索只重新居中：低于目标值才放大到 FOCUS_ZOOM，已经更近就保持不变
+  const current = geoState().zoom
+  const target = Math.max(current, FOCUS_ZOOM)
+  animateGeoTo([site.location.lng, site.location.lat], clampZoom(target))
 }
 
 watch(
