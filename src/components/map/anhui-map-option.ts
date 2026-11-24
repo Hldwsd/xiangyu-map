@@ -421,7 +421,7 @@ export function buildAnhuiMapOption(
       animation: false,
       // 默认按底图完整范围自适应：16 个市必须全部在视野内，
       // 否则「某个市没有项目」会被误读成「那个市不存在」。
-      scaleLimit: { min: 0.9, max: 8 },
+      scaleLimit: { min: 0.9, max: 5 },
       selectedMode: false,
       /**
        * 留 8% 内边距。省界正好贴住画布边缘时，边界上地标的圆点会被裁掉一半，

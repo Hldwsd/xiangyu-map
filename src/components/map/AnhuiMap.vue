@@ -70,7 +70,7 @@ const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
 const CLUSTER_TWEEN_MS = 320
 const ZOOM_MIN = 0.9
-const ZOOM_MAX = 8
+const ZOOM_MAX = 5
 /** 越过这个倍数后，可交互的从「市域」切成「区县」，避免两层同时高亮 */
 const LAYER_SWITCH_ZOOM = 1.9
 /** 搜索/筛选定位时的目标缩放：低于区县图层切换阈值，避免定位时重建图层闪白 */
@@ -91,7 +91,8 @@ const FALLBACK_BBOX: [[number, number], [number, number]] = [
 ]
 
 function colorSites(): Site[] {
-  return props.sites.length > 0 ? props.sites : (props.allSites ?? props.sites)
+  // 市域底色始终按全量数据：搜索/筛选只影响地标，不改变地图的收录密度
+  return props.allSites ?? props.sites
 }
 
 const props = defineProps<{
