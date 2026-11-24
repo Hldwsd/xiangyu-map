@@ -65,6 +65,81 @@ function playBrandArrival(): void {
     })
 }
 
+interface ReturnFlight {
+  src: string
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+/** 从详情页返回：地图卡片先直接落位，再把详情大图以同一位置飞进卡片封面 */
+function playReturnFlight(): void {
+  const raw = sessionStorage.getItem('xy-return-flight')
+  if (raw === null) return
+  sessionStorage.removeItem('xy-return-flight')
+
+  let payload: ReturnFlight
+  try {
+    payload = JSON.parse(raw) as ReturnFlight
+  } catch {
+    return
+  }
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+
+  void loadGsap().then((gsap) => {
+    const seek = (attempt: number): void => {
+      const cover = [...document.querySelectorAll<HTMLImageElement>('.panel__cover')].find(
+        (item) => item.offsetParent !== null,
+      )
+      if (cover === undefined) {
+        if (attempt < 20) requestAnimationFrame(() => seek(attempt + 1))
+        else sessionStorage.removeItem('xy-return-instant')
+        return
+      }
+      sessionStorage.removeItem('xy-return-instant')
+      const target = cover.getBoundingClientRect()
+      cover.style.visibility = 'hidden'
+
+      const clone = document.createElement('img')
+      clone.src = payload.src
+      clone.alt = ''
+      clone.style.cssText = [
+        'position:fixed',
+        'left:' + payload.left + 'px',
+        'top:' + payload.top + 'px',
+        'width:' + payload.width + 'px',
+        'height:' + payload.height + 'px',
+        'object-fit:cover',
+        'border-radius:6px',
+        'z-index:90',
+        'pointer-events:none',
+        'box-shadow:0 18px 40px -24px rgb(28 26 23 / 45%)',
+      ].join(';')
+      document.body.append(clone)
+
+      gsap.to(clone, {
+        left: target.left,
+        top: target.top,
+        width: target.width,
+        height: target.height,
+        duration: 0.5,
+        ease: 'power3.inOut',
+        onComplete: () => {
+          clone.remove()
+          cover.style.visibility = ''
+          sessionStorage.removeItem('xy-return-instant')
+        },
+      })
+    }
+    seek(0)
+  })
+}
+
+onMounted(() => {
+  playReturnFlight()
+})
+
 onMounted(() => {
   if (sessionStorage.getItem('xy-from-brand') !== '1') return
   sessionStorage.removeItem('xy-from-brand')
@@ -160,6 +235,11 @@ function selectFromList(id: string): void {
 
 /** 选中卡片：淡入 + 轻微上浮；封面从 1.05 收回来 */
 function panelEnter(el: Element, done: () => void): void {
+  // 从详情页返回：卡片要直接出现在最终位置，给 View Transition 当 morph 目标
+  if (sessionStorage.getItem('xy-return-instant') === '1') {
+    done()
+    return
+  }
   if (prefersReducedMotion()) {
     done()
     return
