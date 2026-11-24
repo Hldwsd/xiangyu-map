@@ -119,13 +119,19 @@ def make_one(site: dict[str, str]) -> Path:
 
     # 底图明暗不可控：先压一层从 22% 开始的渐变，再给文字区加半透明底，
     # 保证白字在浅色博物馆/雪景封面上也能读。
-    overlay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
+    # 底部渐变与左侧压暗分成两层再叠加：
+    # 直接往同一张 overlay 上逐列画会把左 920px 的底部渐变覆盖掉，
+    # 在 x=920 处留下一条硬边，看起来像右侧盖了黑蒙版。
+    bottom = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(bottom)
     for y in range(H):
         t = max(0.0, (y - H * 0.22) / (H * 0.78))
-        od.line([(0, y), (W, y)], fill=(12, 10, 8, int(245 * t * t)))
+        bd.line([(0, y), (W, y)], fill=(12, 10, 8, int(245 * t * t)))
+    left = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(left)
     for x in range(920):
-        od.line([(x, 0), (x, H)], fill=(12, 10, 8, int(100 * (1 - x / 920))))
+        ld.line([(x, 0), (x, H)], fill=(12, 10, 8, int(100 * (1 - x / 920))))
+    overlay = Image.alpha_composite(bottom, left)
     img = Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
     draw = ImageDraw.Draw(img)
 
