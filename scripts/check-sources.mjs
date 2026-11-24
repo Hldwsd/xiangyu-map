@@ -63,6 +63,8 @@ const TITLE_EXEMPT = new Set([
   'https://www.fengyang.gov.cn/', // 凤阳县政府（小岗村、韭山洞，县属滁州市）
   'http://paper.people.com.cn/rmrbhwb/html/2017-03/16/content_1757786.htm', // 人民日报海外版（湖上升明月）
   'http://www.cnr.cn/ah/zt/anhuichuangxin/read/20190423/t20190423_524587528.shtml', // 央广网（创新馆，GB2312 编码 title 抓出乱码）
+  'https://www.ahjx.gov.cn/Content/show/1561353.html', // 宣纸文化园 AAAA 页；title 只写「宣纸文化园」，不含「中国/宣城」
+  'https://www.ahjx.gov.cn/Content/show/1689940.html', // 泾县政府宣纸技艺报道，title 不含「中国/宣城」
 ])
 
 function extractTitle(html) {
