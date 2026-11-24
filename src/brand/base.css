@@ -488,10 +488,9 @@ html.scroll-locked body {
   display: flex;
   gap: 0.9rem;
   align-items: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  color: var(--ink);
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+  color: var(--ink-soft);
 }
 
 .eyebrow__rule {
