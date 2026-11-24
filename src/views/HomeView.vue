@@ -30,6 +30,8 @@ const cityOpen = ref(false)
 const hoverCity = ref<AnhuiCity | null>(null)
 /** 鼠标划过地标时，反向高亮城市索引里的对应行 */
 const siteCity = ref<string | null>(null)
+/** 鼠标划过列表行 / 地图地标（site-hover）：地图把它靠向，列表把它高亮 */
+const hoveredSiteId = ref<string | null>(null)
 const mapShell = ref<HTMLElement | null>(null)
 /** 搜索命中的第一条结果：非 null 时地图把它定位到（见 AnhuiMap 的 targetSiteId） */
 const targetSiteId = ref<string | null>(null)
@@ -290,7 +292,9 @@ watch(listOpen, async (open) => {
         :cluster="mergeMarkers"
         :highlight-city="hoverCity"
         :target-site-id="targetSiteId"
+        :hovered-site-id="hoveredSiteId"
         @marker-hover="siteCity = $event"
+        @site-hover="hoveredSiteId = $event"
         @select="store.selectSite"
       />
     </div>
@@ -360,6 +364,8 @@ watch(listOpen, async (open) => {
         class="map-shell__sheet"
         :sites="filteredSites"
         :selected-id="selectedId"
+        :hovered-site-id="hoveredSiteId"
+        @hover="hoveredSiteId = $event"
         @select="selectFromList"
         @close="listOpen = false"
       />

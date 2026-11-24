@@ -21,6 +21,9 @@ function onInput(event: Event): void {
 
 <template>
   <div class="topbar">
+    <!-- 窄屏版头：HomeRail 在 1200px 以下隐藏，这里提供轻量品牌入口 -->
+    <span class="topbar__brand">乡遇安徽</span>
+
     <button type="button" class="topbar__icon" aria-label="打开菜单" @click="emit('menu')">
       <AppIcon name="menu" :size="18" />
     </button>
@@ -94,6 +97,22 @@ function onInput(event: Event): void {
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease;
+}
+
+/* 窄屏版头：与 HomeRail 同一品牌名，但不占主位，只是轻量入口 */
+.topbar__brand {
+  display: none;
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink);
+  letter-spacing: 0.14em;
+}
+
+@media (width <= 1199px) {
+  .topbar__brand {
+    display: inline-block;
+  }
 }
 
 .topbar__icon:hover {

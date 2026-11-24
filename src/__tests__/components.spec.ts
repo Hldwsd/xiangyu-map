@@ -180,6 +180,23 @@ describe('SiteListSheet', () => {
     expect(wrapper.findAll('.sheet__item')).toHaveLength(0)
     expect(wrapper.get('.sheet__empty').text()).toContain('没有匹配的项目')
   })
+
+  it('鼠标划过条目时抛 hover，hoveredSiteId 高亮对应行', async () => {
+    const first = sites[0]
+    if (first === undefined) throw new Error('测试数据为空')
+    const wrapper = mount(SiteListSheet, {
+      props: { sites, selectedId: null, hoveredSiteId: first.id },
+    })
+
+    const rows = wrapper.findAll('.sheet__item')
+    expect(rows[0]?.classes()).toContain('sheet__item--hovered')
+
+    await rows[0]?.trigger('mouseenter')
+    expect(wrapper.emitted('hover')?.[0]).toEqual([first.id])
+
+    await rows[0]?.trigger('mouseleave')
+    expect(wrapper.emitted('hover')?.[1]).toEqual([null])
+  })
 })
 
 describe('HomeRail', () => {
