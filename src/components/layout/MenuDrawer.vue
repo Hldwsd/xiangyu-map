@@ -115,7 +115,7 @@ function drawerLeave(el: Element, done: () => void): void {
       >
         <header class="drawer__header">
           <span class="drawer__brand">乡遇安徽</span>
-          <span class="drawer__tag">在地图上遇见一个文旅项目</span>
+          <span class="drawer__tag">一纸山河 · 十六画卷</span>
           <button type="button" class="drawer__close" aria-label="关闭菜单" @click="emit('close')">
             <AppIcon name="close" :size="16" />
           </button>
@@ -148,7 +148,7 @@ function drawerLeave(el: Element, done: () => void): void {
             <span>
               显示区县界
               <small
-                >默认开启：按区县看项目分布更准；官方标准图（皖S(2025)71号）只有 16 个地级市</small
+                >默认开启：按区县看项目分布更准；官方标准图（皖S(2025)71号）有 16 个地级市</small
               >
             </span>
           </label>
@@ -170,13 +170,10 @@ function drawerLeave(el: Element, done: () => void): void {
         <section class="drawer__section">
           <h2>关于</h2>
           <p>
-            「乡遇安徽」把安徽省 16
-            个地级市的文旅项目放在一张地图上：古镇、非遗、红色、自然、演艺、乡村、场馆七类，
-            按形状区分，点开看详情。
+            「乡遇安徽」一张地图收录十六城的文旅项目：古镇、非遗、红色、自然、演艺、乡村、场馆七类，以形区分，点开查看详情。
           </p>
           <p class="drawer__note">
-            当前
-            {{ siteCount }} 条数据的来源可逐条核验；封面来自公开资料，版权归原作者，底图与图层来源见
+            {{ siteCount }} 条数据的出处，条条可核；封面取自公开资料，版权归原作者，底图与图层来源见
             <code>public/maps/README.md</code>。
           </p>
           <p class="drawer__note">
