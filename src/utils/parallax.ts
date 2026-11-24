@@ -28,15 +28,24 @@ export function startPeripheralParallax(): () => void {
       const register = (): void => {
         const backdrop = document.querySelector<HTMLElement>(BACKDROP_SELECTOR)
         if (backdrop !== null && backdropX === null) {
-          backdropX = gsap.quickTo(backdrop, 'x', { duration: 0.6, ease: 'power2.out' })
-          backdropY = gsap.quickTo(backdrop, 'y', { duration: 0.6, ease: 'power2.out' })
+          backdropX = gsap.quickTo(backdrop, 'x', {
+            duration: 0.6,
+            ease: 'power2.out',
+            force3D: true,
+          })
+          backdropY = gsap.quickTo(backdrop, 'y', {
+            duration: 0.6,
+            ease: 'power2.out',
+            force3D: true,
+          })
         }
 
         for (const el of document.querySelectorAll<HTMLElement>(CARD_SELECTOR)) {
           if (cards.has(el)) continue
+          gsap.set(el, { z: 0.01 })
           cards.set(el, {
-            x: gsap.quickTo(el, 'x', { duration: 0.5, ease: 'power2.out' }),
-            y: gsap.quickTo(el, 'y', { duration: 0.5, ease: 'power2.out' }),
+            x: gsap.quickTo(el, 'x', { duration: 0.5, ease: 'power2.out', force3D: true }),
+            y: gsap.quickTo(el, 'y', { duration: 0.5, ease: 'power2.out', force3D: true }),
           })
         }
       }
