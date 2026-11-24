@@ -393,6 +393,14 @@ html.scroll-locked body {
   backdrop-filter: blur(12px) saturate(1.05);
 }
 
+/* 触屏设备关闭顶栏毛玻璃：整条 12px blur 在 WebView 滚动时很贵 */
+@media (pointer: coarse), (hover: none) {
+  .topbar {
+    background: rgb(242 235 222 / 97%);
+    backdrop-filter: none;
+  }
+}
+
 /* 最上沿的一条「瓦」：深色只出现在这里 */
 .topbar::before {
   position: absolute;
