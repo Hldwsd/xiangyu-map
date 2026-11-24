@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useFocusTrap } from '@/composables/use-focus-trap'
+import { goToBrand } from '@/utils/brand-transition'
 import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 import { assetUrl } from '@/utils/asset-url'
 
@@ -43,6 +44,12 @@ watch(
   },
 )
 onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
+
+/** 品牌页是独立静态页：先播墨色扩散，再整页跳转 */
+function onBrandClick(event: MouseEvent): void {
+  goToBrand(event, brandHref)
+  emit('close')
+}
 
 /** 打开：遮罩淡入 + 面板从左滑入；关闭时反向，动画结束再卸载 */
 function drawerEnter(el: Element, done: () => void): void {
@@ -124,7 +131,7 @@ function drawerLeave(el: Element, done: () => void): void {
             <AppIcon name="map" :size="16" />
             <span>回到地图</span>
           </RouterLink>
-          <a class="drawer__item" :href="brandHref" @click="emit('close')">
+          <a class="drawer__item" :href="brandHref" @click="onBrandClick">
             <AppIcon name="external" :size="16" />
             <span>品牌页 · 一纸山河</span>
           </a>
