@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import { useFocusTrap } from '@/composables/use-focus-trap'
+import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 import { assetUrl } from '@/utils/asset-url'
 
 const props = defineProps<{
@@ -42,109 +43,161 @@ watch(
   },
 )
 onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
+
+/** 打开：遮罩淡入 + 面板从左滑入；关闭时反向，动画结束再卸载 */
+function drawerEnter(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  const panel = el.querySelector<HTMLElement>('.drawer__panel')
+  const backdrop = el.querySelector<HTMLElement>('.drawer__backdrop')
+  void loadGsap()
+    .then((gsap) => {
+      if (backdrop) gsap.fromTo(backdrop, { opacity: 0 }, { opacity: 1, duration: 0.2 })
+      if (panel) {
+        gsap.fromTo(
+          panel,
+          { x: '-100%' },
+          { x: '0%', duration: 0.28, ease: 'power2.out', onComplete: done },
+        )
+      } else {
+        done()
+      }
+    })
+    .catch(() => done())
+}
+
+function drawerLeave(el: Element, done: () => void): void {
+  if (prefersReducedMotion()) {
+    done()
+    return
+  }
+  const panel = el.querySelector<HTMLElement>('.drawer__panel')
+  const backdrop = el.querySelector<HTMLElement>('.drawer__backdrop')
+  void loadGsap()
+    .then((gsap) => {
+      if (backdrop) gsap.to(backdrop, { opacity: 0, duration: 0.2 })
+      if (panel) {
+        gsap.to(panel, {
+          x: '-100%',
+          duration: 0.22,
+          ease: 'power2.in',
+          onComplete: done,
+        })
+      } else {
+        done()
+      }
+    })
+    .catch(() => done())
+}
 </script>
 
 <template>
-  <div v-if="open" class="drawer">
-    <button type="button" class="drawer__backdrop" aria-label="关闭菜单" @click="emit('close')" />
+  <Transition :css="false" @enter="drawerEnter" @leave="drawerLeave">
+    <div v-if="open" class="drawer">
+      <button type="button" class="drawer__backdrop" aria-label="关闭菜单" @click="emit('close')" />
 
-    <aside
-      ref="panel"
-      class="drawer__panel"
-      role="dialog"
-      aria-modal="true"
-      aria-label="菜单"
-      tabindex="-1"
-    >
-      <header class="drawer__header">
-        <span class="drawer__brand">乡遇安徽</span>
-        <span class="drawer__tag">在地图上遇见一个文旅项目</span>
-        <button type="button" class="drawer__close" aria-label="关闭菜单" @click="emit('close')">
-          <AppIcon name="close" :size="16" />
-        </button>
-      </header>
+      <aside
+        ref="panel"
+        class="drawer__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="菜单"
+        tabindex="-1"
+      >
+        <header class="drawer__header">
+          <span class="drawer__brand">乡遇安徽</span>
+          <span class="drawer__tag">在地图上遇见一个文旅项目</span>
+          <button type="button" class="drawer__close" aria-label="关闭菜单" @click="emit('close')">
+            <AppIcon name="close" :size="16" />
+          </button>
+        </header>
 
-      <nav class="drawer__nav">
-        <button type="button" class="drawer__item" @click="emit('open-list')">
-          <AppIcon name="all" :size="16" />
-          <span>项目列表</span>
-          <span class="drawer__count">{{ siteCount }}</span>
-        </button>
-        <RouterLink class="drawer__item" :to="{ name: 'home' }" @click="emit('close')">
-          <AppIcon name="map" :size="16" />
-          <span>回到地图</span>
-        </RouterLink>
-        <a class="drawer__item" :href="brandHref" @click="emit('close')">
-          <AppIcon name="external" :size="16" />
-          <span>品牌页 · 一纸山河</span>
-        </a>
-      </nav>
+        <nav class="drawer__nav">
+          <button type="button" class="drawer__item" @click="emit('open-list')">
+            <AppIcon name="all" :size="16" />
+            <span>项目列表</span>
+            <span class="drawer__count">{{ siteCount }}</span>
+          </button>
+          <RouterLink class="drawer__item" :to="{ name: 'home' }" @click="emit('close')">
+            <AppIcon name="map" :size="16" />
+            <span>回到地图</span>
+          </RouterLink>
+          <a class="drawer__item" :href="brandHref" @click="emit('close')">
+            <AppIcon name="external" :size="16" />
+            <span>品牌页 · 一纸山河</span>
+          </a>
+        </nav>
 
-      <section class="drawer__section">
-        <h2>地图图层</h2>
-        <label class="drawer__toggle">
-          <input
-            type="checkbox"
-            :checked="showDistricts"
-            @change="emit('update:show-districts', ($event.target as HTMLInputElement).checked)"
-          />
-          <span>
-            显示区县界
-            <small
-              >默认开启：按区县看项目分布更准；官方标准图（皖S(2025)71号）只有 16 个地级市</small
-            >
-          </span>
-        </label>
-        <label class="drawer__toggle">
-          <input
-            type="checkbox"
-            :checked="mergeMarkers"
-            @change="emit('update:merge-markers', ($event.target as HTMLInputElement).checked)"
-          />
-          <span>
-            合并重叠标签
-            <small>默认关闭：每个项目单独画，方便逐个点选；打开后靠得近的项目会合成一个数字</small>
-          </span>
-        </label>
-      </section>
+        <section class="drawer__section">
+          <h2>地图图层</h2>
+          <label class="drawer__toggle">
+            <input
+              type="checkbox"
+              :checked="showDistricts"
+              @change="emit('update:show-districts', ($event.target as HTMLInputElement).checked)"
+            />
+            <span>
+              显示区县界
+              <small
+                >默认开启：按区县看项目分布更准；官方标准图（皖S(2025)71号）只有 16 个地级市</small
+              >
+            </span>
+          </label>
+          <label class="drawer__toggle">
+            <input
+              type="checkbox"
+              :checked="mergeMarkers"
+              @change="emit('update:merge-markers', ($event.target as HTMLInputElement).checked)"
+            />
+            <span>
+              合并重叠标签
+              <small
+                >默认关闭：每个项目单独画，方便逐个点选；打开后靠得近的项目会合成一个数字</small
+              >
+            </span>
+          </label>
+        </section>
 
-      <section class="drawer__section">
-        <h2>关于</h2>
-        <p>
-          「乡遇安徽」把安徽省 16
-          个地级市的文旅项目放在一张地图上：古镇、非遗、红色、自然、演艺、乡村、场馆七类，
-          按形状区分，点开看详情。
-        </p>
-        <p class="drawer__note">
-          当前
-          {{ siteCount }} 条数据的来源可逐条核验；封面来自公开资料，版权归原作者，底图与图层来源见
-          <code>public/maps/README.md</code>。
-        </p>
-        <p class="drawer__note">
-          行政区划依据：安徽省自然资源厅《安徽省示意图（一）》（审图号
-          皖S(2025)71号）——该标准图只划分 16 个地级市，因此区县界只是补充图层，可在上方按需关掉。
-        </p>
-        <p class="drawer__note">背景书法：邓石如《少学琴书册》（清代，公有领域）。</p>
-        <p class="drawer__note">
-          湖泊与河道数据 ©
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noopener noreferrer"
-            >OpenStreetMap contributors</a
-          >，按 ODbL 授权；底图轮廓来自 DataV.GeoAtlas。
-        </p>
-      </section>
+        <section class="drawer__section">
+          <h2>关于</h2>
+          <p>
+            「乡遇安徽」把安徽省 16
+            个地级市的文旅项目放在一张地图上：古镇、非遗、红色、自然、演艺、乡村、场馆七类，
+            按形状区分，点开看详情。
+          </p>
+          <p class="drawer__note">
+            当前
+            {{ siteCount }} 条数据的来源可逐条核验；封面来自公开资料，版权归原作者，底图与图层来源见
+            <code>public/maps/README.md</code>。
+          </p>
+          <p class="drawer__note">
+            行政区划依据：安徽省自然资源厅《安徽省示意图（一）》（审图号
+            皖S(2025)71号）——该标准图只划分 16 个地级市，因此区县界只是补充图层，可在上方按需关掉。
+          </p>
+          <p class="drawer__note">背景书法：邓石如《少学琴书册》（清代，公有领域）。</p>
+          <p class="drawer__note">
+            湖泊与河道数据 ©
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noopener noreferrer"
+              >OpenStreetMap contributors</a
+            >，按 ODbL 授权；底图轮廓来自 DataV.GeoAtlas。
+          </p>
+        </section>
 
-      <footer class="drawer__footer">
-        <span>纸本墨线 · 2026</span>
-        <a href="https://github.com/Hldwsd/xiangyu-map" target="_blank" rel="noopener noreferrer">
-          GitHub
-          <AppIcon name="external" :size="12" />
-        </a>
-      </footer>
-    </aside>
-  </div>
+        <footer class="drawer__footer">
+          <span>纸本墨线 · 2026</span>
+          <a href="https://github.com/Hldwsd/xiangyu-map" target="_blank" rel="noopener noreferrer">
+            GitHub
+            <AppIcon name="external" :size="12" />
+          </a>
+        </footer>
+      </aside>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -176,7 +229,7 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
   overflow-y: auto;
   background: var(--surface);
   border-right: 1px solid var(--line);
-  animation: slide-in 0.2s ease;
+  will-change: transform;
 }
 
 .drawer__header {
