@@ -46,11 +46,11 @@ export function startPeripheralParallax(): () => void {
       observer.observe(document.body, { childList: true, subtree: true })
 
       const apply = (nx: number, ny: number): void => {
-        backdropX?.(nx * 16)
-        backdropY?.(ny * 12)
+        backdropX?.(nx * 34)
+        backdropY?.(ny * 24)
         for (const quick of cards.values()) {
-          quick.x(nx * -6)
-          quick.y(ny * -5)
+          quick.x(nx * -14)
+          quick.y(ny * -10)
         }
       }
 
