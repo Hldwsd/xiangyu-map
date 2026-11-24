@@ -312,7 +312,7 @@ watch(listOpen, async (open) => {
       </div>
     </Transition>
 
-    <HomeRail @menu="menuOpen = true" @select="selectFeatured" />
+    <HomeRail data-parallax @menu="menuOpen = true" @select="selectFeatured" />
 
     <!-- 桌面右侧：选中卡片 + 城市索引（两张独立的卡） -->
     <div class="home-side" data-parallax>
