@@ -143,3 +143,45 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * 抽屉/列表内滚动条：细墨线，和页面其它滚动区同款。
+ * 原生轨道不画，滑块用半透明墨色，悬停加深。
+ */
+.drawer__panel,
+.edge__body,
+.sheet__list,
+.panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(28 26 23 / 24%) transparent;
+}
+
+.drawer__panel::-webkit-scrollbar,
+.edge__body::-webkit-scrollbar,
+.sheet__list::-webkit-scrollbar,
+.panel::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.drawer__panel::-webkit-scrollbar-track,
+.edge__body::-webkit-scrollbar-track,
+.sheet__list::-webkit-scrollbar-track,
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.drawer__panel::-webkit-scrollbar-thumb,
+.edge__body::-webkit-scrollbar-thumb,
+.sheet__list::-webkit-scrollbar-thumb,
+.panel::-webkit-scrollbar-thumb {
+  background: rgb(28 26 23 / 24%);
+  border-radius: 999px;
+}
+
+.drawer__panel::-webkit-scrollbar-thumb:hover,
+.edge__body::-webkit-scrollbar-thumb:hover,
+.sheet__list::-webkit-scrollbar-thumb:hover,
+.panel::-webkit-scrollbar-thumb:hover {
+  background: rgb(28 26 23 / 40%);
+}

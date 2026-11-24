@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -212,6 +212,47 @@ function sheetLeave(el: Element, done: () => void): void {
     })
     .catch(() => done())
 }
+
+/** 抽屉/列表打开后，内部条目按顺序轻微上浮进入（GSAP stagger）。 */
+function staggerIn(selector: string, max = 24): void {
+  if (prefersReducedMotion()) return
+  void loadGsap()
+    .then((gsap) => {
+      const nodes = [...document.querySelectorAll<HTMLElement>(selector)].slice(0, max)
+      if (nodes.length === 0) return
+      gsap.fromTo(
+        nodes,
+        { opacity: 0, y: 10 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          stagger: 0.035,
+          ease: 'power2.out',
+          clearProps: 'opacity,transform',
+        },
+      )
+    })
+    .catch(() => {})
+}
+
+watch(menuOpen, async (open) => {
+  if (!open) return
+  await nextTick()
+  staggerIn('.drawer__item', 12)
+})
+
+watch([legendOpen, cityOpen], async ([legend, city]) => {
+  if (!legend && !city) return
+  await nextTick()
+  staggerIn('.edge__body button', 30)
+})
+
+watch(listOpen, async (open) => {
+  if (!open) return
+  await nextTick()
+  staggerIn('.sheet__item', 24)
+})
 </script>
 
 <template>
