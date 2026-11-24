@@ -43,8 +43,8 @@ interface Card {
 const HELIX_COUNT = 10
 const CARD_ASPECT = 1200 / 630
 const HELIX_STEP = 36
-const HELIX_RADIUS = 1.8
-const HELIX_Y = 0.8
+const HELIX_RADIUS = 1.45
+const HELIX_Y = 1.05
 const HELIX_W = 1.45
 
 const COLS = 5

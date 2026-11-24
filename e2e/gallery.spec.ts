@@ -21,13 +21,20 @@ test('分享图集：竖螺旋与安徽矩阵', async ({ page }) => {
 
   if (test.info().project.name === 'desktop') {
     await expect(page.locator('.stage__canvas')).toBeVisible()
+    // ScrollTrigger 插入 pin-spacer 后，文档高度才包含 320% 的 pin 行程。
+    await page.waitForSelector('.pin-spacer')
     const stageTop = await page.evaluate(
       () => document.querySelector('.gallery__stage')?.getBoundingClientRect().top ?? 0,
     )
-    await page.evaluate((top) => window.scrollTo(0, window.scrollY + top + 2700), stageTop)
+    await page.evaluate(
+      (top) => window.scrollTo(0, window.scrollY + top + window.innerHeight * 2.75),
+      stageTop,
+    )
     await page.waitForFunction(
       () =>
         document.querySelector('.stage__map-caption')?.classList.contains('is-visible') === true,
+      undefined,
+      { timeout: 10_000 },
     )
     await expect(page.locator('.stage__map-title')).toContainText('拼成安徽')
     await expect(page.locator('.stage__hud')).toHaveClass(/is-hidden/)
