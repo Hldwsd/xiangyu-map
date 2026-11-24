@@ -13,6 +13,7 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "build-only": "vite build",
     "bundle:size": "node scripts/check-bundle-size.mjs",
+    "check:sites-map": "node scripts/check-sites-map.mjs",
     "preview": "vite preview",
     "prerender": "node scripts/prerender-sites.mjs",
     "type-check": "vue-tsc --build",
