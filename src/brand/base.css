@@ -488,10 +488,10 @@ html.scroll-locked body {
   display: flex;
   gap: 0.9rem;
   align-items: center;
-  font-size: 0.74rem;
-  font-weight: 500;
-  letter-spacing: 0.26em;
-  color: #4a443b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--ink);
 }
 
 .eyebrow__rule {
@@ -567,22 +567,22 @@ html.scroll-locked body {
 
 .section-head__index {
   font-family: var(--font-num);
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   letter-spacing: 0.1em;
   color: var(--gold);
 }
 
 .section-head__cn {
-  font-size: 1rem;
+  font-size: 1.08rem;
   letter-spacing: 0.24em;
 }
 
 .section-head__en {
   justify-self: end;
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.3em;
-  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: #3f3a33;
   text-transform: uppercase;
 }
 
