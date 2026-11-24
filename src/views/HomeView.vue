@@ -39,6 +39,9 @@ function playBrandArrival(): void {
     .then((gsap) => {
       const overlay = document.querySelector<HTMLElement>('.map-arrive')
       if (overlay === null) return
+      // 墨色遮罩已经铺满，底下的 html/body 立刻恢复纸色，
+      // 否则淡出过程中会先露出 .is-brand-arriving 的黑底，像黑色残留。
+      document.documentElement.classList.remove('is-brand-arriving')
 
       // 品牌页离场结束时就是「整屏墨色 + 印章 / 乡遇安徽 / 地图 · 一纸山河」；
       // 地图页从同一帧开始，只把这个墨色层淡掉、地图同时回到 1，跨页面看是一块墨让开。
@@ -474,7 +477,8 @@ watch(listOpen, async (open) => {
   z-index: 60;
   display: grid;
   place-items: center;
-  background: var(--ink);
+  /* 与品牌页离场遮罩用同一个墨色，跨页面交接时底色不变 */
+  background: #17140f;
   pointer-events: none;
 }
 
