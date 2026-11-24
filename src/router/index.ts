@@ -54,7 +54,7 @@ router.afterEach((to) => {
   if (to.name === 'gallery') {
     applyPageMeta(
       '分享图集 · 乡遇安徽',
-      `70 张分享卡排成一面墙：十张精选沿竖螺旋转动，最后落回全部 ${sites.length} 张分享图的矩阵里。`,
+      `70 张分享卡排成一面墙：十张精选沿竖螺旋转动，最后拼成安徽地图。`,
     )
     return
   }

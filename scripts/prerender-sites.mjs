@@ -102,7 +102,7 @@ await writeFile(templatePath, applyMeta(template, homeMeta), 'utf8')
 
 const galleryMeta = {
   title: '分享图集 · 乡遇安徽',
-  description: `70 张分享卡排成一面墙：十张精选沿竖螺旋转动，最后落回全部 ${sites.length} 张分享图的矩阵里。`,
+  description: `70 张分享卡排成一面墙：十张精选沿竖螺旋转动，最后拼成安徽地图。`,
   url: `${siteUrl}gallery/`,
   type: 'website',
   image: absoluteAsset('/og/sites/huangshan-scenic.jpg'),
