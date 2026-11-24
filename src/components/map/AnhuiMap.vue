@@ -120,6 +120,7 @@ const zoomLevel = ref(1)
 
 let resizeObserver: ResizeObserver | null = null
 let disposed = false
+let detachWheelGuard: (() => void) | null = null
 /** 当前画在图上的一批点（单点或簇），键盘高亮要按它找下标 */
 let currentData: MapScatterDatum[] = []
 /** 地标小球的物理状态；只在「不合并」模式下使用 */
@@ -1610,6 +1611,14 @@ async function render(): Promise<void> {
       instance.on('mousemove', handlePointerMove)
       // 拖动平移由 ECharts 负责（roam: 'move'），这里只做范围夹取与聚合重算
       instance.on('georoam', handleGeoRoam)
+      // 滚轮默认会缩放/平移地图，页面滚动经过地图时极易误触；只有 Ctrl+滚轮才交给 ECharts 缩放。
+      const wheelGuard = (event: WheelEvent): void => {
+        if (event.ctrlKey) return
+        event.stopImmediatePropagation()
+      }
+      container.value.addEventListener('wheel', wheelGuard, { capture: true, passive: true })
+      detachWheelGuard = () =>
+        container.value?.removeEventListener('wheel', wheelGuard, { capture: true })
       chart.value = instance
     }
 
@@ -1666,6 +1675,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   disposed = true
+  detachWheelGuard?.()
   resizeObserver?.disconnect()
   resizeObserver = null
   if (refreshHandle !== null) window.cancelAnimationFrame(refreshHandle)
