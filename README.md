@@ -21,6 +21,10 @@
 刷新后从顶端重播开场；回答「这张图是什么、凭什么可信」。入口在站内菜单「品牌页 · 一纸山河」，
 品牌页的 CTA 回到地图。选型与代价见 [ADR 0018](docs/adr/0018-brand-site.md)。
 
+另有一页**分享图集** `/gallery`：十张精选在 3D 竖螺旋上随滚动切换，再往下落回全部 70 张分享图组成的
+9×9 矩阵；窄屏与减弱动效直接摊开矩阵。入口在站内顶栏 / 菜单「图集」，选型见
+[ADR 0022](docs/adr/0022-share-gallery.md)。
+
 ## 当前状态
 
 **v0.1.0 已发布，M2 内容继续**（2026-11-23）。线上是可直接用的开发版：全屏安徽省地图（16 个地级市）+
@@ -97,7 +101,7 @@ pnpm dev          # http://localhost:5173
 - 站点是 GitHub Pages 的 `gh-pages` 分支，主站在根目录、每个 PR 一个 `pr-<n>/` 子目录，PR 关闭时自动清理；
 - 品牌页与主站同一次构建、同一个产物：`brand/index.html` → `dist/brand/index.html`，线上是
   `/xiangyu-map/brand/`（PR 预览同理），共享同一份 `BASE_URL`，不需要单独的 workflow；
-- 构建后跑 `pnpm prerender`，把 70 个详情页写成 `dist/site/<id>/index.html`，注入各自的 title、description、OG 与 JSON-LD；`SITE_URL` 由 deploy/preview workflow 注入，用于生成绝对 URL；
+- 构建后跑 `pnpm prerender`，把 70 个详情页写成 `dist/site/<id>/index.html`，并生成 `dist/gallery/index.html`（分享图集直达页），注入各自的 title、description、OG 与 JSON-LD；`SITE_URL` 由 deploy/preview workflow 注入，用于生成绝对 URL；
 - 因为部署在子路径下，所有资源路径都走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`，`public/maps` 的加载器同理）。本地要在子路径下验证，可以 `pnpm build-only --base=/xiangyu-map/` 后用任意静态服务器挂在同名前缀下；
 - 深链（`/site/<id>` 刷新）优先命中预渲染页；未知路径仍靠 `dist/404.html` 兜底，构建时由 `deploy.yml` 复制 `index.html` 生成；
 - 预渲染方案与代价见 [ADR 0012](docs/adr/0012-prerender-detail-pages.md)，部署选型见 [ADR 0003](docs/adr/0003-deployment.md)。

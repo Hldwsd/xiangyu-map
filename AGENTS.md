@@ -42,6 +42,7 @@ pnpm data:anhui-map          # 重新抓取 public/maps/anhui.json
 | 数据结构与校验          | `src/types/site.ts`、`src/utils/site-validation.ts`             | 校验失败不要静默降级                                                 |
 | 底图                    | `public/maps/anhui.json`（用 `pnpm data:anhui-map` 生成）       | 不要手改 JSON                                                        |
 | 品牌页（`/brand/`）     | `brand/index.html`、`src/brand/`、`scripts/build-brand-geo.mjs` | 不要动 app 首屏预算与地图组件；品牌页数据从 `src/data/sites.ts` 派生 |
+| 分享图集（`/gallery`）  | `src/views/GalleryView.vue`、`src/router/index.ts`              | 70 张分享图与 `shareImage` 同源，不另抄数据；重动效走动态 import     |
 | 构建、CI、依赖          | `vite.config.ts`、`.github/workflows/ci.yml`、`package.json`    | 不在 PR 里偷偷放宽闸门                                               |
 | 部署、PR 预览           | `.github/workflows/deploy.yml`、`preview.yml`                   | 不硬编码域名，资源路径走 `import.meta.env.BASE_URL`                  |
 

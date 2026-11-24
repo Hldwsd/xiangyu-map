@@ -74,6 +74,10 @@ onBeforeUnmount(() => document.body.classList.remove('has-overlay'))
           <AppIcon name="map" :size="16" />
           <span>回到地图</span>
         </RouterLink>
+        <RouterLink class="drawer__item" :to="{ name: 'gallery' }" @click="emit('close')">
+          <AppIcon name="share" :size="16" />
+          <span>分享图集</span>
+        </RouterLink>
         <a class="drawer__item" :href="brandHref" @click="emit('close')">
           <AppIcon name="external" :size="16" />
           <span>品牌页 · 一纸山河</span>

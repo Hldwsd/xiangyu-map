@@ -36,6 +36,9 @@ onBeforeUnmount(() => stopParallax?.())
         <RouterLink class="app__nav-link" :to="{ name: 'home' }">
           <AppIcon name="map" :size="14" />地图
         </RouterLink>
+        <RouterLink class="app__nav-link" :to="{ name: 'gallery' }">
+          <AppIcon name="share" :size="14" />图集
+        </RouterLink>
       </nav>
     </header>
 

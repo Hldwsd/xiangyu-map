@@ -22,6 +22,12 @@ const router = createRouter({
       props: true,
     },
     {
+      path: '/gallery',
+      name: 'gallery',
+      // 分享图集是独立的重动效页面，不进首屏
+      component: () => import('@/views/GalleryView.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: { name: 'home' },
     },
@@ -43,6 +49,13 @@ router.afterEach((to) => {
     } else {
       applyPageMeta(`${site.name} · 乡遇安徽`, site.summary)
     }
+    return
+  }
+  if (to.name === 'gallery') {
+    applyPageMeta(
+      '分享图集 · 乡遇安徽',
+      `70 张分享卡排成一面墙：十张精选沿竖螺旋转动，最后落回全部 ${sites.length} 张分享图的矩阵里。`,
+    )
     return
   }
   applyPageMeta(SITE_TITLE, HOME_DESCRIPTION)
