@@ -230,3 +230,40 @@ a {
     transform: translateY(-8px);
   }
 }
+
+/* 地图 → 品牌页：点击处扩散的墨色遮罩 */
+.brand-exit {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: #17140f;
+  pointer-events: none;
+}
+
+.brand-exit__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: center;
+  color: #f4eee2;
+}
+
+.brand-exit__seal {
+  width: 3.4rem;
+  height: auto;
+}
+
+.brand-exit__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: 0.22em;
+}
+
+.brand-exit__meta {
+  font-size: 0.64rem;
+  letter-spacing: 0.24em;
+  color: rgb(244 238 226 / 58%);
+}
