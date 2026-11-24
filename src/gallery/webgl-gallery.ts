@@ -44,19 +44,20 @@ interface Card {
 
 const STRIP_COUNT = 10
 const CARD_ASPECT = 1200 / 630
-const STRIP_STEP = 1.34
+const STRIP_STEP = 2.5
 const STRIP_DEPTH = 0.55
-const STRIP_ROT = 0.24
-const STRIP_W = 1.42
-const STRIP_ACTIVE_W = 1.56
-const STRIP_CURVE = 0.22
+const STRIP_ROT = 0.2
+const STRIP_W = 2.4
+const STRIP_ACTIVE_W = 2.7
+const STRIP_CURVE = 0.2
 
 const COLS = 5
 const ROWS = 14
+const PROVINCE_ASPECT = 619 / 800
 const MAP_H = 3.5
+const MAP_W = MAP_H * PROVINCE_ASPECT
+const CELL_W = MAP_W / COLS
 const CELL_H = MAP_H / ROWS
-const CELL_W = CELL_H * CARD_ASPECT
-const MAP_W = COLS * CELL_W
 const MAP_MIN: [number, number] = [-MAP_W / 2, -MAP_H / 2]
 const MAP_SIZE: [number, number] = [MAP_W, MAP_H]
 
@@ -245,7 +246,7 @@ function createGeometry(): { positions: Float32Array; uvs: Float32Array; indices
 
 function createMask(gl: WebGLRenderingContext): { texture: WebGLTexture; texel: [number, number] } {
   const width = 480
-  const height = 707
+  const height = 620
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
@@ -289,7 +290,12 @@ function createPlaceholder(gl: WebGLRenderingContext): WebGLTexture {
   return texture
 }
 
-async function loadTexture(gl: WebGLRenderingContext, url: string): Promise<WebGLTexture | null> {
+async function loadTexture(
+  gl: WebGLRenderingContext,
+  url: string,
+  size = 512,
+): Promise<WebGLTexture | null> {
+  const half = Math.round(size / 2)
   try {
     const image = new Image()
     image.decoding = 'async'
@@ -298,18 +304,18 @@ async function loadTexture(gl: WebGLRenderingContext, url: string): Promise<WebG
     let source: TexImageSource
     if ('createImageBitmap' in window) {
       const bitmap = await createImageBitmap(image, {
-        resizeWidth: 512,
-        resizeHeight: 269,
-        resizeQuality: 'medium',
+        resizeWidth: size,
+        resizeHeight: half,
+        resizeQuality: 'high',
       })
       source = bitmap
     } else {
       const canvas = document.createElement('canvas')
-      canvas.width = 512
-      canvas.height = 269
+      canvas.width = size
+      canvas.height = half
       const ctx = canvas.getContext('2d')
       if (ctx === null) return null
-      ctx.drawImage(image, 0, 0, 512, 269)
+      ctx.drawImage(image, 0, 0, size, half)
       source = canvas
     }
     const texture = gl.createTexture()
@@ -317,7 +323,8 @@ async function loadTexture(gl: WebGLRenderingContext, url: string): Promise<WebG
     gl.bindTexture(gl.TEXTURE_2D, texture)
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.generateMipmap(gl.TEXTURE_2D)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
@@ -406,7 +413,7 @@ export function createGalleryScene(
   gl.activeTexture(gl.TEXTURE1)
   gl.bindTexture(gl.TEXTURE_2D, mask?.texture ?? placeholder)
   gl.uniform1i(uniforms.mask, 1)
-  gl.uniform2f(uniforms.maskTexel, mask?.texel[0] ?? 1 / 480, mask?.texel[1] ?? 1 / 707)
+  gl.uniform2f(uniforms.maskTexel, mask?.texel[0] ?? 1 / 480, mask?.texel[1] ?? 1 / 620)
   gl.uniform2f(uniforms.mapMin, MAP_MIN[0], MAP_MIN[1])
   gl.uniform2f(uniforms.mapSize, MAP_SIZE[0], MAP_SIZE[1])
 
@@ -457,7 +464,7 @@ export function createGalleryScene(
   const canvasSize = { width: 0, height: 0, dpr: 1 }
 
   const resize = (): void => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.75)
     const width = Math.max(1, Math.round(canvas.clientWidth * dpr))
     const height = Math.max(1, Math.round(canvas.clientHeight * dpr))
     if (width === canvasSize.width && height === canvasSize.height) return
@@ -477,7 +484,7 @@ export function createGalleryScene(
     gl.clear(gl.COLOR_BUFFER_BIT)
 
     const aspect = canvasSize.width / Math.max(1, canvasSize.height)
-    const cameraZ = 5.4 - 0.9 * smoothstep(0.2, 1, state.map)
+    const cameraZ = 3.7 + 0.55 * smoothstep(0.2, 1, state.map)
     const proj = perspective(45, aspect, 0.1, 50)
     const view = viewMatrix(cameraZ)
     gl.uniformMatrix4fv(uniforms.proj, false, proj)
@@ -627,7 +634,7 @@ export function createGalleryScene(
       cursor += 1
       const card = cards[index]
       if (card === undefined) continue
-      const texture = await loadTexture(gl, card.site.shareImage)
+      const texture = await loadTexture(gl, card.site.shareImage, index < STRIP_COUNT ? 1024 : 512)
       if (texture !== null && !destroyed) card.texture = texture
     }
   }
