@@ -692,7 +692,7 @@ html.lenis body {
 }
 
 .map-entry__seal {
-  width: 3.6rem;
+  width: 3.4rem;
   height: auto;
 }
 
@@ -700,11 +700,11 @@ html.lenis body {
   margin: 0;
   font-family: var(--font-serif);
   font-size: clamp(1.4rem, 3vw, 2rem);
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
 }
 
 .map-entry__meta {
   font-size: 0.64rem;
   letter-spacing: 0.24em;
-  color: rgb(242 235 222 / 58%);
+  color: rgb(251 246 234 / 58%);
 }

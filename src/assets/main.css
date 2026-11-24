@@ -190,3 +190,9 @@ a {
 [data-parallax] {
   will-change: transform;
 }
+
+/* 品牌页 → 地图：应用挂载前先保持墨色，衔接 .map-arrive */
+.is-brand-arriving,
+.is-brand-arriving body {
+  background: #17140f;
+}

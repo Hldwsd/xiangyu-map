@@ -1,6 +1,12 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
+    <script>
+      // 从品牌页切过来时先把根节点涂成墨色，避免地图应用挂载前闪一帧白纸
+      if (sessionStorage.getItem('xy-from-brand') === '1') {
+        document.documentElement.classList.add('is-brand-arriving')
+      }
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/brand/icon-red-32.png" />
