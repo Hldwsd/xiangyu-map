@@ -97,6 +97,8 @@ const props = defineProps<{
   cluster?: boolean
   /** 城市索引 hover 时高亮对应市域（值形如「合肥」，null 取消） */
   highlightCity?: string | null
+  /** 外部定位某个站点（如搜索结果的第一条）：非 null 时地图平移/缩放靠向它 */
+  targetSiteId?: string | null
 }>()
 
 const emit = defineEmits<{ select: [id: string]; 'marker-hover': [city: string | null] }>()
@@ -1702,6 +1704,17 @@ watch(
     if (status.value !== 'ready' || chart.value === null) return
     chart.value.setOption(currentOption())
     refreshMarkers()
+  },
+)
+
+/** 搜索结果定位：地图缓动靠向指定站点（轻微放大一档，至 scaleLimit.max） */
+watch(
+  () => props.targetSiteId,
+  (id) => {
+    if (id === null || status.value !== 'ready') return
+    const site = props.sites.find((item) => item.id === id)
+    if (site === undefined) return
+    animateGeoTo([site.location.lng, site.location.lat], clampZoom(geoState().zoom + 0.7))
   },
 )
 </script>

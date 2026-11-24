@@ -31,6 +31,8 @@ const hoverCity = ref<AnhuiCity | null>(null)
 /** 鼠标划过地标时，反向高亮城市索引里的对应行 */
 const siteCity = ref<string | null>(null)
 const mapShell = ref<HTMLElement | null>(null)
+/** 搜索命中的第一条结果：非 null 时地图把它定位到（见 AnhuiMap 的 targetSiteId） */
+const targetSiteId = ref<string | null>(null)
 
 /*
  * 区县界默认开启：官方标准图（皖S(2025)71号）只画 16 个地级市，没有县区界；
@@ -65,6 +67,14 @@ watch(
   () => store.city,
   () => {
     animateMapSwap()
+  },
+)
+
+/** 搜索有命中时，地图定位到第一条结果；清空搜索不定位 */
+watch(
+  () => store.query,
+  () => {
+    targetSiteId.value = store.normalizedQuery === '' ? null : (store.filteredSites[0]?.id ?? null)
   },
 )
 
@@ -279,6 +289,7 @@ watch(listOpen, async (open) => {
         :show-districts="showDistricts"
         :cluster="mergeMarkers"
         :highlight-city="hoverCity"
+        :target-site-id="targetSiteId"
         @marker-hover="siteCity = $event"
         @select="store.selectSite"
       />
