@@ -98,7 +98,7 @@ pnpm desktop:dev     # Tauri 开发模式，窗口打开品牌页
 pnpm desktop:build   # 构建 NSIS 安装包
 ```
 
-产物：`src-tauri/target/release/bundle/nsis/` 下的 `*-setup.exe`。安装包未签名，Windows 会提示“未知发布者”，比赛演示可接受。实现取舍见 [ADR 0005](docs/adr/0005-desktop-windows-tauri.md)。
+产物：`src-tauri/target/release/bundle/nsis/` 下的 `*-setup.exe`，默认安装到 `%LOCALAPPDATA%\xiangyu_map`（文件夹用 ASCII，界面与窗口仍显示「乡遇安徽」）。安装包未签名，Windows 会提示“未知发布者”，比赛演示可接受。实现取舍见 [ADR 0005](docs/adr/0005-desktop-windows-tauri.md)。
 
 ## 部署
 
