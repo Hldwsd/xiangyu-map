@@ -69,10 +69,10 @@ varying vec2 vUv;
 varying vec2 vMapUv;
 varying float vShade;
 void main() {
-  vec3 p = vec3(aPos.x, aPos.y, uCurve * (aPos.x * aPos.x - 0.25));
+  vec3 p = vec3(aPos.x, aPos.y, uCurve * (0.25 - aPos.x * aPos.x));
   vec4 world = uModel * vec4(p, 1.0);
   vMapUv = vec2((world.x - uMapMin.x) / uMapSize.x, 1.0 - (world.y - uMapMin.y) / uMapSize.y);
-  vec3 n = normalize(vec3(-2.0 * uCurve * aPos.x, 0.0, 1.0));
+  vec3 n = normalize(vec3(2.0 * uCurve * aPos.x, 0.0, 1.0));
   vShade = 0.84 + 0.16 * max(dot(n, normalize(vec3(-0.35, 0.55, 1.0))), 0.0);
   vUv = aUv;
   gl_Position = uProj * uView * world;
@@ -398,23 +398,42 @@ export function createGalleryScene(
   gl.uniform2f(uniforms.mapMin, MAP_MIN[0], MAP_MIN[1])
   gl.uniform2f(uniforms.mapSize, MAP_SIZE[0], MAP_SIZE[1])
 
-  const cards: Card[] = sites.slice(0, COLS * ROWS).map((site, index) => {
+  const targets = Array.from({ length: COLS * ROWS }, (_, index) => {
     const col = index % COLS
     const row = Math.floor(index / COLS)
     const w = CELL_W * 1.03
     const h = w / CARD_ASPECT
     return {
-      site,
-      texture: null,
-      target: {
-        x: (col - (COLS - 1) / 2) * CELL_W,
-        y: ((ROWS - 1) / 2 - row) * CELL_H,
-        w,
-        h,
-        row,
-        col,
-      },
+      x: (col - (COLS - 1) / 2) * CELL_W,
+      y: ((ROWS - 1) / 2 - row) * CELL_H,
+      w,
+      h,
+      row,
+      col,
     }
+  })
+
+  // 十张螺旋图在矩阵里等距落位，不要把示例全挤在左上角；其余图补空位。
+  const assignment: number[] = []
+  const used = new Set<number>()
+  const spread = (targets.length - 1) / (HELIX_COUNT - 1)
+  for (let i = 0; i < HELIX_COUNT; i += 1) {
+    const targetIndex = Math.round(i * spread)
+    used.add(targetIndex)
+    assignment.push(targetIndex)
+  }
+  let freeCell = 0
+  for (let i = HELIX_COUNT; i < targets.length; i += 1) {
+    while (used.has(freeCell)) freeCell += 1
+    used.add(freeCell)
+    assignment.push(freeCell)
+    freeCell += 1
+  }
+
+  const cards: Card[] = sites.slice(0, COLS * ROWS).map((site, index) => {
+    const target = targets[assignment[index] ?? index]
+    if (target === undefined) throw new Error('gallery target missing')
+    return { site, texture: null, target }
   })
 
   let destroyed = false
@@ -501,7 +520,7 @@ export function createGalleryScene(
 
       if (state.map <= 0.0001) {
         if (!isHelix) continue
-        const angle = (index * Math.PI * 2) / HELIX_COUNT - spin
+        const angle = -(index * Math.PI * 2) / HELIX_COUNT + spin
         const cos = Math.cos(angle)
         if (cos < -0.02) continue
         const x = Math.sin(angle) * HELIX_RADIUS
@@ -523,7 +542,7 @@ export function createGalleryScene(
       }
 
       if (isHelix) {
-        const angle = (index * Math.PI * 2) / HELIX_COUNT - spin
+        const angle = -(index * Math.PI * 2) / HELIX_COUNT + spin
         const fromX = Math.sin(angle) * HELIX_RADIUS
         const fromZ = Math.cos(angle) * HELIX_RADIUS
         const fromY = (index - (HELIX_COUNT - 1) / 2) * HELIX_Y + offsetY

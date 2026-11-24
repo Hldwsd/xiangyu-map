@@ -9,28 +9,22 @@ import { assetUrl } from '@/utils/asset-url'
 
 type ShareSite = Site & { shareImage: string }
 
-const FEATURED_IDS = [
-  'huangshan-scenic',
-  'hongcun',
-  'huizhou-ancient-city',
-  'huaxilou',
-  'wangmantian-village',
-  'chaohu',
-  'jiuhuashan',
-  'tianzhushan',
-  'longchuan',
-  'sanhe-ancient-town',
-]
+const FEATURED_COUNT = 10
 
 const shareSites = sites.filter((site): site is ShareSite => Boolean(site.shareImage))
-const byId = new Map(shareSites.map((site) => [site.id, site]))
+
+/**
+ * 十张精选不再固定挑头部项目，而是沿 70 张的顺序等距取：
+ * 螺旋里看到的图，在图廊矩阵里也分落在上、中、下各部分。
+ */
 const helixSites: ShareSite[] = []
-for (const id of FEATURED_IDS) {
-  const site = byId.get(id)
-  if (site !== undefined) helixSites.push(site)
+const stride = (shareSites.length - 1) / (FEATURED_COUNT - 1)
+for (let i = 0; i < FEATURED_COUNT; i += 1) {
+  const site = shareSites[Math.round(i * stride)]
+  if (site !== undefined && !helixSites.some((item) => item.id === site.id)) helixSites.push(site)
 }
 for (const site of shareSites) {
-  if (helixSites.length >= 10) break
+  if (helixSites.length >= FEATURED_COUNT) break
   if (!helixSites.some((item) => item.id === site.id)) helixSites.push(site)
 }
 const orderedSites: ShareSite[] = [
