@@ -25,13 +25,13 @@ const picks = computed(() =>
     <div class="rail__brand">
       <h1><span>乡</span><span>遇</span><span>安</span><span>徽</span></h1>
       <img class="rail__seal" :src="assetUrl('/brand/logo-red.webp')" alt="" aria-hidden="true" />
-      <p class="rail__sub">在地图上，遇见一个文旅项目</p>
+      <p class="rail__sub">摊开地图，尽收安徽十六城，走遍整个安徽文化</p>
       <p class="rail__quote">一生痴绝处，无梦到徽州</p>
     </div>
 
     <p class="rail__label">分类 · 图例</p>
     <CategoryLegend />
-    <p class="rail__hint">地图上市底色越深，收录的项目越多</p>
+    <p class="rail__hint">地图上底色越深，收录越多。</p>
 
     <p class="rail__label rail__label--gap">本期精选</p>
     <div class="rail__picks">

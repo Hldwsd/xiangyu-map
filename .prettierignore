@@ -8,3 +8,5 @@ public/favicon.ico
 public/maps/anhui-districts.json
 public/maps/anhui-water.json
 public/maps/anhui-rivers.json
+# 文案清单按「一块一行」组织，格式化会重新折行、破坏可回填的格式
+docs/copy-deck.md

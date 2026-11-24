@@ -63,7 +63,7 @@ const emit = defineEmits<{ select: [id: string]; close: []; hover: [id: string |
       </li>
     </ul>
 
-    <p v-if="sites.length === 0" class="sheet__empty">没有匹配的项目，换一个关键词或清空筛选。</p>
+    <p v-if="sites.length === 0" class="sheet__empty">没有匹配，换个关键词，或清空筛选。</p>
   </section>
 </template>
 

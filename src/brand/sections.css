@@ -1477,6 +1477,12 @@
   letter-spacing: 0.02em;
 }
 
+/* 每个 .mask 是一行（入场动画按行揭开）：文案变短后两块会挤到同一行，
+   行内块之间露出一个空档，看着像中文里多了个空格 */
+.closing__title .mask {
+  display: block;
+}
+
 .closing__lede {
   margin-top: clamp(1.1rem, 2.6vh, 1.7rem);
   font-size: 0.88rem;

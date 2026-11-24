@@ -1,5 +1,5 @@
 /** 站点级默认文案：预渲染脚本与 SPA 路由共用同一套口径 */
-export const SITE_TITLE = '乡遇安徽 · 在地图上发现安徽文旅项目'
+export const SITE_TITLE = '乡遇安徽 · 在地图上，遇见安徽'
 
 function upsertMeta(selector: string, attrs: Record<string, string>, content: string): void {
   let el = document.head.querySelector<HTMLMetaElement>(selector)
