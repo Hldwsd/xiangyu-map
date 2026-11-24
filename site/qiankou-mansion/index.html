@@ -1,6 +1,12 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
+    <script>
+      // 从品牌页切过来时先把根节点涂成墨色，避免地图应用挂载前闪一帧白纸
+      if (sessionStorage.getItem('xy-from-brand') === '1') {
+        document.documentElement.classList.add('is-brand-arriving')
+      }
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" href="/xiangyu-map/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/xiangyu-map/brand/icon-red-32.png" />
@@ -10,10 +16,10 @@
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#f7f3ea" />
     <title>潜口民宅 · 乡遇安徽</title>
-    <script type="module" crossorigin src="/xiangyu-map/assets/main-D8ytTGND.js"></script>
+    <script type="module" crossorigin src="/xiangyu-map/assets/main-DZ_vvuCO.js"></script>
     <link rel="modulepreload" crossorigin href="/xiangyu-map/assets/rolldown-runtime-4tVxZq34.js">
     <link rel="modulepreload" crossorigin href="/xiangyu-map/assets/asset-url-DVDd3D5i.js">
-    <link rel="stylesheet" crossorigin href="/xiangyu-map/assets/main-CWraiNH-.css">
+    <link rel="stylesheet" crossorigin href="/xiangyu-map/assets/main-CQrFpFEo.css">
       <!-- prerender:meta:start -->
     <link rel="canonical" href="https://Hldwsd.github.io/xiangyu-map/site/qiankou-mansion/" />
     <meta property="og:type" content="article" />
