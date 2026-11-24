@@ -22,7 +22,7 @@ const emit = defineEmits<{
 }>()
 
 /** 品牌页是独立的静态入口（/brand/），不在 SPA 路由表里，所以用普通链接 */
-const brandHref = assetUrl('/brand/')
+const brandHref = assetUrl('/brand/index.html')
 
 const panel = ref<HTMLElement | null>(null)
 useFocusTrap(

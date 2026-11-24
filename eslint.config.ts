@@ -17,6 +17,9 @@ export default defineConfigWithVueTs(
     // .tmp/ 是本地临时脚本与备份的落地目录（已 gitignore）：里面的文件不进 tsconfig，
     // 用 project service 解析会直接报「not found by the project service」。
     '**/.tmp/**',
+    // Tauri 的构建产物与生成 schema（已 gitignore）：里面是 Rust 打包时生成的 JS/JSON。
+    '**/src-tauri/target/**',
+    '**/src-tauri/gen/**',
   ]),
 
   ...pluginVue.configs['flat/essential'],

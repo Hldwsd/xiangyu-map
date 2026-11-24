@@ -87,6 +87,19 @@ pnpm dev          # http://localhost:5173
 
 首次安装若因镜像超时失败，用 `pnpm install --fetch-retries=10 --fetch-timeout=900000 --network-concurrency=3` 重试，不要删 lockfile。
 
+### Windows 桌面版（比赛用）
+
+桌面壳用 Tauri 2，复用同一份 `dist/`。应用启动先进入**品牌页**，点「进入地图」才进地图。
+
+环境要求：Rust 1.77+、MSVC 构建工具、WebView2 Runtime（Win10/11 一般自带；安装包会在缺失时下载 bootstrapper）。
+
+```bash
+pnpm desktop:dev     # Tauri 开发模式，窗口打开品牌页
+pnpm desktop:build   # 构建 NSIS 安装包
+```
+
+产物：`src-tauri/target/release/bundle/nsis/` 下的 `*-setup.exe`。安装包未签名，Windows 会提示“未知发布者”，比赛演示可接受。实现取舍见 [ADR 0005](docs/adr/0005-desktop-windows-tauri.md)。
+
 ## 部署
 
 | 环境    | 地址                                         | 触发                                                                  |

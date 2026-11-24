@@ -1,0 +1,9 @@
+{
+  "default": {
+    "identifier": "default",
+    "description": "乡遇安徽桌面壳默认权限",
+    "local": true,
+    "windows": ["main"],
+    "permissions": ["core:default"]
+  }
+}
