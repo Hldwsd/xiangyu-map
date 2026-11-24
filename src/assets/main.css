@@ -197,11 +197,13 @@ a {
   background: #17140f;
 }
 
-/* 地图 ⇄ 详情页的墨色转场层 */
-.route-fade {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  background: #17140f;
-  pointer-events: none;
+/* 地图卡片封面 → 详情大图的共享元素过渡 */
+::view-transition-group(site-cover) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 280ms;
 }

@@ -2,7 +2,6 @@
 import { RouterLink, useRouter } from 'vue-router'
 
 import { prefersReducedMotion } from '@/utils/motion'
-import { runInkFade } from '@/utils/route-fade'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
@@ -15,13 +14,30 @@ const router = useRouter()
 
 const emit = defineEmits<{ close: [] }>()
 
-/** 「查看详情」：先淡入一层墨，再进详情页；修饰键/减动效走浏览器默认 */
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (callback: () => void | Promise<void>) => {
+    finished: Promise<void>
+  }
+}
+
+/** 「查看详情」：卡片封面与详情大图做共享元素过渡（浏览器原生 View Transition） */
 function openDetail(event: MouseEvent): void {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   if (prefersReducedMotion()) return
+
+  const vtDoc = document as ViewTransitionDocument
+  if (typeof vtDoc.startViewTransition !== 'function') return
+
   event.preventDefault()
-  runInkFade(() => {
-    void router.push({ name: 'site-detail', params: { id: props.site.id } })
+  const link = event.currentTarget as HTMLElement | null
+  const cover = link?.closest('.panel')?.querySelector<HTMLElement>('.panel__cover') ?? null
+  if (cover) cover.style.viewTransitionName = 'site-cover'
+
+  const transition = vtDoc.startViewTransition(() =>
+    router.push({ name: 'site-detail', params: { id: props.site.id } }),
+  )
+  void transition.finished.finally(() => {
+    if (cover) cover.style.viewTransitionName = ''
   })
 }
 </script>

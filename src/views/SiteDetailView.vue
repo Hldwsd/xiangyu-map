@@ -2,8 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
-import { loadGsap, prefersReducedMotion } from '@/utils/motion'
-import { runInkFade } from '@/utils/route-fade'
+import { prefersReducedMotion } from '@/utils/motion'
 
 import { useSitesStore } from '@/stores/sites'
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -228,29 +227,23 @@ function markBroken(url: string): void {
   brokenImages.value = new Set([...brokenImages.value, url])
 }
 
-/** 返回地图：先在详情页盖一层墨，再回首页；首页会读标记做淡入 */
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (callback: () => void | Promise<void>) => {
+    finished: Promise<void>
+  }
+}
+
+/** 返回地图：整页做浏览器原生 View Transition，不用遮罩 */
 function backToMap(event: MouseEvent): void {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   if (prefersReducedMotion()) return
-  event.preventDefault()
-  sessionStorage.setItem('xy-from-detail', '1')
-  runInkFade(() => {
-    void router.push({ name: 'home' })
-  })
-}
 
-onMounted(() => {
-  if (prefersReducedMotion()) return
-  void loadGsap()
-    .then((gsap) => {
-      gsap.fromTo(
-        '.detail',
-        { opacity: 0.2, y: 10 },
-        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' },
-      )
-    })
-    .catch(() => {})
-})
+  const vtDoc = document as ViewTransitionDocument
+  if (typeof vtDoc.startViewTransition !== 'function') return
+
+  event.preventDefault()
+  vtDoc.startViewTransition(() => router.push({ name: 'home' }))
+}
 </script>
 
 <template>
@@ -533,6 +526,7 @@ onMounted(() => {
 
 .detail__hero-img {
   display: block;
+  view-transition-name: site-cover;
   width: 100%;
   max-height: min(56vh, 34rem);
   aspect-ratio: 2.25 / 1;
