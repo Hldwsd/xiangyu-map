@@ -87,7 +87,11 @@ export function loadAnhuiRivers(): Promise<GeoJsonFeatureCollection> {
   return load(ANHUI_RIVERS_URL, '河道')
 }
 
-/** 省界轮廓：给省域画一圈向外渐隐的边框，缺了只是少一圈托底 */
+/**
+ * 省界（安徽省轮廓）：当前主站 app 不调用——市边框由 `cityRings` 在运行时算出、
+ * 渐难光晕改用 `city-borders` 线条；省界要素留给品牌页生成（`scripts/build-brand-geo.mjs`
+ * 直接读 public/maps/anhui-outline.json）。
+ */
 export function loadAnhuiOutline(): Promise<GeoJsonFeatureCollection> {
   return load(ANHUI_OUTLINE_URL, '省界')
 }

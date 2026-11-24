@@ -49,7 +49,7 @@ ECharts 从 5.0 起不再内置地图数据（见 [官方 FAQ](https://echarts.a
 | ---------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------- | --------------------------- | ------------------------- |
 | `anhui-districts.json` | 104 个区县边界（line-only：区域透明、只画线）                                            | 阿里云 DataV.GeoAtlas（按市逐个取 `_full`） | `pnpm data:anhui-districts` | 原始 593 KB / gzip 126 KB |
 | `anhui-water.json`     | 9 个主要湖泊水面（巢湖、太平湖、花亭湖、升金湖、菜子湖、焦岗湖、女山湖、龙子湖、八里河） | OpenStreetMap（Overpass API）               | `pnpm data:anhui-water`     | 原始 56 KB / gzip 11 KB   |
-| `anhui-rivers.json`    | 长江、淮河在省域内的河道线（193 段）                                                     | OpenStreetMap（Overpass API）               | `pnpm data:anhui-rivers`    | 原始 25 KB / gzip 3 KB    |
+| `anhui-rivers.json`    | 长江、淮河在省域内的河道线（87 条 LineString，共 617 段）                                | OpenStreetMap（Overpass API）               | `pnpm data:anhui-rivers`    | 原始 25 KB / gzip 3 KB    |
 
 两层 OSM 数据是 **ODbL** 许可：公开上线时页面必须署名 `© OpenStreetMap contributors`，
 这条与审图号一并处理，不能只写「数据来源见 README」。

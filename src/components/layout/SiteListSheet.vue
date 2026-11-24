@@ -6,14 +6,20 @@ import { useFocusTrap } from '@/composables/use-focus-trap'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import type { Site } from '@/types/site'
 
-const props = defineProps<{ sites: Site[]; selectedId: string | null; open?: boolean }>()
+const props = defineProps<{
+  sites: Site[]
+  selectedId: string | null
+  open?: boolean
+  /** 地图上划过的地标（HomeView 由 AnhuiMap 的 site-hover 转进来）：高亮对应行 */
+  hoveredSiteId?: string | null
+}>()
 
 const sheet = ref<HTMLElement | null>(null)
 useFocusTrap(
   computed(() => props.open !== false),
   sheet,
 )
-const emit = defineEmits<{ select: [id: string]; close: [] }>()
+const emit = defineEmits<{ select: [id: string]; close: []; hover: [id: string | null] }>()
 </script>
 
 <template>
@@ -40,8 +46,15 @@ const emit = defineEmits<{ select: [id: string]; close: [] }>()
         <button
           type="button"
           class="sheet__item"
-          :class="{ 'sheet__item--on': site.id === selectedId }"
+          :class="{
+            'sheet__item--on': site.id === selectedId,
+            'sheet__item--hovered': site.id === hoveredSiteId,
+          }"
           @click="emit('select', site.id)"
+          @mouseenter="emit('hover', site.id)"
+          @mouseleave="emit('hover', null)"
+          @focus="emit('hover', site.id)"
+          @blur="emit('hover', null)"
         >
           <span class="sheet__icon"><CategoryIcon :category="site.category" :size="20" /></span>
           <span class="sheet__name">{{ site.name }}</span>
@@ -131,6 +144,11 @@ const emit = defineEmits<{ select: [id: string]; close: [] }>()
 }
 
 .sheet__item--on {
+  background: var(--surface-muted);
+}
+
+/* 地图上划过的地标（site-hover 转过来）：行显颜色微弱联动 */
+.sheet__item--hovered {
   background: var(--surface-muted);
 }
 

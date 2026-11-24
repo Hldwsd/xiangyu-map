@@ -39,6 +39,7 @@ import {
 } from '@/services/anhui-map-loader'
 import { readThemePalette, type ThemePalette } from '@/theme/theme'
 import type { Site } from '@/types/site'
+import { ANHUI_BBOX } from '@/utils/region'
 
 // 按需注册：只引入实际用到的图表与组件，控制首屏 JS 体积
 echarts.use([ScatterChart, LinesChart, GeoComponent, TooltipComponent, CanvasRenderer])
@@ -81,9 +82,10 @@ const FALLBACK_CENTER: [number, number] = [117.3, 31.8]
  * 放到 8 倍时视野只有零点几度，却只能停在固定框内，省域最西 / 最北的角永远看不到。
  */
 let provinceBBox: [[number, number], [number, number]] | null = null
+/** 夹取外框：取自 `region.ANHUI_BBOX`（与 site 数据校验同源，见 region.ts 注释） */
 const FALLBACK_BBOX: [[number, number], [number, number]] = [
-  [114.88, 29.39],
-  [119.65, 34.65],
+  [ANHUI_BBOX.minLng, ANHUI_BBOX.minLat],
+  [ANHUI_BBOX.maxLng, ANHUI_BBOX.maxLat],
 ]
 
 const props = defineProps<{
@@ -95,9 +97,17 @@ const props = defineProps<{
   cluster?: boolean
   /** 城市索引 hover 时高亮对应市域（值形如「合肥」，null 取消） */
   highlightCity?: string | null
+  /** 外部定位某个站点（如搜索结果）：非 null 时地图平移/缩放靠向它 */
+  targetSiteId?: string | null
+  /** 地图上划过的地标（如列表行鼠标划过）：非 null 时地图定位到该站点 */
+  hoveredSiteId?: string | null
 }>()
 
-const emit = defineEmits<{ select: [id: string]; 'marker-hover': [city: string | null] }>()
+const emit = defineEmits<{
+  select: [id: string]
+  'marker-hover': [city: string | null]
+  'site-hover': [siteId: string | null]
+}>()
 
 const container = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<EChartsType | null>(null)
@@ -1327,18 +1337,21 @@ function handleMarkerCityHover(params: unknown): void {
   const clusterIds = payload.data?.clusterIds
   if (Array.isArray(clusterIds) && clusterIds.length > 1) {
     emitMarkerCity(cityForIds(clusterIds))
+    emit('site-hover', null)
     return
   }
   const siteId = payload.data?.siteId
   if (typeof siteId !== 'string') return
   const site = props.sites.find((item) => item.id === siteId)
   emitMarkerCity(site?.city ?? null)
+  emit('site-hover', siteId)
 }
 
 function handleMarkerCityOut(params: unknown): void {
   const payload = params as { seriesId?: string }
   if (payload.seriesId !== undefined && payload.seriesId !== 'sites') return
   emitMarkerCity(null)
+  emit('site-hover', null)
 }
 
 /** 选中项目 → 对应市域高亮 1.1s，之后回到 hover 状态 */
@@ -1702,6 +1715,28 @@ watch(
     refreshMarkers()
   },
 )
+
+/** 把地图缓动靠向指定站点（搜索与列表 hover 共用），轻微放大一档 */
+function locateSite(id: string | null | undefined): void {
+  if (id === null || id === undefined || status.value !== 'ready') return
+  const site = props.sites.find((item) => item.id === id)
+  if (site === undefined) return
+  animateGeoTo([site.location.lng, site.location.lat], clampZoom(geoState().zoom + 0.7))
+}
+
+watch(
+  () => props.targetSiteId,
+  (id) => {
+    locateSite(id)
+  },
+)
+
+watch(
+  () => props.hoveredSiteId,
+  (id) => {
+    locateSite(id)
+  },
+)
 </script>
 
 <template>
@@ -1735,6 +1770,7 @@ watch(
         step="0.1"
         :value="zoomLevel"
         aria-label="缩放级别"
+        :aria-valuenow="zoomLevel"
         @input="onZoomInput"
       />
       <button
