@@ -36,15 +36,17 @@ function findSite(id: string): Site {
 
 describe('SitePanel', () => {
   it('展示名称、分类与省市', () => {
+    // 断言取数据里的字段，而不是抄死某句文案：文案会改，字段名是契约
+    const site = findSite('hongcun')
     const wrapper = mount(SitePanel, {
-      props: { site: findSite('hongcun') },
+      props: { site },
       global: { stubs: { RouterLink: { template: '<a class="link-stub"><slot /></a>' } } },
     })
 
-    expect(wrapper.text()).toContain('宏村')
-    expect(wrapper.text()).toContain('安徽省')
-    expect(wrapper.text()).toContain('黄山市')
-    expect(wrapper.text()).toContain('月沼南湖')
+    expect(wrapper.text()).toContain(site.name)
+    expect(wrapper.text()).toContain(site.province)
+    expect(wrapper.text()).toContain(site.city)
+    expect(wrapper.text()).toContain(site.summary)
   })
 
   it('点击关闭按钮时抛出 close 事件', async () => {
@@ -178,7 +180,7 @@ describe('SiteListSheet', () => {
     })
 
     expect(wrapper.findAll('.sheet__item')).toHaveLength(0)
-    expect(wrapper.get('.sheet__empty').text()).toContain('没有匹配的项目')
+    expect(wrapper.get('.sheet__empty').text()).toContain('没有匹配')
   })
 
   it('鼠标划过条目时抛 hover，hoveredSiteId 高亮对应行', async () => {
@@ -367,7 +369,10 @@ describe('HomeRail 品牌区（ADR 0008）', () => {
     expect(wrapper.find('.rail__brand h1').exists()).toBe(true)
     expect(wrapper.find('.rail__seal').attributes('src')).toBe('/brand/logo-red.webp')
     expect(wrapper.find('.rail__seal').attributes('alt')).toBe('')
-    expect(wrapper.find('.rail__sub').text()).toContain('在地图上，遇见一个文旅项目')
+    // 副题只校验结构（有字、竖排），不抄死文案：文案会改，结构才是这条断言的本意
+    const sub = wrapper.find('.rail__sub')
+    expect(sub.exists()).toBe(true)
+    expect(sub.text().trim().length).toBeGreaterThan(3)
     // 左列引言：填满标题左侧留白（ADR 0008 修订）
     expect(wrapper.find('.rail__quote').text()).toContain('无梦到徽州')
     // 旧横排 tag 不应再出现

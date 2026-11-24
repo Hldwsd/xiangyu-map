@@ -12,7 +12,7 @@ test('品牌页：首屏、地图点数与各分节都渲染出来', async ({ pa
 
   await page.goto('/brand/')
 
-  await expect(page).toHaveTitle(/乡遇安徽 · 一张纸上的七十处山水/)
+  await expect(page).toHaveTitle(/乡遇安徽 · 七十处山水尽收一卷/)
   await expect(page.locator('.loader')).toHaveCount(0)
 
   // 标识：顶栏、首屏印章、页脚都用同一枚「乡」印

@@ -1754,7 +1754,7 @@ watch(
       ref="container"
       class="anhui-map__canvas"
       role="img"
-      aria-label="安徽省地图，按 16 个地级市划分，标注了各文旅项目的位置。可用右侧缩放条缩放；键盘用户可用顶部「项目列表」逐项浏览"
+      aria-label="安徽省地图，按 16 个地级市划分，标注各文旅项目位置。可用右侧缩放条缩放；键盘用户可用顶部「项目列表」逐项浏览"
     />
 
     <p v-if="status === 'loading'" class="anhui-map__hint">
