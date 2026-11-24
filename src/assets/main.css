@@ -207,3 +207,26 @@ a {
 ::view-transition-new(root) {
   animation-duration: 280ms;
 }
+
+/* 页面整体在共享元素之外做轻微上移/淡入，返回时也能看出在过渡 */
+::view-transition-old(root) {
+  animation: 260ms ease both vt-root-out;
+}
+
+::view-transition-new(root) {
+  animation: 300ms ease both vt-root-in;
+}
+
+@keyframes vt-root-out {
+  to {
+    opacity: 0.22;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes vt-root-in {
+  from {
+    opacity: 0.22;
+    transform: translateY(-8px);
+  }
+}

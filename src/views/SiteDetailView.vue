@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
-import { prefersReducedMotion } from '@/utils/motion'
+import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
 import { useSitesStore } from '@/stores/sites'
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -227,30 +227,82 @@ function markBroken(url: string): void {
   brokenImages.value = new Set([...brokenImages.value, url])
 }
 
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => void | Promise<void>) => {
-    finished: Promise<void>
-  }
-}
-
-/** 返回地图：整页做浏览器原生 View Transition，不用遮罩 */
+/** 返回地图：把详情大图收成卡片大小飞回右侧，详情淡出，再回地图（卡片入场由预览卡自己完成） */
 function backToMap(event: MouseEvent): void {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-  if (prefersReducedMotion()) return
-
-  const vtDoc = document as ViewTransitionDocument
-  if (typeof vtDoc.startViewTransition !== 'function') return
-
   event.preventDefault()
-  vtDoc.startViewTransition(() => router.push({ name: 'home' }))
+
+  store.selectSite(props.id)
+
+  if (prefersReducedMotion()) {
+    void router.push({ name: 'home' })
+    return
+  }
+
+  const hero = document.querySelector<HTMLImageElement>('.detail__hero-img')
+  if (hero === null) {
+    void router.push({ name: 'home' })
+    return
+  }
+
+  const rect = hero.getBoundingClientRect()
+  const clone = hero.cloneNode(true) as HTMLImageElement
+  const desktop = window.innerWidth >= 900
+  const width = desktop
+    ? Math.min(320, window.innerWidth * 0.24)
+    : Math.min(240, window.innerWidth * 0.62)
+  const height = width * 0.56
+  clone.style.cssText = [
+    'position:fixed',
+    'left:' + rect.left + 'px',
+    'top:' + rect.top + 'px',
+    'width:' + rect.width + 'px',
+    'height:' + rect.height + 'px',
+    'object-fit:cover',
+    'border-radius:6px',
+    'z-index:80',
+    'pointer-events:none',
+    'box-shadow:0 18px 40px -24px rgb(28 26 23 / 45%)',
+  ].join(';')
+  document.body.append(clone)
+  hero.style.visibility = 'hidden'
+
+  void loadGsap()
+    .then((gsap) => {
+      gsap
+        .timeline({
+          onComplete: () => {
+            clone.remove()
+            void router.push({ name: 'home' })
+          },
+        })
+        .to(
+          clone,
+          {
+            left: desktop ? window.innerWidth - 64 - width : (window.innerWidth - width) / 2,
+            top: desktop ? 86 : window.innerHeight * 0.18,
+            width,
+            height,
+            opacity: 0.92,
+            duration: 0.45,
+            ease: 'power3.inOut',
+          },
+          0,
+        )
+        .to('.detail', { opacity: 0, y: 12, duration: 0.26, ease: 'power1.in' }, 0.16)
+    })
+    .catch(() => {
+      clone.remove()
+      void router.push({ name: 'home' })
+    })
 }
 </script>
 
 <template>
   <article v-if="site" class="detail">
-    <RouterLink class="detail__back" :to="{ name: 'home' }" @click="backToMap">
+    <button type="button" class="detail__back" @click="backToMap">
       <AppIcon name="back" :size="14" />返回地图
-    </RouterLink>
+    </button>
 
     <figure class="detail__hero">
       <img
@@ -427,9 +479,9 @@ function backToMap(event: MouseEvent): void {
       </nav>
     </div>
 
-    <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }" @click="backToMap">
+    <button type="button" class="detail__back detail__back--bottom" @click="backToMap">
       <AppIcon name="back" :size="14" />返回地图
-    </RouterLink>
+    </button>
 
     <Teleport to="body">
       <div
@@ -483,9 +535,7 @@ function backToMap(event: MouseEvent): void {
   <div v-else class="detail detail--missing">
     <h1>没有找到这个项目</h1>
     <p>链接可能已经失效，或者该项目已从数据中移除。</p>
-    <RouterLink class="detail__back" :to="{ name: 'home' }" @click="backToMap"
-      >← 返回地图</RouterLink
-    >
+    <button type="button" class="detail__back" @click="backToMap">← 返回地图</button>
   </div>
 </template>
 
@@ -501,17 +551,33 @@ function backToMap(event: MouseEvent): void {
 
 .detail__back {
   display: inline-flex;
-  gap: 0.35rem;
+  gap: 0.4rem;
   align-items: center;
+  padding: 0.55rem 0.95rem;
   margin: var(--space-4) 0 var(--space-3);
+  font: inherit;
   font-size: var(--text-sm);
-  color: var(--ink-soft);
+  cursor: pointer;
+  appearance: none;
+  color: var(--surface);
   text-decoration: none;
-  transition: color 0.15s ease;
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-sm);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .detail__back:hover {
-  color: var(--accent);
+  color: var(--surface);
+  background: #2a241d;
+  transform: translateX(-2px);
+}
+
+.detail__back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .detail__back--bottom {
