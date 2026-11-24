@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+
+import { loadGsap, prefersReducedMotion } from '@/utils/motion'
+import { runInkFade } from '@/utils/route-fade'
 
 import { useSitesStore } from '@/stores/sites'
 import AppIcon from '@/components/icons/AppIcon.vue'
@@ -13,6 +16,7 @@ const FALLBACK_COVER = '/images/placeholder.svg'
 const props = defineProps<{ id: string }>()
 
 const store = useSitesStore()
+const router = useRouter()
 const site = computed(() => store.getSiteById(props.id))
 
 const DEFAULT_SHARE_IMAGE = '/og-cover.jpg'
@@ -223,11 +227,35 @@ function srcFor(url: string): string {
 function markBroken(url: string): void {
   brokenImages.value = new Set([...brokenImages.value, url])
 }
+
+/** 返回地图：先在详情页盖一层墨，再回首页；首页会读标记做淡入 */
+function backToMap(event: MouseEvent): void {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  if (prefersReducedMotion()) return
+  event.preventDefault()
+  sessionStorage.setItem('xy-from-detail', '1')
+  runInkFade(() => {
+    void router.push({ name: 'home' })
+  })
+}
+
+onMounted(() => {
+  if (prefersReducedMotion()) return
+  void loadGsap()
+    .then((gsap) => {
+      gsap.fromTo(
+        '.detail',
+        { opacity: 0.2, y: 10 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' },
+      )
+    })
+    .catch(() => {})
+})
 </script>
 
 <template>
   <article v-if="site" class="detail">
-    <RouterLink class="detail__back" :to="{ name: 'home' }">
+    <RouterLink class="detail__back" :to="{ name: 'home' }" @click="backToMap">
       <AppIcon name="back" :size="14" />返回地图
     </RouterLink>
 
@@ -406,7 +434,7 @@ function markBroken(url: string): void {
       </nav>
     </div>
 
-    <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }">
+    <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }" @click="backToMap">
       <AppIcon name="back" :size="14" />返回地图
     </RouterLink>
 
@@ -462,7 +490,9 @@ function markBroken(url: string): void {
   <div v-else class="detail detail--missing">
     <h1>没有找到这个项目</h1>
     <p>链接可能已经失效，或者该项目已从数据中移除。</p>
-    <RouterLink class="detail__back" :to="{ name: 'home' }">← 返回地图</RouterLink>
+    <RouterLink class="detail__back" :to="{ name: 'home' }" @click="backToMap"
+      >← 返回地图</RouterLink
+    >
   </div>
 </template>
 

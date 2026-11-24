@@ -196,3 +196,12 @@ a {
 .is-brand-arriving body {
   background: #17140f;
 }
+
+/* 地图 ⇄ 详情页的墨色转场层 */
+.route-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: #17140f;
+  pointer-events: none;
+}

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+
+import { prefersReducedMotion } from '@/utils/motion'
+import { runInkFade } from '@/utils/route-fade'
 
 import AppIcon from '@/components/icons/AppIcon.vue'
 import CategoryIcon from '@/components/icons/CategoryIcon.vue'
@@ -7,9 +10,20 @@ import CategoryIcon from '@/components/icons/CategoryIcon.vue'
 import type { Site } from '@/types/site'
 import { assetUrl } from '@/utils/asset-url'
 
-defineProps<{ site: Site }>()
+const props = defineProps<{ site: Site }>()
+const router = useRouter()
 
 const emit = defineEmits<{ close: [] }>()
+
+/** 「查看详情」：先淡入一层墨，再进详情页；修饰键/减动效走浏览器默认 */
+function openDetail(event: MouseEvent): void {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  if (prefersReducedMotion()) return
+  event.preventDefault()
+  runInkFade(() => {
+    void router.push({ name: 'site-detail', params: { id: props.site.id } })
+  })
+}
 </script>
 
 <template>
@@ -51,7 +65,11 @@ const emit = defineEmits<{ close: [] }>()
         </template>
       </dl>
 
-      <RouterLink class="panel__link" :to="{ name: 'site-detail', params: { id: site.id } }">
+      <RouterLink
+        class="panel__link"
+        :to="{ name: 'site-detail', params: { id: site.id } }"
+        @click="openDetail"
+      >
         查看详情
         <AppIcon name="next" :size="13" />
       </RouterLink>
