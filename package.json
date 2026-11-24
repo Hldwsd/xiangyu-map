@@ -29,7 +29,9 @@
     "data:anhui-water": "node scripts/fetch-anhui-water.mjs",
     "data:anhui-rivers": "node scripts/fetch-anhui-rivers.mjs",
     "data:anhui-outline": "node scripts/fetch-anhui-outline.mjs",
-    "data:bg-ink": "node scripts/make-bg-ink.mjs"
+    "data:bg-ink": "node scripts/make-bg-ink.mjs",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build"
   },
   "dependencies": {
     "echarts": "^6.1.0",
@@ -42,6 +44,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
+    "@tauri-apps/cli": "^2.12.6",
     "@tsconfig/node24": "^24.0.5",
     "@types/jsdom": "^30.0.0",
     "@types/matter-js": "^0.20.2",

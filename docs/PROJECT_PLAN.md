@@ -376,6 +376,8 @@ export interface Site {
 
 ### M4 多端预研（W7–W8）
 
+**M4 进度**（截至 2026-11-24）：比赛版只做 Windows，Tauri 2 桌面壳已跑通（应用启动进品牌页，地图由品牌页进入），可构建 NSIS 安装包；移动端方案暂缓到 v0.2 再评估。取舍见 [ADR 0005](adr/0005-desktop-windows-tauri.md)。
+
 目标：验证"一套前端代码包出桌面/手机"的成本，而不是真的做完。
 
 - Tauri 2 桌面壳：复用 `dist/`，跑通 Windows 打包与安装
