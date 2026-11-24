@@ -26,8 +26,8 @@ function createOverlay(): HTMLElement {
   overlay.innerHTML = `
     <div class="map-entry__inner">
       <img class="map-entry__seal" src="${sealSrc()}" alt="" width="192" height="214" />
-      <p class="map-entry__title">进入地图</p>
-      <span class="map-entry__meta">一纸山河 · 十六座城 · 70 个项目</span>
+      <p class="map-entry__title">乡遇安徽</p>
+      <span class="map-entry__meta">地图 · 一纸山河</span>
     </div>
   `
   document.body.append(overlay)
@@ -65,7 +65,7 @@ function runEntry(link: HTMLAnchorElement, event: MouseEvent): void {
       { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' },
       '-=0.4',
     )
-    .to({}, { duration: 0.15 })
+    .to({}, { duration: 0.18 })
 }
 
 function isPlainClick(event: MouseEvent): boolean {

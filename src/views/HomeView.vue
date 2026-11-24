@@ -40,33 +40,35 @@ function playBrandArrival(): void {
       const overlay = document.querySelector<HTMLElement>('.map-arrive')
       if (overlay === null) return
 
-      gsap.set(shell, { transformOrigin: '50% 42%', opacity: 0.35, scale: 0.985 })
-      gsap.set(overlay, { clipPath: 'circle(150% at 50% 42%)' })
+      // 品牌页离场结束时就是「整屏墨色 + 印章 / 乡遇安徽 / 地图 · 一纸山河」；
+      // 地图页从同一帧开始，只把这个墨色层淡掉、地图同时回到 1，跨页面看是一块墨让开。
+      gsap.set(shell, { transformOrigin: '50% 42%', opacity: 0.35, scale: 0.992 })
+      gsap.set(overlay, { opacity: 1 })
 
       gsap
         .timeline({
           onComplete: () => {
             arrivingFromBrand.value = false
+            document.documentElement.classList.remove('is-brand-arriving')
           },
         })
-        .to('.map-arrive__inner', { opacity: 0, y: -10, duration: 0.35, ease: 'power1.in' }, 0)
-        .to(shell, { opacity: 1, scale: 1, duration: 0.85, ease: 'power2.out' }, 0.05)
-        .to(
-          overlay,
-          { clipPath: 'circle(0% at 50% 42%)', duration: 0.8, ease: 'power3.inOut' },
-          0.15,
-        )
-        .to(overlay, { opacity: 0, duration: 0.15 }, 0.85)
+        .to(shell, { opacity: 1, scale: 1, duration: 0.95, ease: 'power2.out' }, 0.05)
+        .to('.map-arrive__inner', { opacity: 0, duration: 0.32, ease: 'power1.in' }, 0.28)
+        .to(overlay, { opacity: 0, duration: 0.62, ease: 'power2.inOut' }, 0.24)
     })
     .catch(() => {
       arrivingFromBrand.value = false
+      document.documentElement.classList.remove('is-brand-arriving')
     })
 }
 
 onMounted(() => {
   if (sessionStorage.getItem('xy-from-brand') !== '1') return
   sessionStorage.removeItem('xy-from-brand')
-  if (prefersReducedMotion()) return
+  if (prefersReducedMotion()) {
+    document.documentElement.classList.remove('is-brand-arriving')
+    return
+  }
   arrivingFromBrand.value = true
   void nextTick(() => playBrandArrival())
 })
