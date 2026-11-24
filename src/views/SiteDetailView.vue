@@ -231,17 +231,26 @@ function markBroken(url: string): void {
       <AppIcon name="back" :size="14" />返回地图
     </RouterLink>
 
+    <figure class="detail__hero">
+      <img
+        class="detail__hero-img detail__cover"
+        :src="assetUrl(srcFor(site.cover))"
+        :alt="`${site.name} 封面`"
+        @error="markBroken(site.cover)"
+      />
+    </figure>
+
     <header class="detail__header">
       <p class="detail__meta">
         <span class="detail__category">
-          <CategoryIcon :category="site.category" :size="20" />{{ site.category }}
+          <CategoryIcon :category="site.category" :size="18" />{{ site.category }}
         </span>
         <span>{{ site.province }} · {{ site.city }}</span>
         <span class="detail__updated">更新于 {{ site.updatedAt }}</span>
       </p>
-      <h1 ref="heading" class="detail__title" tabindex="-1">{{ site.name }}</h1>
-      <p class="detail__summary">{{ site.summary }}</p>
-      <div class="detail__actions">
+
+      <div class="detail__heading">
+        <h1 ref="heading" class="detail__title" tabindex="-1">{{ site.name }}</h1>
         <button
           ref="shareTrigger"
           type="button"
@@ -252,149 +261,150 @@ function markBroken(url: string): void {
           <AppIcon name="share" :size="14" />分享
         </button>
       </div>
+
+      <p class="detail__summary">{{ site.summary }}</p>
     </header>
 
-    <img
-      class="detail__cover"
-      :src="assetUrl(srcFor(site.cover))"
-      :alt="`${site.name} 封面`"
-      @error="markBroken(site.cover)"
-    />
+    <div class="detail__layout">
+      <section class="detail__section detail__intro">
+        <h2>简介</h2>
+        <p v-for="(paragraph, index) in paragraphs" :key="index">{{ paragraph }}</p>
+      </section>
 
-    <section class="detail__section">
-      <h2>简介</h2>
-      <p v-for="(paragraph, index) in paragraphs" :key="index">{{ paragraph }}</p>
-    </section>
+      <aside class="detail__side">
+        <section class="detail__section detail__facts-section">
+          <h2>实用信息</h2>
+          <dl class="detail__facts">
+            <dt><AppIcon name="pin" :size="12" />坐标</dt>
+            <dd>{{ site.location.lng }}, {{ site.location.lat }}（GCJ-02）</dd>
+            <template v-if="site.practical?.duration">
+              <dt><AppIcon name="clock" :size="12" />建议停留</dt>
+              <dd>{{ site.practical.duration }}</dd>
+            </template>
+            <template v-if="site.bestSeason">
+              <dt><AppIcon name="calendar" :size="12" />最佳季节</dt>
+              <dd>{{ site.bestSeason }}</dd>
+            </template>
+            <template v-if="site.practical?.hours">
+              <dt><AppIcon name="clock" :size="12" />开放时间</dt>
+              <dd>{{ site.practical.hours }}</dd>
+            </template>
+            <template v-if="site.practical?.ticket">
+              <dt><AppIcon name="ticket" :size="12" />门票</dt>
+              <dd>{{ site.practical.ticket }}</dd>
+            </template>
+            <template v-if="site.transport">
+              <dt><AppIcon name="route" :size="12" />交通</dt>
+              <dd>{{ site.transport }}</dd>
+            </template>
+            <template v-if="site.practical?.audience">
+              <dt><AppIcon name="users" :size="12" />适合</dt>
+              <dd>{{ site.practical.audience }}</dd>
+            </template>
+            <dt><AppIcon name="pin" :size="12" />地图</dt>
+            <dd>
+              <a
+                class="detail__nav"
+                :href="amapSiteUrl(site)"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="打开高德地图的地点页；没有精确短链时按名称搜索"
+              >
+                在高德地图查看位置<AppIcon name="external" :size="12" />
+              </a>
+            </dd>
+            <template v-if="site.bookingUrl">
+              <dt><AppIcon name="external" :size="12" />预约</dt>
+              <dd>
+                <a :href="site.bookingUrl" target="_blank" rel="noopener noreferrer">{{
+                  site.bookingUrl
+                }}</a>
+              </dd>
+            </template>
+          </dl>
+        </section>
+      </aside>
 
-    <section v-if="site.gallery.length > 0" class="detail__section">
-      <h2>图集</h2>
-      <div class="detail__gallery">
-        <img
-          v-for="image in site.gallery"
-          :key="image"
-          :src="assetUrl(srcFor(image))"
-          :alt="site.name"
-          loading="lazy"
-          @error="markBroken(image)"
-        />
-      </div>
-    </section>
+      <section v-if="site.gallery.length > 0" class="detail__section detail__gallery-section">
+        <h2>图集</h2>
+        <div class="detail__gallery">
+          <img
+            v-for="image in site.gallery"
+            :key="image"
+            :src="assetUrl(srcFor(image))"
+            :alt="site.name"
+            loading="lazy"
+            @error="markBroken(image)"
+          />
+        </div>
+      </section>
 
-    <section class="detail__section">
-      <h2>实用信息</h2>
-      <dl class="detail__facts">
-        <dt><AppIcon name="pin" :size="12" />坐标</dt>
-        <dd>{{ site.location.lng }}, {{ site.location.lat }}（GCJ-02）</dd>
-        <template v-if="site.practical?.duration">
-          <dt><AppIcon name="clock" :size="12" />建议停留</dt>
-          <dd>{{ site.practical.duration }}</dd>
-        </template>
-        <template v-if="site.bestSeason">
-          <dt><AppIcon name="calendar" :size="12" />最佳季节</dt>
-          <dd>{{ site.bestSeason }}</dd>
-        </template>
-        <template v-if="site.practical?.hours">
-          <dt><AppIcon name="clock" :size="12" />开放时间</dt>
-          <dd>{{ site.practical.hours }}</dd>
-        </template>
-        <template v-if="site.practical?.ticket">
-          <dt><AppIcon name="ticket" :size="12" />门票</dt>
-          <dd>{{ site.practical.ticket }}</dd>
-        </template>
-        <template v-if="site.transport">
-          <dt><AppIcon name="route" :size="12" />交通</dt>
-          <dd>{{ site.transport }}</dd>
-        </template>
-        <template v-if="site.practical?.audience">
-          <dt><AppIcon name="users" :size="12" />适合</dt>
-          <dd>{{ site.practical.audience }}</dd>
-        </template>
-        <dt><AppIcon name="pin" :size="12" />地图</dt>
-        <dd>
-          <a
-            class="detail__nav"
-            :href="amapSiteUrl(site)"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="打开高德地图的地点页；没有精确短链时按名称搜索"
-          >
-            在高德地图查看位置<AppIcon name="external" :size="12" />
-          </a>
-        </dd>
-        <template v-if="site.bookingUrl">
-          <dt><AppIcon name="external" :size="12" />预约</dt>
-          <dd>
-            <a :href="site.bookingUrl" target="_blank" rel="noopener noreferrer">{{
-              site.bookingUrl
-            }}</a>
-          </dd>
-        </template>
-      </dl>
-    </section>
+      <section v-if="nearbySites.length > 0" class="detail__section">
+        <h2>同城其他项目</h2>
+        <ul class="detail__nearby">
+          <li v-for="item in nearbySites" :key="item.id">
+            <RouterLink
+              class="detail__nearby-link"
+              :to="{ name: 'site-detail', params: { id: item.id } }"
+            >
+              <span class="detail__nearby-cat">
+                <CategoryIcon :category="item.category" :size="17" />
+              </span>
+              <span class="detail__nearby-body">
+                <b>{{ item.name }}</b>
+                <small>{{ item.category }} · {{ item.summary }}</small>
+              </span>
+            </RouterLink>
+          </li>
+        </ul>
+      </section>
 
-    <section v-if="nearbySites.length > 0" class="detail__section">
-      <h2>同城其他项目</h2>
-      <ul class="detail__nearby">
-        <li v-for="item in nearbySites" :key="item.id">
-          <RouterLink
-            class="detail__nearby-link"
-            :to="{ name: 'site-detail', params: { id: item.id } }"
-          >
-            <span class="detail__nearby-cat">
-              <CategoryIcon :category="item.category" :size="17" />
-            </span>
-            <span class="detail__nearby-body">
-              <b>{{ item.name }}</b>
-              <small>{{ item.category }} · {{ item.summary }}</small>
-            </span>
-          </RouterLink>
-        </li>
-      </ul>
-    </section>
+      <section class="detail__section detail__sources-section">
+        <h2>来源</h2>
+        <ul class="detail__sources">
+          <li v-for="source in site.sources" :key="source">
+            <a
+              :href="source"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="source"
+              :aria-label="`打开来源：${source}`"
+              >{{ sourceLabel(source) }}</a
+            >
+          </li>
+        </ul>
+        <p v-if="isSample" class="detail__notice">
+          当前为示例数据：文案、图片与来源均为占位，正式上线前会逐条替换为可核验的官方资料。
+        </p>
+        <p v-else class="detail__notice">
+          封面来自公开资料，版权归原作者；正式授权素材到位后替换。
+        </p>
+      </section>
 
-    <section class="detail__section">
-      <h2>来源</h2>
-      <ul class="detail__sources">
-        <li v-for="source in site.sources" :key="source">
-          <a
-            :href="source"
-            target="_blank"
-            rel="noopener noreferrer"
-            :title="source"
-            :aria-label="`打开来源：${source}`"
-            >{{ sourceLabel(source) }}</a
-          >
-        </li>
-      </ul>
-      <p v-if="isSample" class="detail__notice">
-        当前为示例数据：文案、图片与来源均为占位，正式上线前会逐条替换为可核验的官方资料。
-      </p>
-      <p v-else class="detail__notice">封面来自公开资料，版权归原作者；正式授权素材到位后替换。</p>
-    </section>
+      <nav class="detail__pager" aria-label="相邻项目">
+        <RouterLink
+          v-if="previous"
+          class="detail__pager-item"
+          :to="{ name: 'site-detail', params: { id: previous.id } }"
+        >
+          <span class="detail__pager-dir"><AppIcon name="prev" :size="12" />上一条</span>
+          <span class="detail__pager-name">{{ previous.name }}</span>
+        </RouterLink>
+        <span v-else class="detail__pager-item detail__pager-item--empty">已是第一条</span>
 
-    <nav class="detail__pager" aria-label="相邻项目">
-      <RouterLink
-        v-if="previous"
-        class="detail__pager-item"
-        :to="{ name: 'site-detail', params: { id: previous.id } }"
-      >
-        <span class="detail__pager-dir"><AppIcon name="prev" :size="12" />上一条</span>
-        <span class="detail__pager-name">{{ previous.name }}</span>
-      </RouterLink>
-      <span v-else class="detail__pager-item detail__pager-item--empty">已是第一条</span>
-
-      <RouterLink
-        v-if="next"
-        class="detail__pager-item detail__pager-item--next"
-        :to="{ name: 'site-detail', params: { id: next.id } }"
-      >
-        <span class="detail__pager-dir">下一条<AppIcon name="next" :size="12" /></span>
-        <span class="detail__pager-name">{{ next.name }}</span>
-      </RouterLink>
-      <span v-else class="detail__pager-item detail__pager-item--empty detail__pager-item--next"
-        >已是最后一条</span
-      >
-    </nav>
+        <RouterLink
+          v-if="next"
+          class="detail__pager-item detail__pager-item--next"
+          :to="{ name: 'site-detail', params: { id: next.id } }"
+        >
+          <span class="detail__pager-dir">下一条<AppIcon name="next" :size="12" /></span>
+          <span class="detail__pager-name">{{ next.name }}</span>
+        </RouterLink>
+        <span v-else class="detail__pager-item detail__pager-item--empty detail__pager-item--next"
+          >已是最后一条</span
+        >
+      </nav>
+    </div>
 
     <RouterLink class="detail__back detail__back--bottom" :to="{ name: 'home' }">
       <AppIcon name="back" :size="14" />返回地图
@@ -459,8 +469,7 @@ function markBroken(url: string): void {
 <style scoped>
 .detail {
   width: 100%;
-  /* 栏宽用 rem：html 基准随视口放大，这里跟着变宽，不再固定 820px */
-  max-width: 56rem;
+  max-width: 74rem;
   margin: 0 auto;
   padding: 0 clamp(1.1rem, 3vw, 2.6rem) var(--space-7);
 }
@@ -482,15 +491,32 @@ function markBroken(url: string): void {
   color: var(--accent);
 }
 
-/* ---- 头部 ---- */
+.detail__back--bottom {
+  margin-top: var(--space-6);
+}
 
-.detail__header {
-  padding: clamp(1.1rem, 2.2vw, 1.7rem);
-  margin-top: var(--space-3);
-  background: var(--surface);
+/* ---- 大图开场 ---- */
+
+.detail__hero {
+  margin: var(--space-2) 0 0;
+}
+
+.detail__hero-img {
+  display: block;
+  width: 100%;
+  max-height: min(56vh, 34rem);
+  aspect-ratio: 2.25 / 1;
+  object-fit: cover;
+  background: var(--surface-muted);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-panel);
+}
+
+/* ---- 标题区：大标题 + 右侧分享，无卡片 ---- */
+
+.detail__header {
+  padding: clamp(1.4rem, 3vw, 2.4rem) 0 clamp(1.2rem, 2.4vw, 2rem);
+  border-bottom: 1px solid var(--line);
 }
 
 .detail__meta {
@@ -498,7 +524,7 @@ function markBroken(url: string): void {
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
   font-size: var(--text-xs);
   color: var(--ink-soft);
 }
@@ -520,39 +546,41 @@ function markBroken(url: string): void {
   letter-spacing: 0.04em;
 }
 
+.detail__heading {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
 .detail__title {
-  margin: 0 0 var(--space-2);
+  margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-2xl);
+  font-size: clamp(2.1rem, 4.2vw, 3.2rem);
   font-weight: 650;
-  line-height: var(--leading-tight);
+  line-height: 1.12;
   letter-spacing: var(--tracking-display);
   color: var(--ink);
 }
 
-/* 程序化聚焦标题只为让读屏播报，不用画焦点环；−1 的 tabindex 本就不进 Tab 序列 */
 .detail__title:focus {
   outline: none;
 }
 
 .detail__summary {
-  max-width: 58ch;
-  margin: 0;
+  max-width: 66ch;
+  margin: var(--space-3) 0 0;
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);
   color: var(--ink-soft);
 }
 
-.detail__actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--space-3);
-}
-
 .detail__share {
   display: inline-flex;
+  flex: none;
   gap: 0.35rem;
   align-items: center;
+  margin-top: 0.5rem;
   padding: 0.45rem 0.8rem;
   font: inherit;
   font-size: var(--text-sm);
@@ -576,28 +604,53 @@ function markBroken(url: string): void {
   outline-offset: 2px;
 }
 
-.detail__cover {
-  display: block;
-  width: 100%;
-  /* 16:9 在宽栏下会很高，把「简介」推出首屏；用视口高度限高，宽屏大屏也稳 */
-  max-height: min(46vh, 30rem);
-  margin: var(--space-5) 0 0;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  background: var(--surface-muted);
+/* ---- 主体：正文一列，实用信息右侧吸顶 ---- */
+
+.detail__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 21rem;
+  grid-template-areas:
+    'intro side'
+    'gallery side'
+    'nearby side'
+    'sources sources'
+    'pager pager';
+  column-gap: clamp(2rem, 4vw, 4.5rem);
+  align-items: start;
+}
+
+.detail__intro {
+  grid-area: intro;
+}
+
+.detail__side {
+  grid-area: side;
+  position: sticky;
+  top: 1.5rem;
+  padding: 1.2rem 1.3rem;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
 }
 
-/* ---- 小节：细线 + 大间距，形成阅读节奏 ---- */
+.detail__gallery-section {
+  grid-area: gallery;
+}
+
+.detail__sources-section {
+  grid-area: sources;
+}
+
+.detail__pager {
+  grid-area: pager;
+}
+
+/* ---- 小节：只用细线分节，不再套卡片 ---- */
 
 .detail__section {
-  padding: clamp(1.1rem, 2.2vw, 1.6rem);
-  margin-top: var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  padding-top: var(--space-4);
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--line);
 }
 
 .detail__section h2 {
@@ -609,38 +662,40 @@ function markBroken(url: string): void {
 }
 
 .detail__section p {
-  max-width: 62ch;
+  max-width: 64ch;
   margin: 0 0 var(--space-3);
   font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
+  line-height: 1.9;
   color: var(--ink);
 }
 
-.detail__gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: var(--space-2);
+.detail__intro {
+  margin-top: var(--space-4);
+  border-top: 0;
 }
 
-.detail__gallery img {
-  width: 100%;
-  background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+.detail__intro p {
+  font-size: var(--text-md);
 }
 
-/* ---- 实用信息：定义列表按行分栏，行间用细线 ---- */
+/* 右侧卡里的实用信息不重复画线 */
+
+.detail__facts-section {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0;
+}
 
 .detail__facts {
   display: grid;
-  grid-template-columns: 7rem 1fr;
+  grid-template-columns: 6.2rem 1fr;
   margin: 0;
   font-size: var(--text-sm);
 }
 
 .detail__facts dt,
 .detail__facts dd {
-  padding: 0.55rem 0;
+  padding: 0.5rem 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -656,6 +711,11 @@ function markBroken(url: string): void {
   line-height: var(--leading-snug);
 }
 
+.detail__facts dt:last-of-type,
+.detail__facts dd:last-of-type {
+  border-bottom: 0;
+}
+
 .detail__nav {
   display: inline-flex;
   gap: 0.3rem;
@@ -664,34 +724,58 @@ function markBroken(url: string): void {
   text-underline-offset: 0.18em;
 }
 
-/* ---- 同城其他项目 ---- */
+/* ---- 图集：第一张通栏，其余两列 ---- */
+
+.detail__gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.detail__gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+/* 3 张以上时第一张通栏；只有 2 张时并排等宽，不留空格 */
+.detail__gallery:has(img:nth-child(3)) img:first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 7;
+}
+
+/* ---- 同城其他项目：行式列表，弱化底色 ---- */
 
 .detail__nearby {
   display: grid;
-  gap: var(--space-2);
+  gap: 0;
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+.detail__nearby li + li {
+  border-top: 1px solid var(--line);
 }
 
 .detail__nearby-link {
   display: flex;
   gap: var(--space-3);
   align-items: flex-start;
-  padding: 0.65rem 0.8rem;
+  padding: 0.85rem 0.2rem;
   color: var(--ink);
   text-decoration: none;
-  background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .detail__nearby-link:hover {
-  background: var(--surface);
-  border-color: var(--line-strong);
+  color: var(--accent);
+  transform: translateX(2px);
 }
 
 .detail__nearby-cat {
@@ -799,10 +883,6 @@ function markBroken(url: string): void {
 
 .detail__pager-name {
   font-size: var(--text-base);
-}
-
-.detail__back--bottom {
-  margin-top: var(--space-5);
 }
 
 /* ---- 分享卡片 ---- */
@@ -957,6 +1037,41 @@ function markBroken(url: string): void {
   .detail__pager-item--next {
     align-items: flex-start;
     text-align: left;
+  }
+}
+
+@media (width <= 900px) {
+  .detail__layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'intro'
+      'side'
+      'gallery'
+      'nearby'
+      'sources'
+      'pager';
+    column-gap: 0;
+  }
+
+  .detail__side {
+    position: static;
+  }
+
+  .detail__hero-img {
+    aspect-ratio: 16 / 9;
+    max-height: none;
+  }
+
+  .detail__heading {
+    flex-direction: column;
+  }
+
+  .detail__share {
+    margin-top: 0;
+  }
+
+  .detail__gallery:has(img:nth-child(3)) img:first-child {
+    aspect-ratio: 16 / 9;
   }
 }
 </style>
