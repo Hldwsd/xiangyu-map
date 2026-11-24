@@ -66,21 +66,6 @@ function playBrandArrival(): void {
 }
 
 onMounted(() => {
-  if (sessionStorage.getItem('xy-from-detail') !== '1') return
-  sessionStorage.removeItem('xy-from-detail')
-  if (prefersReducedMotion()) return
-  void loadGsap()
-    .then((gsap) => {
-      gsap.fromTo(
-        '.map-shell',
-        { opacity: 0.15 },
-        { opacity: 1, duration: 0.45, ease: 'power2.out' },
-      )
-    })
-    .catch(() => {})
-})
-
-onMounted(() => {
   if (sessionStorage.getItem('xy-from-brand') !== '1') return
   sessionStorage.removeItem('xy-from-brand')
   if (prefersReducedMotion()) {
