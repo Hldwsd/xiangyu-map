@@ -1,16 +1,16 @@
-﻿# 交接文档 · 乡遇安徽
+# 交接文档 · 乡遇安徽
 
-> 更新时间：2026-11-23 11:35（Asia/Shanghai）
-> 当前 main：`fa90e14 feat(content): 查济换新封面并重生成分享图，人工精选降为 11 张 (#166)`
+> 更新时间：2026-11-25 18:10（Asia/Shanghai）
+> 当前 main：以 GitHub `main` 为准（多端收尾 PR 合并后）
 > 线上：https://hldwsd.github.io/xiangyu-map/
 > 目标读者：接手本仓库的 A/B 任一方，或下一位 agent。
 
 ## 一句话状态
 
-**M0–M3 已完成并发布 v0.1.0；M4 Windows 桌面壳已跑通（品牌页入口，ADR 0005），移动端未开始。**
+**M0–M4 比赛版已完成：网页 v0.1.0、Windows NSIS、Android arm64 APK 均已交付，启动均进品牌页。**
 
 main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 practical、70/70 分享图、12 个头部项目的画廊**；
-地标是软碰撞小球；最近在收手机端拖动/双指缩放/书法背景和覆盖率闸门。
+Windows/Android 安装包见 GitHub Release；Android 经过三轮渲染/滚动优化，真机手感已验收。
 
 ## 一、最近完成了什么
 
@@ -92,27 +92,26 @@ main 当前有 **70 条数据、70 张封面、70/70 高德短链、20 条 pract
 pnpm lint              # 0
 pnpm format:check      # 0
 pnpm type-check        # 0
-pnpm test:unit --run   # 144/144
+pnpm test:unit --run   # 154/154
 pnpm test:coverage     # 语句 91.84% / 分支 85.60%（核心逻辑阈值 70%）
-pnpm build             # 构建总量 265.41 KB gzip
-pnpm bundle:size       # 入口 JS 256.59 / 300 KB（85%），CSS 6.00 / 60 KB
+pnpm build             # 构建通过
+pnpm bundle:size       # 入口 JS 约 267 / 300 KB（89%），CSS 6.75 / 60 KB
 pnpm prerender         # 70 detail + home
-pnpm test:e2e          # 10 passed, 2 skipped
+pnpm test:e2e          # 18 passed, 4 skipped
 ```
 
-- main 最近一次 CI、Deploy（#166）均 success；
+- main 最近一次 CI、Deploy（#234）均 success；
 - 本文件 PR 之外没有其他 open PR；open issue 只剩 **#16（M1 小球真机 FPS / 命中率复测）**；
 - #107 已随 #129 关闭。
 
 ## 四、未完成与风险
 
-### 1. #16 还差最后一轮真机验收
+### 1. Android 性能已验收（#232–#234）
 
-- #153 真机拖动 p90 仍有 **34ms**，legacy jank 45%；下一步可考虑拖动期间隐藏河道/省界光晕；
-- 70 颗球在默认视野/4 倍放大的 FPS；
-- 移动端球挤在一起时的触摸命中；
-- 与聚合模式、筛选、缩放/拖动的组合回归；
-- reduced-motion 已由 #151 关闭，但仍需真机确认系统切换后无需刷新。
+- 触屏 DPR 1.5、`useDirtyRect`、聚合直接落位、跳过入场动画；
+- 关闭 Lenis、固定背景、顶栏毛玻璃；只挂载一个预览卡、触屏关 tooltip；
+- 真机（小米 24117RK2CC / Android 16）实测：品牌页滚动 p90 20ms、地图平移 p90 约 14ms、点地标弹窗 p50 27ms；
+- 用户已确认「不怎么卡」，#16 的性能验收可收尾；后续只做回归，不再扩大优化范围。
 
 ### 2. 内容深度
 
@@ -136,9 +135,9 @@ pnpm test:e2e          # 10 passed, 2 skipped
 
 ### 5. 待处理的小事
 
-- 未跟踪文件 `docs/research/2026-11-21-cover-sourcing.md` 是早期封面调研，内容已被 ADR 0011 取代；要么补状态说明后入库，要么删除，别直接 `git add .`；
-- 已合并/过期分支：`feat/detail-decision`、`feat/prerender-main`、`feat/prerender-seo`、`feat/detail-practical` 等，可按需清理；
-- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 144 用例 / 256.6 KB 入口 JS**。
+- 多端产物已归档到 GitHub Release v0.1.0（Windows setup + Android APK），本地副本在 `release/`（gitignore）；
+- 已合并/过期分支可按需清理；
+- `docs/PROJECT_PLAN.md` 的测试数、数据数、首屏体积每次改动后要同步：当前 **70 条 / 154 用例 / 约 267 KB 入口 JS**。
 
 ## 五、关键文件
 
@@ -163,11 +162,11 @@ pnpm test:e2e          # 10 passed, 2 skipped
 ## 六、接手后建议的顺序
 
 1. `git pull` → `pnpm install` → 跑完整闸门（含 `test:coverage` 与 `test:e2e`），确认 main 是绿的；
-2. 先处理窄屏地标密度（360dp）与 #16 的拖动 p90/触摸命中；
+2. 做一轮 Android 回归（点地标、拖地图、品牌页滚动），确认 #232–#234 无回退；
 3. 补 20 条 hours/ticket、58 条画廊、演艺内容；
-4. 把 v0.1.0 之后的分享图/focus trap/滚动锁定收进 v0.2.0；
+4. 补详情页“看点/路线/周边”，进入 v0.2 内容迭代；
 5. 处理地图审图号与图片授权，再考虑公开推广；
-6. 最后再开 M4 多端预研。
+6. 多端已在 #229–#234 完成，不再开 M4 预研；需要正式分发时补签名与商店素材。
 
 ## 七、操作备注
 
