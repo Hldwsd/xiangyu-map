@@ -46,19 +46,30 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        # 线上地址是 https://<owner>.github.io/<repo>/，基路径必须是 /<repo>/
-        run: pnpm build-only --base=/${{ github.event.repository.name }}/
+        # 地图挂到 /<repo>/map/，根路径留给品牌页
+        run: pnpm build-only --base=/${{ github.event.repository.name }}/map/
 
       - name: Pre-render detail pages
         # 构建后把 detail 页注入静态 meta（title/OG/JSON-LD），微信与搜索引擎才拿得到
         run: pnpm prerender
         env:
-          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/map/
 
-      - name: SPA 回退页
-        # GitHub Pages 对未知路径返回根目录 404.html；把它做成 index.html 的副本，
-        # 深链（/site/hongcun）刷新后仍由同一个 SPA 接管。
-        run: cp dist/index.html dist/404.html
+      - name: Reorganize (map under /map/, brand at root)
+        # 线上根路径是品牌页；地图整体挪到 /map/，品牌页的「进入地图」指向 ./map/
+        run: |
+          set -euo pipefail
+          cp dist/index.html dist/404.html
+          mkdir -p site
+          mv dist site/map
+          cp site/map/brand/index.html site/index.html
+          python - <<'PY'
+          from pathlib import Path
+          page = Path('site/index.html')
+          text = page.read_text(encoding='utf-8').replace('href="../"', 'href="./map/"')
+          page.write_text(text, encoding='utf-8')
+          PY
+          cp site/index.html site/404.html
 
       - name: Publish
         # 不用 peaceiris/actions-gh-pages：它没有推送重试，而 Preview 工作流随时可能
@@ -73,7 +84,7 @@ jobs:
             # 清根目录，但保留 pr-*（每个 PR 的预览产物归 preview.yml 管）
             find /tmp/pages -mindepth 1 -maxdepth 1 \
               -not -name 'pr-*' -not -name '.git' -exec rm -rf {} +
-            cp -a dist/. /tmp/pages/
+            cp -a site/. /tmp/pages/
             cd /tmp/pages
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
