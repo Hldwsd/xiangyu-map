@@ -1,6 +1,6 @@
-﻿# 乡遇安徽 · 项目规划
+# 乡遇安徽 · 项目规划
 
-> 版本：v1.3 ｜ 制定日期：2026-11-18 ｜ 修订：2026-11-19 范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)）、项目中文名定为「乡遇安徽」；2026-11-21 同步进度（M1 已交付、M2 进行中、视觉改「纸本墨线」、OSM 署名落地） ｜ 维护人：Hldwsd（A）、xc3122（B）
+> 版本：v1.4 ｜ 制定日期：2026-11-18 ｜ 修订：2026-11-19 范围收窄到安徽省（[ADR 0002](adr/0002-scope-anhui.md)）、项目中文名定为「乡遇安徽」；2026-11-21 同步进度（M1 已交付、M2 进行中、视觉改「纸本墨线」、OSM 署名落地）；2026-11-25 M4 多端完成（Windows NSIS + Android APK，品牌页入口） ｜ 维护人：Hldwsd（A）、xc3122（B）
 > 本文件是排期、分工与验收标准的**唯一准绳**；README 只做摘要，不复制排期。
 
 ## 项目定位
@@ -365,18 +365,18 @@ export interface Site {
 
 **DoD**：Lighthouse 性能桌面 ≥ 85、移动 ≥ 70；构建无 TS 报错与 lint warning；`v0.1.0` Release 可访问。
 
-**M3 进度**（截至 2026-11-23）：
+**M3 进度**（截至 2026-11-25）：
 
 - 覆盖率闸门已接（#150/#152）：核心逻辑 70% 阈值，当前全量语句 91.84% / 分支 85.60%；
-- E2E 冒烟已接：Playwright 桌面 + 移动端，首页计数、城市筛选、搜索列表、详情深链与预渲染 meta；
+- 单测 154 个全绿；E2E 冒烟 18 passed / 4 skipped（桌面 + 移动端）；
 - Lighthouse 基线已测（[2026-11-23](audits/2026-11-23-lighthouse.md)）：桌面 **93** / 移动 **77**，a11y 100、SEO 100，均达 DoD；
 - prefers-reduced-motion 已接（#151）：关闭入场动画与 hover 拨球；
-- 已发布 0.1.0 tag + GitHub Release；
-- 仍需外部输入：审图号与图片授权（不阻塞 v0.1.0，发布说明已注明）。
+- 已发布 0.1.0 tag + GitHub Release；Windows/Android 安装包已补挂到 Release；
+- 仍需外部输入：审图号与图片授权（不阻塞比赛版，公开上线前必须处理）。
 
 ### M4 多端预研（W7–W8）
 
-**M4 进度**（截至 2026-11-24）：比赛版只做 Windows，Tauri 2 桌面壳已跑通（应用启动进品牌页，地图由品牌页进入），可构建 NSIS 安装包；移动端方案暂缓到 v0.2 再评估。取舍见 [ADR 0005](adr/0005-desktop-windows-tauri.md)。
+**M4 进度**（截至 2026-11-25）：比赛版 Windows + Android 均已完成。Windows 用 Tauri 2 打 NSIS 安装包，默认安装目录 `%LOCALAPPDATA%\xiangyu_map`、图标为朱砂 logo；Android 用 Tauri 2 打 arm64 release APK，启动进品牌页，地图由品牌页进入，状态栏/手势条已适配。Android 经三轮滚动/弹窗优化（DPR 1.5、dirtyRect、关 Lenis/固定背景、单预览卡），真机手感已验收。取舍见 [ADR 0005](adr/0005-desktop-windows-tauri.md)。
 
 目标：验证"一套前端代码包出桌面/手机"的成本，而不是真的做完。
 
