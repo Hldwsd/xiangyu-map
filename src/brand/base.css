@@ -717,3 +717,23 @@ html.lenis body {
   letter-spacing: 0.24em;
   color: rgb(251 246 234 / 58%);
 }
+/* Android WebView 对 background-attachment: fixed 的滚动重绘极贵 */
+@media (pointer: coarse), (hover: none) {
+  body {
+    background-attachment: scroll;
+  }
+}
+/* JS 打的手机标记：不依赖 WebView 的 pointer/hover 媒体查询 */
+html.is-handheld body {
+  background-attachment: scroll;
+}
+
+html.is-handheld .topbar {
+  background: rgb(242 235 222 / 97%);
+  backdrop-filter: none;
+}
+
+html.is-handheld .panel__cat,
+html.is-handheld .city-preview__index {
+  backdrop-filter: none;
+}
