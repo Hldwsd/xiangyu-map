@@ -47,7 +47,7 @@ Windows（NSIS）与 Android（arm64 APK）比赛版已打包，启动均进品�
 | Android  | `xiangyu-anhui_0.1.0_android_arm64.apk`     | arm64，比赛演示证书签名                                    |
 | 网页包   | `xiangyu-map-v0.1.0-web.zip`                | 解压后用静态服务器打开根目录，入口是品牌页，`/map/` 是地图 |
 | 源码     | `xiangyu-map-v0.1.0-source.zip`             | 完整源码（含品牌页、数据、文档），不含构建产物             |
-| 在线网页 | https://hldwsd.github.io/xiangyu-map/       | 无需安装                                                   |
+| 在线网页 | https://hldwsd.github.io/xiangyu-map/       | 根路径是品牌页；地图在 `/xiangyu-map/map/`                 |
 
 两个 App 启动都先到品牌页，点「进入地图」才进地图。安装包未签名/使用演示证书，系统会提示未知来源，比赛演示可接受。
 
@@ -144,11 +144,11 @@ release APK 在 src-tauri/gen/android/app/build/outputs/apk/arm64/release/，比
 | PR 预览 | https://hldwsd.github.io/xiangyu-map/pr-<n>/ | PR 打开/更新（`.github/workflows/preview.yml`），链接自动贴在该 PR 里 |
 
 - 站点是 GitHub Pages 的 `gh-pages` 分支，主站在根目录、每个 PR 一个 `pr-<n>/` 子目录，PR 关闭时自动清理；
-- 品牌页与主站同一次构建、同一个产物：`brand/index.html` → `dist/brand/index.html`，线上是
-  `/xiangyu-map/brand/`（PR 预览同理），共享同一份 `BASE_URL`，不需要单独的 workflow；
+- 线上根路径是**品牌页**：`deploy.yml` 用 `--base=/<repo>/map/` 构建后，把地图整体放进 `/map/`，品牌页复制到根 `index.html`，并把其「进入地图」链接改到 `./map/`；
+- 品牌页与地图同一次构建、同一个产物：地图内的品牌页在 `/map/brand/`，与根品牌页共享同一套资源；
 - 构建后跑 `pnpm prerender`，把 70 个详情页写成 `dist/site/<id>/index.html`，注入各自的 title、description、OG 与 JSON-LD；`SITE_URL` 由 deploy/preview workflow 注入，用于生成绝对 URL；
-- 因为部署在子路径下，所有资源路径都走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`，`public/maps` 的加载器同理）。本地要在子路径下验证，可以 `pnpm build-only --base=/xiangyu-map/` 后用任意静态服务器挂在同名前缀下；
-- 深链（`/site/<id>` 刷新）优先命中预渲染页；未知路径仍靠 `dist/404.html` 兜底，构建时由 `deploy.yml` 复制 `index.html` 生成；
+- 因为部署在子路径下，所有资源路径都走 `import.meta.env.BASE_URL`（`src/utils/asset-url.ts`，`public/maps` 的加载器同理）。本地要在子路径下验证，可以 `pnpm build-only --base=/xiangyu-map/map/` 后按 deploy 的结构手工挪一次；
+- 深链（`/xiangyu-map/map/site/<id>` 刷新）优先命中预渲染页；未知路径仍靠 `404.html` 兜底，根 `404.html` 回品牌页；
 - 预渲染方案与代价见 [ADR 0012](docs/adr/0012-prerender-detail-pages.md)，部署选型见 [ADR 0003](docs/adr/0003-deployment.md)。
 
 ## 数据与底图

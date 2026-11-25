@@ -2,7 +2,7 @@
 
 > 更新时间：2026-11-25 18:10（Asia/Shanghai）
 > 当前 main：以 GitHub `main` 为准（多端收尾 PR 合并后）
-> 线上：https://hldwsd.github.io/xiangyu-map/
+> 线上：https://hldwsd.github.io/xiangyu-map/ （根路径品牌页，地图在 `/map/`）
 > 目标读者：接手本仓库的 A/B 任一方，或下一位 agent。
 
 ## 一句话状态
