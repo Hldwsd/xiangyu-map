@@ -1429,6 +1429,10 @@ function currentOption(): ReturnType<typeof buildAnhuiMapOption> {
     // 落墨入场只播一次：首次 setOption 为 true，之后的更新一律 false
     !firstOptionApplied,
   )
+  // 触屏不弹 ECharts tooltip：点击直接出预览卡，少一层 DOM 与重绘
+  if (HANDHELD && option.tooltip !== undefined) {
+    ;(option.tooltip as { show?: boolean }).show = false
+  }
   firstOptionApplied = true
   return option
 }

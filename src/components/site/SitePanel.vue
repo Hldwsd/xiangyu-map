@@ -53,6 +53,7 @@ function openDetail(event: MouseEvent): void {
       :src="assetUrl(site.cover)"
       :alt="`${site.name} 封面`"
       loading="lazy"
+      decoding="async"
     />
 
     <div class="panel__body">
