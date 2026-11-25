@@ -16,10 +16,18 @@ import { useSitesStore } from '@/stores/sites'
 import type { AnhuiCity } from '@/types/site'
 import { assetUrl } from '@/utils/asset-url'
 import { shouldMergeMarkers } from '@/utils/map-defaults'
+import { isHandheldDevice } from '@/utils/device'
 import { loadGsap, prefersReducedMotion } from '@/utils/motion'
 
 const store = useSitesStore()
 const { filteredSites, selectedSite, selectedId } = storeToRefs(store)
+
+const isNarrow = ref(typeof window !== 'undefined' ? window.innerWidth < 1200 : false)
+let narrowQuery: MediaQueryList | null = null
+
+function syncNarrow(): void {
+  isNarrow.value = narrowQuery?.matches ?? window.innerWidth < 1200
+}
 
 const brandSeal = assetUrl('/brand/logo-red.webp')
 const total = computed(() => store.sites.length)
@@ -141,6 +149,18 @@ onMounted(() => {
 })
 
 onMounted(() => {
+  if (typeof window.matchMedia !== 'function') return
+  narrowQuery = window.matchMedia('(max-width: 1199px)')
+  syncNarrow()
+  narrowQuery.addEventListener('change', syncNarrow)
+})
+
+onBeforeUnmount(() => {
+  narrowQuery?.removeEventListener('change', syncNarrow)
+  narrowQuery = null
+})
+
+onMounted(() => {
   if (sessionStorage.getItem('xy-from-brand') !== '1') return
   sessionStorage.removeItem('xy-from-brand')
   if (prefersReducedMotion()) {
@@ -235,6 +255,11 @@ function selectFromList(id: string): void {
 
 /** 选中卡片：淡入 + 轻微上浮；封面从 1.05 收回来 */
 function panelEnter(el: Element, done: () => void): void {
+  // 触屏不做位移/缩放动画：点地标直接出卡，避免卡片和地图同时重绘掉帧
+  if (isHandheldDevice()) {
+    done()
+    return
+  }
   // 从详情页返回：卡片要直接出现在最终位置，给 View Transition 当 morph 目标
   if (sessionStorage.getItem('xy-return-instant') === '1') {
     done()
@@ -272,7 +297,7 @@ function panelEnter(el: Element, done: () => void): void {
 }
 
 function panelLeave(el: Element, done: () => void): void {
-  if (prefersReducedMotion()) {
+  if (isHandheldDevice() || prefersReducedMotion()) {
     done()
     return
   }
@@ -462,7 +487,7 @@ watch(listOpen, async (open) => {
     <div class="home-side" data-parallax>
       <Transition :css="false" mode="out-in" @enter="panelEnter" @leave="panelLeave">
         <SitePanel
-          v-if="selectedSite"
+          v-if="selectedSite && !isNarrow"
           :key="selectedSite.id"
           :site="selectedSite"
           @close="store.selectSite(null)"
@@ -474,7 +499,7 @@ watch(listOpen, async (open) => {
     <!-- 窄屏：右侧浮卡（宽屏由 .home-side 里的卡片接管） -->
     <Transition :css="false" mode="out-in" @enter="panelEnter" @leave="panelLeave">
       <SitePanel
-        v-if="selectedSite"
+        v-if="selectedSite && isNarrow"
         :key="selectedSite.id"
         data-parallax
         class="map-shell__panel"
