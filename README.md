@@ -41,13 +41,17 @@ Windows（NSIS）与 Android（arm64 APK）比赛版已打包，启动均进品�
 
 ## 下载
 
-| 平台    | 文件                                        | 说明                                               |
-| ------- | ------------------------------------------- | -------------------------------------------------- |
-| Windows | `xiangyu-anhui_0.1.0_windows_x64_setup.exe` | NSIS 安装包，默认装到 `%LOCALAPPDATA%\xiangyu_map` |
-| Android | `xiangyu-anhui_0.1.0_android_arm64.apk`     | arm64，比赛演示证书签名                            |
-| 网页    | https://hldwsd.github.io/xiangyu-map/       | 无需安装                                           |
+| 平台     | 文件                                        | 说明                                                       |
+| -------- | ------------------------------------------- | ---------------------------------------------------------- |
+| Windows  | `xiangyu-anhui_0.1.0_windows_x64_setup.exe` | NSIS 安装包，默认装到 `%LOCALAPPDATA%\xiangyu_map`         |
+| Android  | `xiangyu-anhui_0.1.0_android_arm64.apk`     | arm64，比赛演示证书签名                                    |
+| 网页包   | `xiangyu-map-v0.1.0-web.zip`                | 解压后用静态服务器打开根目录，入口是品牌页，`/map/` 是地图 |
+| 源码     | `xiangyu-map-v0.1.0-source.zip`             | 完整源码（含品牌页、数据、文档），不含构建产物             |
+| 在线网页 | https://hldwsd.github.io/xiangyu-map/       | 无需安装                                                   |
 
 两个 App 启动都先到品牌页，点「进入地图」才进地图。安装包未签名/使用演示证书，系统会提示未知来源，比赛演示可接受。
+
+网页包解压后，在目录根启动静态服务器（如 `python -m http.server 8080`）再打开 `http://localhost:8080/`；入口是品牌页，地图在 `/map/`，不要直接双击 `index.html`。
 
 ## 技术栈
 
