@@ -8,6 +8,9 @@ import './base.css'
 import './sections.css'
 
 import { assetUrl } from '@/utils/asset-url'
+import { markHandheld } from '@/utils/device'
+
+markHandheld()
 
 import { initBand } from './band'
 import { initChrome } from './chrome'

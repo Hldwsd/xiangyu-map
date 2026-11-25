@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isHandheldDevice } from '@/utils/device'
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import * as echarts from 'echarts/core'
 import { LinesChart, ScatterChart } from 'echarts/charts'
@@ -66,10 +67,7 @@ const BALL_COLLIDE = 18
 /** 合并标签比单个球大，碰撞半径也大一点；仍保持轻压，不排成整齐圆环 */
 const CLUSTER_COLLIDE = 30
 /** 点聚合点时放大一档；到上限还没分开，就退化成选中簇里第一个项目 */
-const HANDHELD =
-  typeof window !== 'undefined' &&
-  (window.matchMedia?.('(pointer: coarse)').matches === true ||
-    /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent))
+const HANDHELD = isHandheldDevice()
 const CLUSTER_ZOOM_FACTOR = 2
 /** 点簇时的缓动时长：太短会「跳」，太长会拖沓 */
 const CLUSTER_TWEEN_MS = 320

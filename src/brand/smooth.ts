@@ -10,6 +10,9 @@ import { ScrollTrigger, gsap, prefersReducedMotion } from './motion'
 
 export function initSmoothScroll(): Lenis | null {
   if (prefersReducedMotion) return null
+  // 触屏设备用原生滚动：Lenis 接管 touch 后每帧跑 GSAP ticker，
+  // 在 Android WebView 上反而比原生滚动更卡。
+  if (window.matchMedia?.('(pointer: coarse)').matches === true) return null
 
   const lenis = new Lenis({
     duration: 1.15,

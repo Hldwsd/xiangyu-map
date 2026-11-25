@@ -5,6 +5,9 @@ import App from './App.vue'
 import router from './router'
 import './assets/tokens.css'
 import './assets/main.css'
+import { markHandheld } from './utils/device'
+
+markHandheld()
 
 const app = createApp(App)
 
