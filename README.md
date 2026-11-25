@@ -41,11 +41,11 @@ Windows（NSIS）与 Android（arm64 APK）比赛版已打包，启动均进品�
 
 ## 下载
 
-| 平台    | 文件                                  | 说明                                               |
-| ------- | ------------------------------------- | -------------------------------------------------- |
-| Windows | `乡遇安徽_0.1.0_x64-setup.exe`        | NSIS 安装包，默认装到 `%LOCALAPPDATA%\xiangyu_map` |
-| Android | `乡遇安徽_0.1.0_android_arm64.apk`    | arm64，比赛演示证书签名                            |
-| 网页    | https://hldwsd.github.io/xiangyu-map/ | 无需安装                                           |
+| 平台    | 文件                                        | 说明                                               |
+| ------- | ------------------------------------------- | -------------------------------------------------- |
+| Windows | `xiangyu-anhui_0.1.0_windows_x64_setup.exe` | NSIS 安装包，默认装到 `%LOCALAPPDATA%\xiangyu_map` |
+| Android | `xiangyu-anhui_0.1.0_android_arm64.apk`     | arm64，比赛演示证书签名                            |
+| 网页    | https://hldwsd.github.io/xiangyu-map/       | 无需安装                                           |
 
 两个 App 启动都先到品牌页，点「进入地图」才进地图。安装包未签名/使用演示证书，系统会提示未知来源，比赛演示可接受。
 
